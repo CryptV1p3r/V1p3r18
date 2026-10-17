@@ -409,6 +409,12 @@
       cursor: pointer;
     }
 
+    .source-note {
+      margin-bottom: 12px;
+      font-size: var(--fs-xs);
+      color: var(--text-muted);
+    }
+
     .placeholder.category-empty { padding: 0 16px 14px; }
 
     .placeholder {
@@ -549,6 +555,8 @@
        1. DADOS
        ========================================================= */
 
+    const UNAVAILABLE = 'Informação não disponível';
+
     /** As 15 categorias obrigatórias, pela ordem definida no projeto. */
     const CATEGORIES = [
       { id: 'economia',      nome: 'Economia e Finanças' },
@@ -570,19 +578,393 @@
 
     /**
      * Partidos com assento parlamentar.
-     * Fase 1: só identificação e cor; `programa` e `dirigentes` ficam vazios.
+     * Fase 2: preenchidos por grupos (1.º grupo: AD, PS e Chega).
      *
-     * Formato a preencher na Fase 2:
+     * Formato:
+     *   fonte:      documento de onde vêm as propostas
      *   programa:   { [categoryId]: [ { texto: string, ideia: string|null } ] }
-     *               `ideia` é um identificador comum entre partidos (ex.: 'iva-zero-cabaz')
-     *               que a Fase 3 usa para gerar os badges de convergência.
+     *               `ideia` é um identificador kebab-case partilhado entre partidos com
+     *               propostas semelhantes (ex.: 'iva-zero-cabaz'); a Fase 3 cruza-o para
+     *               gerar os badges. Categoria vazia = sem informação verificada.
      *   dirigentes: [ { nome, funcao, area, militancia, passado } ]
      *               Campos desconhecidos: 'Informação não disponível'.
      */
     const PARTIES = [
-      { id: 'ad',     sigla: 'AD',  nome: 'Aliança Democrática (PSD + CDS-PP)', cor: '#f68a21', programa: {}, dirigentes: [] },
-      { id: 'ps',     sigla: 'PS',  nome: 'Partido Socialista',                  cor: '#e3177b', programa: {}, dirigentes: [] },
-      { id: 'chega',  sigla: 'CH',  nome: 'Chega',                               cor: '#1d2b5c', programa: {}, dirigentes: [] },
+      {
+        id: 'ad', sigla: 'AD', nome: 'Aliança Democrática (PSD + CDS-PP)', cor: '#f68a21',
+        fonte: 'Programa Eleitoral AD, Legislativas 2025',
+        programa: {
+          economia: [
+            { texto: 'Manter saldos orçamentais ligeiramente positivos e reduzir o peso da dívida pública.', ideia: 'contas-publicas-equilibradas' },
+            { texto: 'Reforçar os apoios às exportações face às tensões comerciais internacionais.', ideia: 'apoio-exportacoes' },
+            { texto: 'Garantir que o Estado paga aos fornecedores em 30 dias e decide dentro dos prazos legais.', ideia: 'estado-paga-a-tempo' },
+            { texto: 'Cortar burocracia: simplificar licenciamentos, contratação pública e taxas administrativas.', ideia: 'desburocratizar-estado' },
+          ],
+          impostos: [
+            { texto: 'Reduzir o IRS em 2.000 milhões de euros, sobretudo para a classe média.', ideia: 'reduzir-irs-classe-media' },
+            { texto: 'Baixar gradualmente o IRC até 17% (15% para as PME).', ideia: 'reduzir-irc' },
+            { texto: 'Simplificação fiscal e aceleração da justiça tributária.', ideia: 'simplificacao-fiscal' },
+          ],
+          juventude: [
+            { texto: 'Manter o IRS Jovem reduzido.', ideia: 'irs-jovem' },
+            { texto: 'Isenção de IMT e Imposto do Selo na compra da primeira casa pelos jovens.', ideia: 'isencao-imt-jovens' },
+            { texto: 'Garantia pública no crédito à compra da primeira casa.', ideia: 'garantia-publica-primeira-casa' },
+          ],
+          educacao: [
+            { texto: 'Contratualizar até 12 mil vagas no pré-escolar para garantir creche e pré-escolar a todas as crianças.', ideia: 'pre-escolar-universal' },
+            { texto: 'Serviço gratuito de apoio ao estudo para alunos carenciados ou em risco.', ideia: 'apoio-estudo-gratuito' },
+            { texto: 'Atrair professores para as regiões com mais alunos sem aulas.', ideia: 'atrair-professores-zonas-carenciadas' },
+            { texto: 'Proibir telemóveis nas escolas até ao 6.º ano e regular as redes sociais até aos 12 anos.', ideia: 'proibir-telemoveis-escolas' },
+            { texto: 'Aumentar a bolsa mínima de ação social no ensino superior.', ideia: 'reforcar-acao-social-ensino-superior' },
+          ],
+          habitacao: [
+            { texto: 'Choque de oferta: flexibilizar regras de construção e simplificar o licenciamento urbanístico.', ideia: 'simplificar-licenciamento-urbanistico' },
+            { texto: 'Executar as 59 mil casas públicas a preços acessíveis e financiar mais projetos municipais.', ideia: 'reforcar-habitacao-publica' },
+            { texto: 'IVA a 6% nas obras de construção e reabilitação para habitação.', ideia: 'iva-6-construcao' },
+            { texto: 'Parcerias público-privadas para habitação acessível e alojamento estudantil.', ideia: 'ppp-habitacao-acessivel' },
+            { texto: 'Zonas de expansão urbana geridas pelo Estado com as câmaras, no modelo da Parque Expo.', ideia: 'expansao-urbana-modelo-parque-expo' },
+            { texto: 'Colocar no mercado imóveis e solos públicos devolutos ou subutilizados.', ideia: 'mobilizar-imoveis-publicos' },
+          ],
+          saude: [
+            { texto: 'Médico de família para todos e mais cuidados domiciliários.', ideia: 'medico-de-familia-para-todos' },
+            { texto: 'Criar o Gestor do Doente Crónico.', ideia: 'gestor-doente-cronico' },
+            { texto: 'Apostar nas PPP, nas USF modelo B e C e nas convenções com privados e setor social.', ideia: 'ppp-saude' },
+            { texto: 'Plano de Saúde Oral para os portugueses mais carenciados.', ideia: 'saude-oral-sns' },
+            { texto: 'Alargar o acesso a cuidados paliativos e continuados.', ideia: 'cuidados-continuados-paliativos' },
+          ],
+          imigracao: [
+            { texto: 'Criar a Unidade Nacional de Estrangeiros e Fronteiras (UNEF) na PSP.', ideia: 'policia-de-fronteiras' },
+            { texto: 'Regular as entradas (incluindo CPLP e reagrupamento familiar) segundo a capacidade de integração do país.', ideia: 'limitar-fluxos-migratorios' },
+            { texto: 'Rever os requisitos para obter a nacionalidade.', ideia: 'nacionalidade-mais-exigente' },
+            { texto: 'Regime rápido e eficaz de afastamento de estrangeiros em situação ilegal.', ideia: 'afastamento-imigrantes-ilegais' },
+            { texto: 'Limitar o número de atestados de residência por imóvel.', ideia: 'limitar-atestados-residencia' },
+            { texto: 'Combater a imigração ilegal e o tráfico de seres humanos.', ideia: 'combate-imigracao-ilegal' },
+            { texto: 'Reforçar o acolhimento e a integração humanista dos imigrantes.', ideia: 'reforcar-integracao-imigrantes' },
+          ],
+          seguranca: [
+            { texto: 'Mais polícias nas ruas.', ideia: 'mais-policias' },
+            { texto: 'Videovigilância nas áreas sensíveis.', ideia: 'videovigilancia' },
+            { texto: 'Julgamentos rápidos para crimes violentos ou graves, sobretudo em flagrante delito.', ideia: 'justica-celere-crimes-graves' },
+            { texto: 'Combate prioritário à violência doméstica.', ideia: 'combate-violencia-domestica' },
+          ],
+          trabalho: [
+            { texto: 'Salário mínimo de cerca de 1.100€ em 2029.', ideia: 'aumentar-salario-minimo' },
+            { texto: 'Condições para um salário médio de 2.000€ em 2029.', ideia: 'salario-medio-2000' },
+            { texto: 'Suplemento Remunerativo Solidário: acumular salário com apoios sociais para que trabalhar compense.', ideia: 'trabalhar-compensa' },
+            { texto: 'Aproximar a proteção social de independentes e trabalhadores de plataformas à dos trabalhadores por conta de outrem.', ideia: 'protecao-social-independentes' },
+          ],
+          ambiente: [
+            { texto: 'Programa «Água que Une»: armazenamento, transporte e redução de perdas de água.', ideia: 'gestao-eficiente-agua' },
+            { texto: 'Estratégia Nacional para o Armazenamento de Energia e mais renováveis.', ideia: 'armazenamento-energia' },
+            { texto: 'Acelerar o autoconsumo e as comunidades de energia.', ideia: 'autoconsumo-comunidades-energia' },
+            { texto: 'Rever a tarifa social da energia para reforçar a equidade.', ideia: 'tarifa-social-energia' },
+            { texto: 'Manter apoios às botijas de gás para famílias vulneráveis.', ideia: 'apoio-gas-engarrafado' },
+            { texto: 'Classificar 30% do mar como área marinha protegida até 2028.', ideia: 'areas-marinhas-protegidas' },
+          ],
+          'estado-social': [
+            { texto: 'Nenhum pensionista com rendimento abaixo de 870€, via Complemento Solidário para Idosos.', ideia: 'pensao-minima-digna' },
+            { texto: 'Continuar a valorizar as pensões.', ideia: 'valorizar-pensoes' },
+            { texto: 'Medicamentos gratuitos para beneficiários do CSI.', ideia: 'medicamentos-gratuitos-idosos' },
+            { texto: 'Programa de Envelhecimento Ativo.', ideia: 'envelhecimento-ativo' },
+            { texto: 'Combater a situação de sem-abrigo e o consumo de drogas.', ideia: 'combate-sem-abrigo' },
+          ],
+          cultura: [
+            { texto: 'Reforçar as dotações da Cultura em todos os Orçamentos do Estado da legislatura.', ideia: 'reforcar-orcamento-cultura' },
+            { texto: 'Novo regime do Mecenato Cultural, mais atrativo.', ideia: 'lei-mecenato-cultural' },
+            { texto: 'Acesso gratuito de crianças e jovens a monumentos, museus e teatros.', ideia: 'cultura-gratuita-jovens' },
+            { texto: 'Implementar o Plano Estratégico do Cinema e do Audiovisual.', ideia: 'plano-estrategico-cinema' },
+            { texto: 'Inventariar e reabilitar o património cultural.', ideia: 'protecao-patrimonio' },
+            { texto: 'Comissariado para os 900 anos da Batalha de São Mamede (1128).', ideia: 'celebrar-datas-fundadoras' },
+            { texto: 'Linha de financiamento para revitalizar o artesanato.', ideia: 'apoio-artesanato' },
+          ],
+          agricultura: [
+            { texto: 'Linhas de crédito de longo prazo para comprar terrenos agrícolas.', ideia: 'credito-terra-agricola' },
+            { texto: 'Emparcelamento para reduzir a fragmentação da propriedade rústica.', ideia: 'emparcelamento' },
+            { texto: 'Prevenção estrutural de incêndios e gestão ativa da floresta.', ideia: 'prevencao-incendios' },
+            { texto: 'Descarbonizar e reestruturar a frota pesqueira.', ideia: 'modernizar-frota-pesqueira' },
+            { texto: 'Quadro legal que atraia investimento privado na aquicultura.', ideia: 'apoio-aquicultura' },
+            { texto: 'Circuitos curtos de comercialização de pescado.', ideia: 'circuitos-curtos-comercializacao' },
+          ],
+          coesao: [
+            { texto: 'Continuar a descentralização de competências para municípios e entidades intermunicipais.', ideia: 'descentralizacao-municipios' },
+            { texto: 'Redesenhar o Programa de Valorização do Interior e recuperar casas das aldeias.', ideia: 'revitalizar-aldeias' },
+            { texto: 'Estudar benefícios fiscais para famílias e empresas que se mudem para o interior.', ideia: 'incentivos-fiscais-interior' },
+            { texto: 'Rever a Lei de Finanças das Regiões Autónomas e estudar sistemas fiscais regionais.', ideia: 'lei-financas-regionais' },
+            { texto: 'Garantir a continuidade territorial nos transportes para as ilhas.', ideia: 'continuidade-territorial-ilhas' },
+          ],
+          transparencia: [
+            { texto: 'Regulamentar o lóbi com registo público obrigatório.', ideia: 'regulamentar-lobbying' },
+            { texto: 'Novo mecanismo de perda alargada de bens.', ideia: 'perda-alargada-bens' },
+            { texto: '«Lista negra» de fornecedores do Estado.', ideia: 'lista-negra-fornecedores' },
+            { texto: 'Registar a pegada legislativa do Governo.', ideia: 'pegada-legislativa' },
+            { texto: 'Concretizar a reforma do Mecanismo Nacional Anticorrupção (MENAC).', ideia: 'reforcar-entidades-anticorrupcao' },
+          ],
+        },
+        dirigentes: [
+          {
+            nome: 'Luís Montenegro',
+            funcao: 'Presidente do PSD e Primeiro-Ministro',
+            area: 'Liderança do Governo e da coligação',
+            militancia: 'Militante desde a juventude (JSD)',
+            passado: 'Deputado desde 2002, líder parlamentar do PSD (2011–2017), presidente do PSD desde 2022 e Primeiro-Ministro desde abril de 2024.',
+          },
+          {
+            nome: 'Nuno Melo',
+            funcao: 'Presidente do CDS-PP e Ministro da Defesa Nacional',
+            area: 'Defesa Nacional',
+            militancia: UNAVAILABLE,
+            passado: 'Deputado à Assembleia da República e eurodeputado (2009–2024); presidente do CDS-PP desde 2022; Ministro da Defesa Nacional desde 2024.',
+          },
+          {
+            nome: 'Hugo Soares',
+            funcao: 'Secretário-geral e líder parlamentar do PSD',
+            area: 'Coordenação parlamentar e organização do partido',
+            militancia: UNAVAILABLE,
+            passado: 'Deputado; já tinha sido líder parlamentar do PSD (2017–2018); secretário-geral do partido desde 2022.',
+          },
+        ],
+      },
+      {
+        id: 'ps', sigla: 'PS', nome: 'Partido Socialista', cor: '#e3177b',
+        fonte: 'Programa Eleitoral PS «Um Novo Impulso para Portugal», Legislativas 2025',
+        programa: {
+          economia: [
+            { texto: 'Saldos orçamentais equilibrados e redução sustentada da dívida pública.', ideia: 'contas-publicas-equilibradas' },
+            { texto: 'Aprovar uma Estratégia Industrial Verde para uma indústria descarbonizada e competitiva.', ideia: 'estrategia-industrial-verde' },
+          ],
+          impostos: [
+            { texto: 'Regresso, agora permanente, do IVA Zero num cabaz de bens alimentares.', ideia: 'iva-zero-cabaz' },
+            { texto: 'IVA a 6% em toda a fatura da eletricidade para famílias até 6,9 kVA.', ideia: 'iva-eletricidade-6' },
+            { texto: 'Reduzir pelo menos 20% o IUC dos veículos até média cilindrada matriculados após julho de 2007.', ideia: 'reduzir-iuc' },
+            { texto: 'Descida seletiva do IRC, privilegiando as empresas que investem.', ideia: 'irc-seletivo' },
+          ],
+          juventude: [
+            { texto: '«Ano zero» no IRS Jovem para quem entra no mercado de trabalho no 2.º semestre.', ideia: 'irs-jovem' },
+            { texto: 'Programa «Pé-de-Meia»: 500€ em certificados de aforro para cada criança nascida a partir de 2025.', ideia: 'pe-de-meia-criancas' },
+          ],
+          educacao: [
+            { texto: 'Pré-escolar gratuito a partir dos 3 anos, com as redes pública, solidária e privada.', ideia: 'pre-escolar-universal' },
+            { texto: 'Apoios à deslocação para professores e início de carreira docente mais atrativo.', ideia: 'apoio-deslocacao-professores' },
+            { texto: 'Reduzir a propina de licenciatura até à sua extinção no prazo de uma década.', ideia: 'eliminar-propinas' },
+            { texto: 'Reforçar os professores de educação especial e os Centros de Recursos para a Inclusão.', ideia: 'reforcar-educacao-inclusiva' },
+          ],
+          habitacao: [
+            { texto: 'Instrumentos permanentes de financiamento da habitação pública, em parte com dividendos da CGD.', ideia: 'reforcar-habitacao-publica' },
+            { texto: 'Apoio à renda para todas as famílias com taxa de esforço elevada, incluindo a classe média.', ideia: 'apoio-renda-classe-media' },
+            { texto: 'Repor regras mínimas de regulação do Alojamento Local.', ideia: 'regular-alojamento-local' },
+          ],
+          saude: [
+            { texto: 'Mais médicos de família nos centros de saúde carenciados, com apoio ao alojamento dos médicos.', ideia: 'fixacao-medicos-zonas-carenciadas' },
+            { texto: 'Medicina dentária no pacote básico do SNS, com 350 gabinetes e carreira de médico-dentista.', ideia: 'saude-oral-sns' },
+            { texto: 'Saúde mental nos cuidados básicos do SNS, com equipas comunitárias e 300 psicólogos até 2026.', ideia: 'reforcar-saude-mental' },
+            { texto: 'Manter um modelo de dedicação exclusiva no SNS.', ideia: 'dedicacao-exclusiva-sns' },
+          ],
+          imigracao: [
+            { texto: 'Promover a imigração regular a partir dos países de origem.', ideia: 'imigracao-regulada-na-origem' },
+            { texto: 'Permitir às empresas organizar junto da AIMA a contratação de trabalhadores estrangeiros.', ideia: 'contratacao-estrangeiros-via-empresas' },
+            { texto: 'Atendimento no IEFP 30 dias após a entrada para quem tem visto de procura de trabalho.', ideia: 'integracao-laboral-imigrantes' },
+            { texto: 'Combater as redes de imigração ilegal.', ideia: 'combate-imigracao-ilegal' },
+            { texto: 'Alargar o atendimento presencial da AIMA com municípios e sociedade civil, privilegiando a integração.', ideia: 'reforcar-integracao-imigrantes' },
+          ],
+          seguranca: [
+            { texto: 'Acabar com os megaprocessos.', ideia: 'acabar-megaprocessos' },
+            { texto: 'Alargar a suspensão provisória do processo a mais crimes.', ideia: 'alargar-suspensao-provisoria' },
+            { texto: 'Alargar a rede de tribunais administrativos de 1.ª instância.', ideia: 'mais-tribunais' },
+          ],
+          trabalho: [
+            { texto: 'Salário mínimo de pelo menos 1.110€ em 2029 (mais 60€ por ano).', ideia: 'aumentar-salario-minimo' },
+            { texto: 'Salário médio a subir 5% por ano, até pelo menos 2.000€ em 2029.', ideia: 'salario-medio-2000' },
+            { texto: 'Reduzir de forma faseada a semana de trabalho de 40 para 37,5 horas.', ideia: 'semana-37-5-horas' },
+          ],
+          ambiente: [
+            { texto: 'Mecanismo permanente de apoio à eficiência energética, para além do PRR.', ideia: 'eficiencia-energetica-edificios' },
+            { texto: 'Fixar o preço do gás engarrafado com base numa proposta da ERSE.', ideia: 'apoio-gas-engarrafado' },
+            { texto: 'Apostar nos gases renováveis para descarbonizar indústria e mobilidade.', ideia: 'gases-renovaveis' },
+            { texto: 'Consolidar os programas de redução tarifária nos transportes públicos.', ideia: 'passes-transportes-baratos' },
+          ],
+          'estado-social': [
+            { texto: 'Rejeitar a privatização total ou parcial do sistema de pensões.', ideia: 'pensoes-publicas' },
+            { texto: 'Cumprir integralmente a fórmula de atualização das pensões em todos os anos.', ideia: 'valorizar-pensoes' },
+            { texto: 'Reforçar em 50% o abono de família dos 3 aos 6 anos.', ideia: 'reforcar-abono-familia' },
+          ],
+          cultura: [],
+          agricultura: [],
+          coesao: [
+            { texto: 'Avançar com a regionalização, dando às futuras regiões administrativas meios para planear os transportes.', ideia: 'regionalizacao' },
+            { texto: 'Eliminar as «zonas brancas» sem rede de comunicações.', ideia: 'eliminar-zonas-brancas' },
+            { texto: 'Programa de Acessibilidade Rodoviária Local que suceda ao PRR.', ideia: 'acessibilidades-interior' },
+          ],
+          transparencia: [
+            { texto: 'Rever o Estatuto dos Titulares de Cargos Políticos.', ideia: 'rever-estatuto-titulares' },
+            { texto: 'Rever a lei dos partidos, vinculando-os a mecanismos de transparência.', ideia: 'transparencia-partidos' },
+            { texto: 'Reforçar o reporte de operações offshore.', ideia: 'controlo-offshores' },
+          ],
+        },
+        dirigentes: [
+          {
+            nome: 'José Luís Carneiro',
+            funcao: 'Secretário-geral do PS (desde junho de 2025)',
+            area: 'Administração interna e poder local',
+            militancia: UNAVAILABLE,
+            passado: 'Presidente da Câmara de Baião (2005–2015), Secretário de Estado das Comunidades Portuguesas (2015–2019) e Ministro da Administração Interna (2022–2024).',
+          },
+          {
+            nome: 'Pedro Nuno Santos',
+            funcao: 'Secretário-geral do PS entre 2024 e 2025 e candidato a primeiro-ministro nas Legislativas de 2025',
+            area: 'Infraestruturas e habitação',
+            militancia: 'Militante desde a juventude (foi secretário-geral da Juventude Socialista)',
+            passado: 'Secretário de Estado dos Assuntos Parlamentares (2015–2019) e Ministro das Infraestruturas e da Habitação (2019–2022); deixou a liderança do PS após as eleições de maio de 2025.',
+          },
+        ],
+      },
+      {
+        id: 'chega', sigla: 'CH', nome: 'Chega', cor: '#1d2b5c',
+        fonte: 'Programa Eleitoral CHEGA, Legislativas 2025',
+        programa: {
+          economia: [
+            { texto: 'Fundo Nacional de Reindustrialização (têxtil, metalurgia, agroalimentar e defesa).', ideia: 'reindustrializacao' },
+            { texto: 'Preferência por produtos portugueses nas compras públicas.', ideia: 'preferencia-produto-nacional' },
+            { texto: 'Taxas compensatórias contra o dumping chinês e estrangeiro.', ideia: 'medidas-anti-dumping' },
+            { texto: 'Benefícios fiscais para empresas que exportem mais de 50% da produção.', ideia: 'apoio-exportacoes' },
+            { texto: 'Avaliar as empresas públicas e abrir a sua operação ao setor privado.', ideia: 'privatizar-empresas-publicas' },
+          ],
+          impostos: [
+            { texto: 'IRS com duas taxas (15% e 30%) e isenção para rendimentos até 1.000€ por mês.', ideia: 'irs-duas-taxas' },
+            { texto: 'IRC a 15% até 2028, com efeito imediato nas empresas do interior.', ideia: 'reduzir-irc' },
+            { texto: 'Reintroduzir o IVA Zero nos bens alimentares essenciais.', ideia: 'iva-zero-cabaz' },
+            { texto: 'Baixar a taxa normal de IVA de 23% para 21%.', ideia: 'reduzir-iva-normal' },
+            { texto: 'Revogar o adicional ao IUC.', ideia: 'reduzir-iuc' },
+            { texto: 'Eliminar o adicional ao IMI e isentar de IMI e IMT a habitação própria até 350 mil euros.', ideia: 'isencao-imi-habitacao-propria' },
+            { texto: 'Simplificar as normas fiscais e rever o regime das infrações tributárias.', ideia: 'simplificacao-fiscal' },
+            { texto: 'Manter e aumentar em 10% a contribuição do setor bancário.', ideia: 'contribuicao-banca' },
+          ],
+          juventude: [
+            { texto: 'Isentar de IRS os jovens até aos 35 anos até somarem 100 mil euros de rendimentos.', ideia: 'irs-jovem' },
+            { texto: 'Alargar a isenção de IMT e Imposto do Selo na primeira casa aos jovens até aos 40 anos.', ideia: 'isencao-imt-jovens' },
+            { texto: 'Alargar a garantia pública na compra da primeira casa a casais com um membro acima dos 35 anos.', ideia: 'garantia-publica-primeira-casa' },
+            { texto: 'Passe gratuito para jovens estudantes ou trabalhadores até aos 30 anos.', ideia: 'passe-gratuito-jovens' },
+            { texto: 'Programa Regressar específico para jovens emigrados.', ideia: 'regresso-jovens-emigrados' },
+          ],
+          educacao: [
+            { texto: 'Reintroduzir exames nacionais no 4.º, 6.º e 9.º anos.', ideia: 'exames-nacionais' },
+            { texto: 'Recuperar integralmente o tempo de serviço dos professores.', ideia: 'recuperar-tempo-servico-professores' },
+            { texto: 'Apoio à deslocação para professores colocados a mais de 70 km de casa.', ideia: 'apoio-deslocacao-professores' },
+            { texto: 'Direito dos pais a escolher se os filhos participam em atividades sobre ideologia de género.', ideia: 'escolha-pais-conteudos' },
+            { texto: 'Reforçar o ensino técnico e profissional.', ideia: 'reforcar-ensino-profissional' },
+          ],
+          habitacao: [
+            { texto: 'Rever o pacote Mais Habitação e acabar com o controlo de preços das rendas.', ideia: 'fim-controlo-rendas' },
+            { texto: 'Despejo célere por incumprimento e tolerância zero às ocupações ilegais.', ideia: 'despejo-celere' },
+            { texto: 'Deferimento tácito no licenciamento urbanístico quando os prazos são ultrapassados.', ideia: 'simplificar-licenciamento-urbanistico' },
+            { texto: 'IVA a 6% em projeto e construção de habitação.', ideia: 'iva-6-construcao' },
+            { texto: 'Parcerias público-privadas em terrenos públicos com rendas a custos controlados.', ideia: 'ppp-habitacao-acessivel' },
+            { texto: 'Expansão habitacional nas áreas metropolitanas inspirada na Parque Expo.', ideia: 'expansao-urbana-modelo-parque-expo' },
+            { texto: 'Mapear terrenos públicos e reabilitar o património edificado do Estado.', ideia: 'mobilizar-imoveis-publicos' },
+          ],
+          saude: [
+            { texto: 'Evoluir para um Sistema Nacional de Saúde que integre público, privado e social, com PPP.', ideia: 'ppp-saude' },
+            { texto: 'Esgotado o tempo máximo de resposta, encaminhar o utente para o privado ou social.', ideia: 'privado-quando-sns-falha' },
+            { texto: 'Incentivos à fixação de médicos de família no interior e zonas carenciadas.', ideia: 'fixacao-medicos-zonas-carenciadas' },
+            { texto: 'Acesso universal à saúde oral e carreira especial de médico dentista.', ideia: 'saude-oral-sns' },
+            { texto: 'Cheque de Saúde Mental quando o SNS não dá resposta.', ideia: 'reforcar-saude-mental' },
+            { texto: 'Reforçar a rede de cuidados continuados e paliativos.', ideia: 'cuidados-continuados-paliativos' },
+            { texto: 'Revogar a lei da morte medicamente assistida.', ideia: 'revogar-eutanasia' },
+          ],
+          imigracao: [
+            { texto: 'Lei da Nacionalidade mais exigente: língua, história e cultura portuguesas.', ideia: 'nacionalidade-mais-exigente' },
+            { texto: 'Quotas anuais de imigração segundo as qualificações e necessidades do mercado de trabalho.', ideia: 'limitar-fluxos-migratorios' },
+            { texto: 'Revogar o acordo de mobilidade da CPLP.', ideia: 'revogar-mobilidade-cplp' },
+            { texto: 'Criar o crime de residência ilegal e impedir a regularização durante 5 anos.', ideia: 'afastamento-imigrantes-ilegais' },
+            { texto: 'Reformular a AIMA, juntando de novo a vertente administrativa e a policial.', ideia: 'policia-de-fronteiras' },
+            { texto: 'Exigir 5 anos de contribuições antes de aceder a apoios sociais.', ideia: 'prazo-acesso-apoios-sociais' },
+            { texto: 'Limitar os atestados de residência por habitação.', ideia: 'limitar-atestados-residencia' },
+            { texto: 'Penas mais pesadas para o tráfico de pessoas e o auxílio à imigração ilegal.', ideia: 'combate-imigracao-ilegal' },
+            { texto: 'Acompanhar os recém-chegados e garantir ensino de português e de história.', ideia: 'reforcar-integracao-imigrantes' },
+          ],
+          seguranca: [
+            { texto: 'Recrutar efetivos para repor o equilíbrio de entradas e saídas na PSP e GNR em cinco anos.', ideia: 'mais-policias' },
+            { texto: 'Equiparar o suplemento de risco das forças de segurança ao da Polícia Judiciária.', ideia: 'suplemento-risco-policias' },
+            { texto: 'Expandir a videovigilância em zonas de diversão noturna e de maior insegurança.', ideia: 'videovigilancia' },
+            { texto: 'Prisão perpétua com possibilidade de revisão e castração química temporária para reincidentes.', ideia: 'prisao-perpetua' },
+            { texto: 'Mais meios e penas mais pesadas contra a violência doméstica.', ideia: 'combate-violencia-domestica' },
+            { texto: 'Acelerar os megaprocessos, limitando a instrução e alguns recursos.', ideia: 'acabar-megaprocessos' },
+            { texto: 'Abrir novos tribunais para garantir justiça de proximidade.', ideia: 'mais-tribunais' },
+          ],
+          trabalho: [
+            { texto: 'Salário mínimo de 1.000€ em 2026 e 1.150€ em 2029, com apoio às empresas.', ideia: 'aumentar-salario-minimo' },
+            { texto: 'Horas extraordinárias pagas a 100% e isentas de IRS e Segurança Social.', ideia: 'isentar-horas-extra' },
+            { texto: 'Isenção de contribuições patronais na contratação de jovens, desempregados de longa duração e emigrantes que regressem.', ideia: 'incentivos-contratacao-jovens' },
+            { texto: 'Estudar o estatuto de desgaste rápido para profissões como enfermeiro e motorista de pesados.', ideia: 'profissoes-desgaste-rapido' },
+            { texto: 'Reforçar os meios da Autoridade para as Condições do Trabalho.', ideia: 'reforcar-act' },
+          ],
+          ambiente: [
+            { texto: 'Plano Nacional de Combate a Perdas de Água e modernização da rede de abastecimento.', ideia: 'gestao-eficiente-agua' },
+            { texto: 'Pequenos reatores nucleares modulares, até 300 MW.', ideia: 'energia-nuclear' },
+            { texto: 'Passar a uma produção elétrica descentralizada, com autoconsumo e baterias.', ideia: 'autoconsumo-comunidades-energia' },
+            { texto: 'Soluções de armazenamento de energia elétrica.', ideia: 'armazenamento-energia' },
+            { texto: 'Alargar a tarifa social de eletricidade e gás a quem ganha o salário mínimo.', ideia: 'tarifa-social-energia' },
+            { texto: 'IVA a 6% nas obras de melhoria térmica das habitações.', ideia: 'eficiencia-energetica-edificios' },
+            { texto: 'Baixar o IVA das botijas de gás butano e propano.', ideia: 'apoio-gas-engarrafado' },
+          ],
+          'estado-social': [
+            { texto: 'Subir a pensão mínima até ao valor do IAS e depois ao do salário mínimo.', ideia: 'pensao-minima-digna' },
+            { texto: 'Licença parental de 12 meses, repartida entre os progenitores.', ideia: 'licenca-parental-alargada' },
+            { texto: 'Cheque-creche para as famílias escolherem a creche.', ideia: 'cheque-creche' },
+            { texto: 'RSI temporário para quem pode trabalhar, com contrapartida de serviço à comunidade.', ideia: 'rsi-com-contrapartidas' },
+            { texto: 'Bonificar quem prolongue a vida ativa e facilitar acumular pensão e trabalho.', ideia: 'envelhecimento-ativo' },
+            { texto: 'Nova Estratégia Nacional para as Pessoas em Situação de Sem-Abrigo.', ideia: 'combate-sem-abrigo' },
+          ],
+          cultura: [
+            { texto: 'Programa Nacional de Recuperação do Património (monumentos, igrejas, castelos).', ideia: 'protecao-patrimonio' },
+            { texto: 'Celebrar as datas fundadoras da nacionalidade.', ideia: 'celebrar-datas-fundadoras' },
+            { texto: 'Criar o Museu Nacional dos Descobrimentos.', ideia: 'museu-descobrimentos' },
+            { texto: 'Atualizar a Lei do Mecenato Cultural, com mais incentivos fiscais.', ideia: 'lei-mecenato-cultural' },
+            { texto: 'Apoio direto a bandas filarmónicas e ranchos folclóricos.', ideia: 'apoio-cultura-popular' },
+            { texto: 'Apoiar artesãos que preservem técnicas tradicionais.', ideia: 'apoio-artesanato' },
+            { texto: 'Plano Estratégico para o Cinema e Audiovisual português.', ideia: 'plano-estrategico-cinema' },
+          ],
+          agricultura: [
+            { texto: 'Restaurar o Ministério da Agricultura, Pescas e Florestas com todas as competências.', ideia: 'ministerio-agricultura-pescas' },
+            { texto: 'Rede Nacional da Água com transferências do Norte para o Sul e expansão do regadio.', ideia: 'regadio-transferencias-agua' },
+            { texto: 'Eliminar os impostos sobre o gasóleo agrícola.', ideia: 'gasoleo-agricola' },
+            { texto: 'Prevenção e combate aos incêndios florestais.', ideia: 'prevencao-incendios' },
+            { texto: 'Compras públicas locais e apoio à agricultura de proximidade.', ideia: 'circuitos-curtos-comercializacao' },
+          ],
+          coesao: [
+            { texto: 'Reforçar os poderes dos municípios e rever as competências das CCDR.', ideia: 'descentralizacao-municipios' },
+            { texto: 'Benefícios fiscais para jovens casais que se fixem no interior.', ideia: 'incentivos-fiscais-interior' },
+            { texto: 'Eliminar as «zonas brancas» com 5G e fibra ótica em todo o país.', ideia: 'eliminar-zonas-brancas' },
+            { texto: 'Revitalizar aldeias e centros históricos com reabilitação urbana.', ideia: 'revitalizar-aldeias' },
+            { texto: 'Rever a Lei das Finanças Regionais e criar um sistema fiscal próprio na Madeira.', ideia: 'lei-financas-regionais' },
+            { texto: 'Subsídio às viagens aéreas em que os residentes das ilhas pagam só um valor fixo.', ideia: 'continuidade-territorial-ilhas' },
+            { texto: 'Extinguir o cargo de Representante da República nas regiões autónomas.', ideia: 'extinguir-representante-republica' },
+          ],
+          transparencia: [
+            { texto: 'Criar o crime de enriquecimento ilícito.', ideia: 'enriquecimento-ilicito' },
+            { texto: 'Penas mínimas sem suspensão e prazos de prescrição mais longos para a corrupção.', ideia: 'penas-corrupcao' },
+            { texto: 'Apreensão de bens antes da condenação final, como nos sistemas anglo-saxónicos.', ideia: 'perda-alargada-bens' },
+            { texto: 'Período de nojo de oito anos para titulares de cargos políticos.', ideia: 'periodo-nojo' },
+            { texto: 'Regulamentar o lóbi com registo de transparência no Parlamento.', ideia: 'regulamentar-lobbying' },
+            { texto: 'Auditoria externa às contas do Governo e dos partidos.', ideia: 'auditoria-contas-publicas' },
+          ],
+        },
+        dirigentes: [
+          {
+            nome: 'André Ventura',
+            funcao: 'Presidente do Chega',
+            area: 'Segurança, imigração e combate à corrupção',
+            militancia: 'Desde a fundação do partido, em 2019',
+            passado: 'Militante do PSD e candidato do partido à Câmara de Loures em 2017; fundou o Chega em 2019; deputado desde 2019; candidato a Presidente da República em 2021.',
+          },
+          {
+            nome: 'Pedro Pinto',
+            funcao: 'Líder parlamentar do Chega',
+            area: 'Liderança parlamentar',
+            militancia: UNAVAILABLE,
+            passado: UNAVAILABLE,
+          },
+        ],
+      },
       { id: 'il',     sigla: 'IL',  nome: 'Iniciativa Liberal',                  cor: '#00aeef', programa: {}, dirigentes: [] },
       { id: 'livre',  sigla: 'L',   nome: 'Livre',                               cor: '#7ab51d', programa: {}, dirigentes: [] },
       { id: 'cdu',    sigla: 'CDU', nome: 'CDU (PCP + PEV)',                     cor: '#d7191c', programa: {}, dirigentes: [] },
@@ -590,8 +972,6 @@
       { id: 'pan',    sigla: 'PAN', nome: 'Pessoas-Animais-Natureza',            cor: '#00877a', programa: {}, dirigentes: [] },
       { id: 'jpp',    sigla: 'JPP', nome: 'Juntos Pelo Povo',                    cor: '#3d9a41', programa: {}, dirigentes: [] },
     ];
-
-    const UNAVAILABLE = 'Informação não disponível';
 
     /* =========================================================
        2. ESTADO E ROTAS
@@ -762,6 +1142,7 @@
       const visible = CATEGORIES.filter((c) => state.category === 'todas' || c.id === state.category);
 
       return `
+        ${party.fonte ? `<p class="source-note">Fonte: ${escapeHtml(party.fonte)}</p>` : ''}
         <div class="chips" role="group" aria-label="Filtrar por categoria">${chips}</div>
         <div class="category-list">
           ${visible.map((c) => renderCategory(party, c, visible.length === 1)).join('')}
@@ -770,9 +1151,10 @@
 
     function renderCategory(party, category, open) {
       const topics = party.programa[category.id] || [];
+      const filled = Object.keys(party.programa).length > 0;
       const body = topics.length
         ? `<ul class="topic-list">${topics.map((t) => renderTopic(party, category, t)).join('')}</ul>`
-        : `<p class="placeholder category-empty">Propostas por preencher.</p>`;
+        : `<p class="placeholder category-empty">${filled ? UNAVAILABLE + '.' : 'Propostas por preencher.'}</p>`;
 
       return `
         <details class="category" ${open ? 'open' : ''}>
