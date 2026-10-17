@@ -1887,10 +1887,14 @@
       return { view: 'partidos', partyId: null, tab: 'programa' };
     }
 
-    /** Atualiza o URL e volta a desenhar de imediato (sem esperar pelo hashchange). */
     function navigate(hash) {
-      if (location.hash !== hash) history.pushState(null, '', hash);
-      render();
+      if (location.hash !== hash) {
+        // Usar location.hash em vez de history.pushState para compatibilidade com iframes srcdoc do Claude
+        location.hash = hash;
+      } else {
+        // Se o hash já for o mesmo, renderiza manualmente para garantir que a interface atualiza
+        render();
+      }
     }
 
     /* =========================================================
@@ -1968,6 +1972,8 @@
        5. RENDERIZAÇÃO
        ========================================================= */
     let lastRoute = null;
+    // O render corre no hashchange (assíncrono): o que depende do novo DOM espera por ele aqui.
+    const afterRender = [];
 
     function render() {
       // Na vista do grafo mantém-se o último partido, para o botão "Partidos" lá voltar.
@@ -1985,6 +1991,8 @@
       const route = location.hash;
       if (route !== lastRoute) $('#main').scrollTop = 0;
       lastRoute = route;
+
+      afterRender.splice(0).forEach((fn) => fn());
     }
 
     function renderViewSwitch() {
@@ -2149,17 +2157,18 @@
           const { gotoCategory, gotoIdeia } = el.dataset;
           state.category = gotoCategory || 'todas';
           setSidebar(false);
-          navigate(`#/partido/${party}/programa`);
-          $('.chip[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
-          if (gotoIdeia) {
+          afterRender.push(() => {
+            $('.chip[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+            if (!gotoIdeia) return;
             const target = $(`.topic[data-ideia="${CSS.escape(gotoIdeia)}"]`);
             target?.classList.add('is-highlight');
             target?.scrollIntoView({ block: 'center' });
             target?.querySelector('.badge')?.focus({ preventScroll: true });
-          }
+          });
+          navigate(`#/partido/${party}/programa`);
         } else if (tab) {
+          afterRender.push(() => $(`#tab-${tab}`)?.focus());
           navigate(`#/partido/${state.partyId}/${tab}`);
-          $(`#tab-${tab}`)?.focus();
         } else if (category) {
           state.category = category;
           render();
@@ -2188,7 +2197,6 @@
         renderPartyList();
       });
 
-      window.addEventListener('popstate', render);
       window.addEventListener('hashchange', render);
     }
 
