@@ -484,10 +484,27 @@
       color: var(--text-muted);
     }
     .legend-item { display: inline-flex; align-items: center; gap: 6px; }
-    .legend-line { display: inline-block; width: 32px; background: #9aa3af; border-radius: 3px; }
+    .legend-mark { display: inline-block; flex: none; }
+    .legend-mark.is-party { width: 22px; height: 14px; border-radius: 4px; background: linear-gradient(90deg, #f68a1e, #e5197e, #7ab51d, #00a3e0); }
+    .legend-mark.is-category { width: 20px; height: 13px; border-radius: 50%; background: #e9ecf0; border: 1.5px solid #9aa3af; }
+    .legend-mark.is-idea { width: 9px; height: 9px; border-radius: 50%; background: #5b8def; }
+    .legend-mark.is-shared { width: 12px; height: 12px; border-radius: 50%; background: #23a077; }
+    .graph-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: grid;
+      place-content: center;
+      gap: 10px;
+      text-align: center;
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+      background: var(--surface);
+    }
+    .graph-loading progress { width: 180px; accent-color: var(--accent); }
     /* Tooltips do Vis.js (mais específico que o CSS que a biblioteca injeta) */
     .graph-canvas div.vis-tooltip {
-      max-width: 260px;
+      max-width: 320px;
       padding: 8px 10px;
       font-family: var(--font);
       font-size: var(--fs-sm);
@@ -499,10 +516,6 @@
       border-radius: var(--radius-sm);
       box-shadow: var(--shadow);
     }
-    .graph-links { margin-top: 16px; font-size: var(--fs-sm); }
-    .graph-links summary { cursor: pointer; font-weight: 600; }
-    .graph-links ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; }
-    .graph-links span { color: var(--text-muted); }
 
     /* =========================================================
        4. BREAKPOINTS
@@ -1984,51 +1997,62 @@
     }
 
     /**
-     * Constrói nós e arestas para o grafo: aresta entre dois partidos
-     * que partilhem ideias em pelo menos 3 categorias.
+     * Constrói o mapa completo, ao estilo Obsidian, com três tipos de nó:
+     *   partido   → os 9 partidos
+     *   categoria → as 15 categorias
+     *   ideia     → cada proposta; propostas com a mesma `ideia` na mesma
+     *               categoria partilham o nó, ligando os partidos através dele.
+     * Ligações: partido → ideia e ideia → categoria.
      * @returns {{ nodes: Array, edges: Array }}
      */
-    function buildAffinityGraph(minCategories = 3) {
-      // Para cada par "a|b", as categorias em que partilham pelo menos uma ideia.
-      const shared = new Map();
-      for (const [key, parties] of getIdeaIndex()) {
-        const categoryId = key.split('|')[0];
-        const ids = [...new Set(parties.map((p) => p.id))]; // já vêm pela ordem de PARTIES
-        for (let i = 0; i < ids.length; i++) {
-          for (let j = i + 1; j < ids.length; j++) {
-            const pair = `${ids[i]}|${ids[j]}`;
-            if (!shared.has(pair)) shared.set(pair, new Set());
-            shared.get(pair).add(categoryId);
-          }
-        }
-      }
-
+    function buildAffinityGraph() {
+      const shorten = (s, max = 48) => (s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s);
+      const nodes = [];
       const edges = [];
-      for (const [pair, categoryIds] of shared) {
-        const count = categoryIds.size;
-        if (count < minCategories) continue;
-        const [from, to] = pair.split('|');
-        const names = CATEGORIES.filter((c) => categoryIds.has(c.id)).map((c) => c.nome);
-        edges.push({
-          from,
-          to,
-          categories: names,
-          width: count - 1, // 3 categorias = 2, 4 = 3, …
-          title: `${getParty(from).sigla} e ${getParty(to).sigla} concordam em ${count} categorias:\n`
-            + names.map((n) => `• ${n}`).join('\n'),
+      const ideas = new Map(); // "categoria|ideia" → nó da ideia
+      const ideasPerCategory = new Map(CATEGORIES.map((c) => [c.id, 0]));
+
+      for (const party of PARTIES) {
+        let total = 0;
+        for (const category of CATEGORIES) {
+          (party.programa[category.id] || []).forEach((topic, i) => {
+            total++;
+            const key = `${category.id}|${topic.ideia || `${party.id}-${i}`}`;
+            let idea = ideas.get(key);
+            if (!idea) {
+              idea = { id: `i:${key}`, group: 'ideia', label: shorten(topic.texto), categoria: category.nome, parties: [] };
+              ideas.set(key, idea);
+              ideasPerCategory.set(category.id, ideasPerCategory.get(category.id) + 1);
+              edges.push({ from: idea.id, to: `c:${category.id}`, group: 'categoria' });
+            }
+            if (idea.parties.some((p) => p.party === party)) return;
+            idea.parties.push({ party, texto: topic.texto });
+            edges.push({ from: `p:${party.id}`, to: idea.id, group: 'partido', cor: party.cor });
+          });
+        }
+        nodes.push({
+          id: `p:${party.id}`,
+          group: 'partido',
+          label: party.sigla,
+          cor: party.cor,
+          title: `${party.nome}\n${total} propostas. Clica para abrir o programa.`,
         });
       }
 
-      const degree = (id) => edges.filter((e) => e.from === id || e.to === id).length;
-      const nodes = PARTIES.map((p) => {
-        const n = degree(p.id);
-        return {
-          id: p.id,
-          label: p.sigla,
-          cor: p.cor,
-          title: `${p.nome}\n${n === 1 ? '1 ligação' : `${n} ligações`}. Clica para ver o programa.`,
-        };
-      });
+      for (const category of CATEGORIES) {
+        const n = ideasPerCategory.get(category.id);
+        nodes.push({ id: `c:${category.id}`, group: 'categoria', label: category.nome, title: `${category.nome}\n${n} ${n === 1 ? 'ideia' : 'ideias'}` });
+      }
+
+      for (const idea of ideas.values()) {
+        const shared = idea.parties.length > 1;
+        nodes.push({
+          ...idea,
+          shared,
+          title: `${idea.categoria}${shared ? ` · ideia partilhada por ${idea.parties.length} partidos` : ''}\n`
+            + idea.parties.map(({ party, texto }) => `${party.sigla}: ${texto}`).join('\n'),
+        });
+      }
 
       return { nodes, edges };
     }
@@ -2040,7 +2064,56 @@
       network = null;
     }
 
-    /** Inicializa o grafo Vis.js dentro de `container`. */
+    /** "#rrggbb" → "rgba(r, g, b, a)" */
+    const withAlpha = (hex, a) => `rgba(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')}, ${a})`;
+
+    const GRAPH_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+    const IDEA_FONT = 12;
+
+    /** Estilo Vis.js de cada tipo de nó. */
+    function styleNode({ group, cor, shared, parties, categoria, ...n }) {
+      if (group === 'partido') {
+        return {
+          ...n,
+          shape: 'box',
+          mass: 3,
+          margin: { top: 16, right: 22, bottom: 16, left: 22 },
+          borderWidth: 2,
+          shapeProperties: { borderRadius: 10 },
+          color: { background: cor, border: cor, highlight: { background: cor, border: '#1b1f24' }, hover: { background: cor, border: '#1b1f24' } },
+          font: { color: textOn(cor), size: 20, face: GRAPH_FONT },
+        };
+      }
+      if (group === 'categoria') {
+        return {
+          ...n,
+          shape: 'ellipse',
+          mass: 2,
+          borderWidth: 1.5,
+          color: { background: '#e9ecf0', border: '#9aa3af', highlight: { background: '#dde1e7', border: '#5b6573' }, hover: { background: '#dde1e7', border: '#5b6573' } },
+          font: { color: '#3b4450', size: 14, face: GRAPH_FONT },
+        };
+      }
+      const fill = shared ? '#23a077' : '#5b8def';
+      return {
+        ...n,
+        shape: 'dot',
+        size: shared ? 6 + 2 * parties.length : 5,
+        borderWidth: 1,
+        color: { background: fill, border: fill, highlight: { background: fill, border: '#1b1f24' }, hover: { background: fill, border: '#1b1f24' } },
+        // Rótulo só desenhado quando o texto no ecrã tiver pelo menos 10px, ou seja, com zoom.
+        font: { color: '#3b4450', size: IDEA_FONT, face: GRAPH_FONT, strokeWidth: 3, strokeColor: '#ffffff' },
+        scaling: { label: { drawThreshold: 10 } },
+      };
+    }
+
+    function styleEdge({ group, cor, ...e }) {
+      return group === 'partido'
+        ? { ...e, width: 1, color: { color: withAlpha(cor, 0.4), hover: cor, highlight: cor } }
+        : { ...e, width: 0.8, color: { color: 'rgba(140, 150, 165, 0.35)', hover: '#8a94a3', highlight: '#5b6573' } };
+    }
+
+    /** Inicializa o mapa Vis.js dentro de `container`. */
     function initGraph(container) {
       destroyGraph();
       if (!container) return;
@@ -2050,52 +2123,69 @@
       }
 
       const { nodes, edges } = buildAffinityGraph();
-      container.innerHTML = '';
-
-      const data = {
-        nodes: new vis.DataSet(nodes.map(({ cor, ...n }) => ({
-          ...n,
-          shape: 'box',
-          margin: { top: 10, right: 14, bottom: 10, left: 14 },
-          borderWidth: 2,
-          shapeProperties: { borderRadius: 8 },
-          color: {
-            background: cor,
-            border: cor,
-            highlight: { background: cor, border: '#1b1f24' },
-            hover: { background: cor, border: '#1b1f24' },
-          },
-          font: { color: textOn(cor), size: 16, face: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif' },
-        }))),
-        edges: new vis.DataSet(edges.map(({ categories, ...e }) => e)),
-      };
+      const nodeSet = new vis.DataSet(nodes.map(styleNode));
+      const edgeSet = new vis.DataSet(edges.map(styleEdge));
 
       const options = {
-        edges: {
-          smooth: { type: 'continuous' },
-          color: { color: '#c3c9d2', hover: '#8a94a3', highlight: '#2952e3' },
-          hoverWidth: 1,
-          selectionWidth: 1,
-        },
+        layout: { improvedLayout: false }, // o layout inicial "melhorado" é muito lento com centenas de nós
+        edges: { smooth: { type: 'continuous' }, hoverWidth: 0.5, selectionWidth: 1 },
         physics: {
           enabled: true,
           solver: 'forceAtlas2Based',
-          forceAtlas2Based: { gravitationalConstant: -60, springLength: 170, springConstant: 0.06, avoidOverlap: 0.6 },
-          stabilization: { iterations: 250 },
+          forceAtlas2Based: { gravitationalConstant: -150, centralGravity: 0.008, springLength: 70, springConstant: 0.05, damping: 0.5, avoidOverlap: 0.2 },
+          minVelocity: 1,
+          stabilization: { iterations: 500, updateInterval: 25 },
         },
         interaction: { hover: true, tooltipDelay: 120, dragNodes: true, dragView: true, zoomView: true },
       };
 
-      network = new vis.Network(container, data, options);
+      network = new vis.Network(container, { nodes: nodeSet, edges: edgeSet }, options);
 
-      // Clicar num nó abre o programa desse partido.
-      network.on('click', ({ nodes: [nodeId] }) => {
-        if (!nodeId) return;
-        state.category = 'todas';
-        navigate(`#/partido/${nodeId}/programa`);
+      // Indicador enquanto a física organiza centenas de nós (depois do Network, que limpa o container).
+      const loading = document.createElement('div');
+      loading.className = 'graph-loading';
+      loading.setAttribute('role', 'status');
+      loading.innerHTML = '<span>A organizar o mapa…</span><progress max="100" value="0"></progress>';
+      container.appendChild(loading);
+
+      network.on('stabilizationProgress', ({ iterations, total }) => {
+        loading.querySelector('progress').value = Math.round((iterations / total) * 100);
       });
-      network.on('hoverNode', () => { container.style.cursor = 'pointer'; });
-      network.on('blurNode', () => { container.style.cursor = ''; });
+
+      // Partidos e categorias mantêm um rótulo legível mesmo com o mapa todo à vista.
+      const narrow = container.clientWidth < 600;
+      const fixedLabels = nodes.filter((n) => n.group !== 'ideia')
+        .map((n) => ({ id: n.id, px: n.group === 'partido' ? (narrow ? 15 : 20) : (narrow ? 10 : 14) }));
+      const keepLabelsReadable = () => {
+        const scale = network.getScale();
+        nodeSet.update(fixedLabels.map(({ id, px }) => ({ id, font: { size: Math.max(px, px / scale) } })));
+      };
+      network.on('zoom', keepLabelsReadable);
+      network.once('stabilizationIterationsDone', () => {
+        // Os rótulos crescem depois do primeiro enquadramento, por isso enquadra-se duas vezes.
+        for (let i = 0; i < 2; i++) {
+          network.fit();
+          keepLabelsReadable();
+        }
+        loading.remove();
+      });
+
+      // Ao passar o rato, o rótulo da ideia cresce o suficiente para se ler a qualquer zoom.
+      network.on('hoverNode', ({ node }) => {
+        container.style.cursor = node.startsWith('p:') ? 'pointer' : '';
+        if (node.startsWith('i:')) nodeSet.update({ id: node, font: { size: Math.max(IDEA_FONT, 13 / network.getScale()) } });
+      });
+      network.on('blurNode', ({ node }) => {
+        container.style.cursor = '';
+        if (node.startsWith('i:')) nodeSet.update({ id: node, font: { size: IDEA_FONT } });
+      });
+
+      // Clicar num partido abre o seu programa.
+      network.on('click', ({ nodes: [nodeId] }) => {
+        if (!nodeId?.startsWith('p:')) return;
+        state.category = 'todas';
+        navigate(`#/partido/${nodeId.slice(2)}/programa`);
+      });
     }
 
     /* =========================================================
@@ -2257,31 +2347,24 @@
     }
 
     function renderGraphView() {
-      const { edges } = buildAffinityGraph();
-      const sigla = (id) => escapeHtml(getParty(id).sigla);
-      const links = [...edges].sort((a, b) => b.categories.length - a.categories.length).map((e) => `
-        <li><strong>${sigla(e.from)} e ${sigla(e.to)}</strong> (${e.categories.length}):
-          <span>${e.categories.map(escapeHtml).join(', ')}</span></li>`).join('');
-      // Legenda com o mínimo, o meio e o máximo das ligações reais.
-      const counts = edges.map((e) => e.categories.length);
-      const [min, max] = [Math.min(...counts), Math.max(...counts)];
-      const legend = counts.length ? [...new Set([min, Math.round((min + max) / 2), max])].map((n) => `
-        <span class="legend-item"><i class="legend-line" style="height:${n - 1}px"></i>${n}</span>`).join('') : '';
+      const { nodes } = buildAffinityGraph();
+      const count = (fn) => nodes.filter(fn).length;
+      const ideas = count((n) => n.group === 'ideia');
+      const shared = count((n) => n.shared);
+      const item = (cls, text) => `<span class="legend-item"><i class="legend-mark ${cls}"></i>${text}</span>`;
 
       return `
         <section class="graph-view">
-          <h2>Grafo de afinidades</h2>
-          <p>Cada nó é um partido. Dois partidos ficam ligados quando partilham ideias em pelo menos 3 categorias. Passa o rato por uma ligação para ver as categorias e clica num partido para abrir o programa.</p>
+          <h2>Mapa de afinidades</h2>
+          <p>Um mapa complexo, ao estilo Obsidian, que liga os ${count((n) => n.group === 'partido')} partidos, as ${count((n) => n.group === 'categoria')} categorias e as ${ideas} propostas dos programas. Cada partido liga-se às suas propostas e cada proposta à sua categoria. Quando dois ou mais partidos defendem a mesma ideia, ficam ligados através dela (${shared} ideias partilhadas).</p>
+          <p>Faz zoom para ler as propostas, passa o rato por um nó para ver os detalhes, arrasta os nós para explorar a teia e clica num partido para abrir o programa.</p>
           <div class="graph-legend">
-            <span>A espessura da linha representa o número de categorias em que os partidos concordam:</span>
-            ${legend}
+            ${item('is-party', 'Partido')}
+            ${item('is-category', 'Categoria')}
+            ${item('is-idea', 'Proposta de um partido')}
+            ${item('is-shared', 'Ideia partilhada (maior com mais partidos)')}
           </div>
           <div class="graph-canvas" id="graph"></div>
-          ${links ? `
-          <details class="graph-links">
-            <summary>Ver as ligações em lista</summary>
-            <ul>${links}</ul>
-          </details>` : ''}
         </section>`;
     }
 
