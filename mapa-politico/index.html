@@ -880,17 +880,219 @@
     .app.is-home .menu-btn { display: none; }
     .app.is-home .main-inner { max-width: 1200px; }
 
+    /* ---------- Botões de ação e cabeçalho de vista ---------- */
+    .view-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 16px;
+      margin-bottom: 6px;
+    }
+    .view-head h2 { margin: 0 !important; }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease), opacity .2s var(--ease);
+    }
+    .action-btn { white-space: nowrap; }
+    .action-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .action-btn:hover:not(:disabled) { border-color: var(--accent); box-shadow: 0 0 18px -6px var(--accent); }
+    .action-btn.is-primary { color: #fff; background: var(--accent); border-color: var(--accent); }
+    .action-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .party-header { flex-wrap: wrap; }
+    .party-header .action-btn { margin-left: auto; }
+
+    /* ---------- Aviso (toast) ---------- */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 120;
+      max-width: calc(100% - 32px);
+      padding: 12px 18px;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-left: 3px solid #22c55e;
+      border-radius: var(--radius);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .35);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 12px);
+      transition: opacity .25s var(--ease), transform .25s var(--ease);
+    }
+    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ---------- Bússola política ---------- */
+    .quiz-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .quiz-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 20px; }
+    .quiz-form { display: grid; gap: 14px; }
+    .quiz-question {
+      margin: 0;
+      padding: 16px;
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .quiz-question legend {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      float: left;
+      width: 100%;
+      margin-bottom: 12px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .quiz-step { font-size: var(--fs-xs); font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .quiz-options { clear: both; display: grid; gap: 8px; }
+    .quiz-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      font-size: var(--fs-sm);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .quiz-option:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+    .quiz-option input { width: 18px; height: 18px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
+    .quiz-option:has(input:checked) {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px -10px var(--accent);
+    }
+    /* Barra flutuante com o progresso e o botão de resultados */
+    .quiz-actions {
+      position: sticky;
+      bottom: 12px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 8px 8px 18px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+    }
+    .quiz-progress { font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
+
+    .quiz-results { margin-top: 28px; scroll-margin-top: 16px; }
+    .quiz-results h3 { font-size: var(--fs-lg); }
+    .quiz-note { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: 16px; }
+    .quiz-ranking { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+    .quiz-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: color-mix(in srgb, var(--party-color) 5%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--party-color) 22%, var(--border));
+      border-radius: var(--radius-lg);
+      animation: modal-in .35s var(--ease) both;
+    }
+    .quiz-row:nth-child(-n + 3) { border-color: color-mix(in srgb, var(--party-color) 50%, var(--border)); }
+    .quiz-rank { width: 30px; flex-shrink: 0; font-weight: 800; color: var(--text-muted); }
+    .quiz-row:first-child .quiz-rank { color: var(--accent); }
+    .quiz-row .party-logo { width: 38px; height: 38px; box-shadow: 0 0 16px -4px var(--party-color); }
+    .quiz-row-body { flex: 1; min-width: 0; display: grid; gap: 6px; }
+    .quiz-row-head { display: flex; justify-content: space-between; gap: 10px; font-size: var(--fs-sm); }
+    .quiz-pct { font-weight: 800; font-variant-numeric: tabular-nums; }
+    .quiz-bar { height: 8px; overflow: hidden; background: var(--surface-2); border-radius: 999px; }
+    .quiz-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--party-color) 70%, transparent), var(--party-color));
+      border-radius: inherit;
+      box-shadow: 0 0 12px var(--party-color);
+      animation: bar-grow .8s var(--ease) both;
+      transform-origin: left;
+    }
+    .quiz-matches { font-size: var(--fs-xs); color: var(--text-muted); }
+    @keyframes bar-grow { from { transform: scaleX(0); } }
+
+    /* ---------- Impressão / PDF: só o conteúdo do partido, a preto e branco ---------- */
+    @media print {
+      @page { margin: 16mm 14mm; }
+      html, body, .app, .main {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      *, *::before, *::after {
+        color: #000 !important;
+        background: transparent !important;
+        border-color: #000 !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        animation: none !important;
+        transition: none !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+      }
+      body { font-size: 11pt; background: #fff !important; }
+      .app-header, .sidebar, .backdrop, .tabs, .chips, .badges, .party-grid,
+      .toast, .modal-backdrop, button { display: none !important; }
+      .main { padding: 0 !important; }
+      .main-inner { max-width: none; }
+      .party-header { margin-bottom: 8pt; }
+      .party-header .party-logo { border: 1.5pt solid #000; }
+      .source-note { margin-bottom: 12pt; font-style: italic; }
+      .category-list { display: block; }
+      /* Categorias sempre abertas (o JS também as abre no beforeprint) */
+      details.category::details-content { content-visibility: visible; display: block; }
+      .category {
+        margin: 0 0 10pt;
+        border: 0 !important;
+        border-top: 1pt solid #000 !important;
+        border-radius: 0;
+      }
+      .category > summary { padding: 6pt 0 4pt; font-size: 13pt; break-after: avoid; }
+      .category > summary::after { display: none; }
+      .category-count { border: 0; padding: 0; }
+      .category-count::before { content: "("; }
+      .category-count::after { content: ")"; }
+      .topic-list { padding: 0 0 0 14pt; list-style: disc; }
+      .topic { display: list-item; padding: 2pt 0; break-inside: avoid; }
+      .tab-panel[hidden] { display: none !important; }
+    }
+
     /* =========================================================
        4. BREAKPOINTS
        ========================================================= */
     .title-extra { display: none; }
 
-    /* Telemóvel: com os botões Casa, Tema e menu não cabe o título; o botão Casa faz de marca. */
+    /* Telemóvel: o menu de vistas passa para uma segunda linha do cabeçalho. */
     @media (max-width: 599px) {
-      .app-header { gap: 4px; padding: 0 12px; }
+      .app { grid-template-rows: auto 1fr; }
+      .app-header { flex-wrap: wrap; gap: 8px 4px; padding: 8px 12px; }
       .app-header .icon-btn { width: 36px; height: 36px; }
-      .app-title { display: none; }
-      .view-switch button { padding: 6px 10px; }
+      .app-title { flex: 1; }
+      .view-switch { order: 1; flex-basis: 100%; margin-left: 0; }
+      .view-switch button { flex: 1; padding: 6px 4px; }
     }
 
     @media (min-width: 768px) {
@@ -965,6 +1167,7 @@
         <button type="button" data-view="partidos" aria-pressed="true">Partidos</button>
         <button type="button" data-view="grafo" aria-pressed="false">Grafo</button>
         <button type="button" data-view="duelo" aria-pressed="false">Duelo</button>
+        <button type="button" data-view="bussola" aria-pressed="false">Bússola</button>
       </nav>
       <button class="icon-btn theme-btn" type="button" aria-label="Mudar para o tema escuro" data-action="toggle-theme">
         <!-- sol: mostrado no tema escuro (passa a claro); lua: no tema claro -->
@@ -2306,9 +2509,11 @@
          #/partido/<id>/quem        → aba Quem é Quem
          #/grafo                    → grafo de afinidades
          #/duelo/<idA>/<idB>        → duelo entre dois partidos (por defeito AD e PS)
+         #/grafo/<categoria>        → grafo filtrado por uma categoria
+         #/bussola                  → bússola política (questionário)
        ========================================================= */
     const state = {
-      view: 'partidos',      // 'partidos' | 'grafo' | 'duelo'
+      view: 'partidos',      // 'partidos' | 'grafo' | 'duelo' | 'bussola'
       partyId: null,
       tab: 'programa',       // 'programa' | 'quem'
       category: 'todas',     // filtro de categoria na aba Programa
@@ -2316,11 +2521,16 @@
       graphCategory: '',     // filtro de categoria no grafo ('' = todas)
       duelA: 'ad',           // partidos do duelo
       duelB: 'ps',
+      quiz: {},              // respostas da bússola: { idPergunta: índiceOpção }
+      quizShown: false,      // resultados da bússola visíveis
     };
 
     function parseHash() {
       const [, section, id, tab] = location.hash.replace(/^#/, '').split('/');
-      if (section === 'grafo') return { view: 'grafo' };
+      if (section === 'grafo') {
+        return { view: 'grafo', graphCategory: CATEGORIES.some((c) => c.id === id) ? id : '' };
+      }
+      if (section === 'bussola') return { view: 'bussola' };
       if (section === 'duelo') {
         const duelA = getParty(id) ? id : 'ad';
         const duelB = getParty(tab) && tab !== duelA ? tab : (duelA === 'ps' ? 'ad' : 'ps');
@@ -2773,7 +2983,10 @@
 
       return `
         <section class="duel-view">
-          <h2>Duelo</h2>
+          <div class="view-head">
+            <h2>Duelo</h2>
+            ${shareButton()}
+          </div>
           <p>Compara dois partidos categoria a categoria. «Concordam» quando defendem a mesma ideia; «Divergem» junta as propostas que não coincidem, o que não quer dizer que se oponham.</p>
           <div class="duel-pickers">
             ${select('A', a.id, b.id)}
@@ -2835,6 +3048,198 @@
         <ul class="modal-parties">${items}</ul>`, 'modal-title');
     }
 
+    /* ---------- Bússola política (questionário) ---------- */
+
+    /**
+     * Cada opção aponta para uma `ideia` real dos programas (na categoria da pergunta,
+     * ou em `categoria` quando a ideia está noutra). Os partidos de cada opção são
+     * calculados a partir dos dados, nunca escritos à mão.
+     */
+    const QUIZ = [
+      { id: 'habitacao', categoria: 'habitacao', pergunta: 'Qual deve ser a prioridade para a Habitação?', opcoes: [
+        { ideia: 'reforcar-habitacao-publica', texto: 'Construir mais habitação pública a preços acessíveis' },
+        { ideia: 'tetos-rendas', texto: 'Pôr tetos máximos às rendas' },
+        { ideia: 'fim-controlo-rendas', texto: 'Acabar com o controlo das rendas e liberalizar o arrendamento' },
+      ] },
+      { id: 'impostos', categoria: 'impostos', pergunta: 'Que mudança nos impostos é mais urgente?', opcoes: [
+        { ideia: 'reduzir-irc', texto: 'Baixar o IRC das empresas' },
+        { ideia: 'iva-zero-cabaz', texto: 'IVA zero num cabaz de bens alimentares essenciais' },
+        { ideia: 'taxar-lucros-extraordinarios', texto: 'Taxar os lucros extraordinários da banca, da energia e da distribuição' },
+      ] },
+      { id: 'saude', categoria: 'saude', pergunta: 'Como deve o SNS responder à falta de resposta?', opcoes: [
+        { ideia: 'ppp-saude', texto: 'Mais parcerias com o setor privado (PPP e convenções)' },
+        { ideia: 'fim-ppp-saude', texto: 'Gestão pública, sem novas PPP' },
+        { ideia: 'dedicacao-exclusiva-sns', texto: 'Dedicação exclusiva dos profissionais ao SNS, com melhor salário' },
+      ] },
+      { id: 'trabalho', categoria: 'trabalho', pergunta: 'Qual deve ser a prioridade no Trabalho?', opcoes: [
+        { ideia: 'salario-medio-2000', texto: 'Criar condições para um salário médio de 2.000€ em 2029' },
+        { ideia: 'reduzir-horario-semanal', texto: 'Reduzir o horário semanal de trabalho' },
+        { ideia: 'incentivos-contratacao-jovens', texto: 'Incentivar as empresas a contratar jovens' },
+      ] },
+      { id: 'imigracao', categoria: 'imigracao', pergunta: 'O que é mais importante na Imigração?', opcoes: [
+        { ideia: 'nacionalidade-mais-exigente', texto: 'Tornar mais exigentes as regras para obter a nacionalidade' },
+        { ideia: 'reforcar-aima', texto: 'Dar mais meios à AIMA para tratar dos processos' },
+        { ideia: 'imigracao-regulada-na-origem', texto: 'Abrir vias de imigração regulares e seguras a partir dos países de origem' },
+      ] },
+      { id: 'educacao', categoria: 'educacao', pergunta: 'Onde investir primeiro na Educação?', opcoes: [
+        { ideia: 'pre-escolar-universal', texto: 'Creche e pré-escolar para todas as crianças' },
+        { ideia: 'eliminar-propinas', texto: 'Acabar com as propinas no ensino superior' },
+        { ideia: 'reforcar-ensino-profissional', texto: 'Reforçar o ensino técnico e profissional' },
+      ] },
+      { id: 'energia', categoria: 'ambiente', pergunta: 'Qual deve ser a aposta no Ambiente e na Energia?', opcoes: [
+        { ideia: 'energia-nuclear', texto: 'Estudar ou avançar com energia nuclear' },
+        { ideia: 'areas-marinhas-protegidas', texto: 'Proteger pelo menos 30% do mar' },
+        { ideia: 'iva-eletricidade-6', categoria: 'impostos', texto: 'Baixar o IVA da eletricidade para 6%' },
+      ] },
+      { id: 'economia', categoria: 'economia', pergunta: 'Qual deve ser o papel do Estado na Economia?', opcoes: [
+        { ideia: 'contas-publicas-equilibradas', texto: 'Contas públicas equilibradas e menos dívida' },
+        { ideia: 'privatizar-empresas-publicas', texto: 'Abrir ou privatizar empresas públicas' },
+        { ideia: 'controlo-publico-setores-estrategicos', texto: 'Controlo público de setores estratégicos, como a banca e a energia' },
+      ] },
+    ];
+
+    /** Partidos que defendem a `ideia` da opção na sua categoria. */
+    function partiesForOption(question, option) {
+      const categoryId = option.categoria || question.categoria;
+      return PARTIES.filter((p) => (p.programa[categoryId] || []).some((t) => t.ideia === option.ideia));
+    }
+
+    /** Ranking: percentagem das respostas dadas que coincidem com ideias de cada partido. */
+    function quizResults(answers) {
+      const answered = QUIZ.filter((q) => answers[q.id] != null);
+      const rows = PARTIES.map((party, order) => {
+        const matched = answered.filter((q) => partiesForOption(q, q.opcoes[answers[q.id]]).includes(party));
+        return { party, order, matched, pct: answered.length ? Math.round((matched.length / answered.length) * 100) : 0 };
+      }).sort((a, b) => b.pct - a.pct || a.order - b.order);
+      // Empates partilham a posição (1.º, 1.º, 3.º…).
+      rows.forEach((r, i) => { r.rank = i && r.pct === rows[i - 1].pct ? rows[i - 1].rank : i + 1; });
+      return { rows, answered: answered.length };
+    }
+
+    function renderQuizResults() {
+      const { rows, answered } = quizResults(state.quiz);
+      const category = (id) => CATEGORIES.find((c) => c.id === id)?.nome || id;
+      return `
+        <div class="view-head">
+          <h3>Resultados</h3>
+          <button class="action-btn" type="button" data-action="quiz-reset">Recomeçar</button>
+        </div>
+        <p class="quiz-note">Com base em ${answered} de ${QUIZ.length} respostas. Mede quantas das tuas escolhas coincidem com ideias registadas nos programas; alguns programas só estão registados em parte, por isso não é uma recomendação de voto.</p>
+        <ol class="quiz-ranking">
+          ${rows.map(({ party, matched, pct, rank }) => `
+            <li class="quiz-row" style="--party-color:${party.cor}">
+              <span class="quiz-rank">${rank}.º</span>
+              <span class="party-logo" aria-hidden="true">${escapeHtml(party.sigla)}</span>
+              <div class="quiz-row-body">
+                <div class="quiz-row-head">
+                  <strong>${escapeHtml(party.nome)}</strong>
+                  <span class="quiz-pct">${pct}%</span>
+                </div>
+                <div class="quiz-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"
+                     aria-label="Afinidade com ${escapeHtml(party.sigla)}"><span style="width:${pct}%"></span></div>
+                <p class="quiz-matches">${matched.length
+                  ? `Coincide em: ${matched.map((q) => escapeHtml(category(q.categoria))).join(', ')}`
+                  : 'Nenhuma resposta coincide.'}</p>
+              </div>
+            </li>`).join('')}
+        </ol>`;
+    }
+
+    function renderQuizView() {
+      const answered = QUIZ.filter((q) => state.quiz[q.id] != null).length;
+      const questions = QUIZ.map((q, i) => `
+        <fieldset class="quiz-question">
+          <legend><span class="quiz-step">${i + 1}/${QUIZ.length}</span>${escapeHtml(q.pergunta)}</legend>
+          <div class="quiz-options">
+            ${q.opcoes.map((o, j) => `
+              <label class="quiz-option">
+                <input type="radio" name="quiz-${q.id}" value="${j}" data-quiz="${q.id}" ${state.quiz[q.id] === j ? 'checked' : ''}>
+                <span>${escapeHtml(o.texto)}</span>
+              </label>`).join('')}
+          </div>
+        </fieldset>`).join('');
+
+      return `
+        <section class="quiz-view">
+          <h2>Bússola Política</h2>
+          <p>Responde a ${QUIZ.length} perguntas e descobre que partidos defendem as mesmas ideias que tu. Cada opção corresponde a uma proposta que aparece em programas eleitorais.</p>
+          <form class="quiz-form" id="quiz-form">
+            ${questions}
+            <div class="quiz-actions">
+              <span class="quiz-progress" id="quiz-progress">${answered} de ${QUIZ.length} respondidas</span>
+              <button class="action-btn is-primary" type="submit" id="quiz-submit" ${answered ? '' : 'disabled'}>Ver Resultados</button>
+            </div>
+          </form>
+          <section class="quiz-results" id="quiz-results" aria-live="polite" ${state.quizShown ? '' : 'hidden'}>
+            ${state.quizShown ? renderQuizResults() : ''}
+          </section>
+        </section>`;
+    }
+
+    /* ---------- Partilha e aviso (toast) ---------- */
+    let toastTimer;
+
+    function toast(message) {
+      let el = $('.toast');
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'toast';
+        el.setAttribute('role', 'status');
+        document.body.appendChild(el);
+      }
+      el.textContent = message;
+      // Força o reflow para a animação recomeçar quando há dois avisos seguidos.
+      el.classList.remove('is-visible');
+      void el.offsetWidth;
+      el.classList.add('is-visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('is-visible'), 2600);
+    }
+
+    /** Copia o link da vista atual; sem acesso à API Clipboard, tenta o método antigo. */
+    async function shareLink() {
+      const url = window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        const area = document.createElement('textarea');
+        area.value = url;
+        area.setAttribute('readonly', '');
+        area.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(area);
+        area.select();
+        const ok = document.execCommand('copy');
+        area.remove();
+        if (!ok) { toast('Não foi possível copiar o link.'); return; }
+      }
+      toast('Link copiado para a área de transferência!');
+    }
+
+    const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
+    const PRINT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>';
+    const shareButton = () => `<button class="action-btn" type="button" data-action="share">${SHARE_ICON}<span>Partilhar</span></button>`;
+
+    /* ---------- Impressão / PDF ---------- */
+    // Abre todas as categorias para imprimir e repõe o estado a seguir (também com Ctrl+P).
+    let printClosed = [];
+    window.addEventListener('beforeprint', () => {
+      printClosed = $$('details.category:not([open])');
+      printClosed.forEach((d) => { d.open = true; });
+    });
+    window.addEventListener('afterprint', () => {
+      printClosed.forEach((d) => { d.open = false; });
+      printClosed = [];
+    });
+
+    function printProgram() {
+      // Imprime o programa completo, mesmo que haja um filtro de categoria ativo.
+      if (state.tab === 'programa' && state.category !== 'todas') {
+        state.category = 'todas';
+        render();
+      }
+      window.print();
+    }
+
     /* =========================================================
        5. RENDERIZAÇÃO
        ========================================================= */
@@ -2854,6 +3259,7 @@
       const view = $('#view');
       if (state.view === 'grafo') view.innerHTML = renderGraphView();
       else if (state.view === 'duelo') view.innerHTML = renderDuelView();
+      else if (state.view === 'bussola') view.innerHTML = renderQuizView();
       else if (state.partyId) view.innerHTML = renderPartyView(getParty(state.partyId));
       else view.innerHTML = renderHome();
 
@@ -2935,6 +3341,7 @@
             <h2>${escapeHtml(party.sigla)}</h2>
             <p>${escapeHtml(party.nome)}</p>
           </div>
+          <button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>
         </header>
 
         <div class="tabs" role="tablist" aria-label="Secções do partido">
@@ -3030,7 +3437,10 @@
 
       return `
         <section class="graph-view">
-          <h2>Mapa de afinidades</h2>
+          <div class="view-head">
+            <h2>Mapa de afinidades</h2>
+            ${shareButton()}
+          </div>
           <p>Um mapa complexo, ao estilo Obsidian, que liga os ${count((n) => n.group === 'partido')} partidos, as ${count((n) => n.group === 'categoria')} categorias e as ${ideas} propostas dos programas. Cada partido liga-se às suas propostas e cada proposta à sua categoria. Quando dois ou mais partidos defendem a mesma ideia, ficam ligados através dela (${shared} ideias partilhadas).</p>
           <p>Pesquisa um partido, uma categoria ou uma proposta, filtra por categoria para limpar o mapa, passa o rato por um partido para destacar as suas ligações e clica nele para abrir o programa.</p>
           <div class="graph-toolbar">
@@ -3122,9 +3532,18 @@
           render();
           $(`[data-category="${category}"]`)?.scrollIntoView({ block: 'nearest', inline: 'center' });
         } else if (view) {
-          if (view === 'grafo') navigate('#/grafo');
+          if (view === 'grafo') navigate(state.graphCategory ? `#/grafo/${state.graphCategory}` : '#/grafo');
+          else if (view === 'bussola') navigate('#/bussola');
           else if (view === 'duelo') navigate(`#/duelo/${state.duelA}/${state.duelB}`);
           else navigate(state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/');
+        } else if (action === 'share') {
+          shareLink();
+        } else if (action === 'print') {
+          printProgram();
+        } else if (action === 'quiz-reset') {
+          state.quiz = {};
+          state.quizShown = false;
+          render();
         } else if (action === 'home') {
           navigate('#/');
         } else if (action === 'toggle-theme') {
@@ -3171,9 +3590,27 @@
           navigate(`#/duelo/${a}/${b}`);
           return;
         }
+        if (e.target.dataset.quiz) {
+          state.quiz[e.target.dataset.quiz] = Number(e.target.value);
+          const answered = QUIZ.filter((q) => state.quiz[q.id] != null).length;
+          $('#quiz-progress').textContent = `${answered} de ${QUIZ.length} respondidas`;
+          $('#quiz-submit').disabled = !answered;
+          if (state.quizShown) $('#quiz-results').innerHTML = renderQuizResults();
+          return;
+        }
         if (e.target.id !== 'graph-category') return;
-        state.graphCategory = e.target.value;
-        initGraph($('#graph'));
+        // O filtro fica no endereço, para o link partilhado abrir o mesmo mapa.
+        navigate(e.target.value ? `#/grafo/${e.target.value}` : '#/grafo');
+      });
+
+      document.addEventListener('submit', (e) => {
+        if (e.target.id !== 'quiz-form') return;
+        e.preventDefault();
+        state.quizShown = true;
+        const results = $('#quiz-results');
+        results.innerHTML = renderQuizResults();
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
 
       window.addEventListener('hashchange', render);
