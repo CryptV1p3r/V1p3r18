@@ -1060,6 +1060,7 @@
       .main-inner { max-width: none; }
       .party-header { margin-bottom: 8pt; }
       .party-header .party-logo { border: 1.5pt solid #000; }
+      .party-logo-img { filter: grayscale(1); background: #fff !important; }
       .source-note { margin-bottom: 12pt; font-style: italic; }
       .category-list { display: block; }
       /* Categorias sempre abertas (o JS também as abre no beforeprint) */
@@ -1079,6 +1080,130 @@
       .topic { display: list-item; padding: 2pt 0; break-inside: avoid; }
       .tab-panel[hidden] { display: none !important; }
     }
+
+    /* ---------- Logótipos (imagem sobre a sigla, que fica como alternativa) ---------- */
+    .party-logo { position: relative; overflow: hidden; }
+    .party-logo-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      padding: 10%;
+      object-fit: contain;
+      background: #fff;
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity .2s var(--ease);
+    }
+    .party-logo-img.is-loaded { opacity: 1; }
+    .party-logo-img[hidden] { display: none; }
+
+    /* ---------- Bússola: botão de novas perguntas ---------- */
+    .quiz-refresh {
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: color .2s var(--ease), border-color .2s var(--ease), transform .5s var(--ease);
+    }
+    .quiz-refresh svg { width: 18px; height: 18px; }
+    .quiz-refresh:hover { color: var(--accent); border-color: var(--accent); transform: rotate(180deg); }
+    .quiz-question { animation: modal-in .35s var(--ease) both; }
+
+    /* ---------- Pesquisa global (só em computador) ---------- */
+    .global-search { display: none; }
+    .global-search-field {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .global-search-field > svg {
+      position: absolute;
+      left: 12px;
+      width: 16px; height: 16px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .global-search input {
+      width: 100%;
+      padding: 8px 64px 8px 36px;
+      font: inherit;
+      font-size: var(--fs-sm);
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: border-color .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
+    }
+    .global-search input::-webkit-search-cancel-button { display: none; }
+    .global-search input:focus {
+      outline: none;
+      background: var(--surface);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .global-search kbd {
+      position: absolute;
+      right: 10px;
+      padding: 1px 6px;
+      font: 600 11px var(--font);
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      pointer-events: none;
+    }
+    .search-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      min-width: 420px;
+      max-height: min(70vh, 560px);
+      overflow-y: auto;
+      padding: 8px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .35);
+      animation: modal-in .18s var(--ease);
+    }
+    .search-group + .search-group { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+    .search-group-title {
+      padding: 6px 10px 4px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+    }
+    .search-group-title span { margin-left: 4px; font-weight: 500; letter-spacing: 0; }
+    .search-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 10px;
+      text-align: left;
+      border-radius: var(--radius);
+      transition: background .12s var(--ease);
+    }
+    .search-item:hover,
+    .search-item.is-active { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+    .search-item .party-logo { width: 32px; height: 32px; border-radius: 8px; font-size: 10px; }
+    .search-item-body { display: grid; min-width: 0; }
+    .search-item-text {
+      display: -webkit-box;
+      overflow: hidden;
+      font-size: var(--fs-sm);
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .search-item-meta { font-size: var(--fs-xs); color: var(--text-muted); }
+    .search-item mark { color: inherit; background: color-mix(in srgb, var(--accent) 35%, transparent); border-radius: 3px; padding: 0 1px; }
+    .search-more, .search-empty { padding: 6px 10px; font-size: var(--fs-xs); color: var(--text-muted); }
+    .search-empty { padding: 14px 10px; font-size: var(--fs-sm); }
 
     /* =========================================================
        4. BREAKPOINTS
@@ -1127,7 +1252,7 @@
       }
       .sidebar-head { height: auto; padding: 16px 16px 4px; border-bottom: 0; }
       .backdrop { display: none; }
-      .sidebar { animation: sidebar-in .3s var(--ease); }
+      .sidebar { animation: sidebar-in .3s var(--ease); z-index: auto; } /* como item da grelha, não pode tapar o cabeçalho */
 
       .app.is-home {
         grid-template-columns: minmax(0, 1fr);
@@ -1139,6 +1264,11 @@
       .main { padding: 32px 32px 64px; }
       .chips { flex-wrap: wrap; overflow-x: visible; }
       .app-title { font-size: var(--fs-lg); }
+    }
+
+    @media (min-width: 1024px) {
+      .global-search { display: block; position: relative; flex: 1 1 280px; max-width: 420px; margin-left: auto; }
+      .view-switch { margin-left: 0; }
     }
 
     @media (min-width: 1100px) {
@@ -1163,6 +1293,16 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9"/></svg>
       </button>
       <h1 class="app-title">Mapa Político<span class="title-extra"> de Portugal</span></h1>
+      <div class="global-search" id="global-search">
+        <label class="global-search-field">
+          <span class="visually-hidden">Pesquisar partidos, dirigentes e propostas</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="global-search-input" type="search" placeholder="Pesquisar partidos, dirigentes e propostas…" autocomplete="off"
+                 role="combobox" aria-expanded="false" aria-controls="global-search-results" aria-autocomplete="list">
+          <kbd aria-hidden="true">Ctrl K</kbd>
+        </label>
+        <div class="search-panel" id="global-search-results" role="listbox" aria-label="Resultados da pesquisa" hidden></div>
+      </div>
       <nav class="view-switch" aria-label="Vista">
         <button type="button" data-view="partidos" aria-pressed="true">Partidos</button>
         <button type="button" data-view="grafo" aria-pressed="false">Grafo</button>
@@ -2523,6 +2663,7 @@
       duelB: 'ps',
       quiz: {},              // respostas da bússola: { idPergunta: índiceOpção }
       quizShown: false,      // resultados da bússola visíveis
+      quizIds: [],           // perguntas da ronda atual (escolhidas ao acaso)
     };
 
     function parseHash() {
@@ -3034,7 +3175,7 @@
       const [categoryId, ideia] = node.id.slice(2).split('|');
       const items = node.parties.map(({ party, texto }) => `
         <li class="modal-party" style="--party-color:${party.cor}">
-          <span class="party-logo" aria-hidden="true">${escapeHtml(party.sigla)}</span>
+          ${partyLogo(party)}
           <div>
             <strong>${escapeHtml(party.nome)}</strong>
             <p>${escapeHtml(texto)}</p>
@@ -3048,53 +3189,307 @@
         <ul class="modal-parties">${items}</ul>`, 'modal-title');
     }
 
+    /* ---------- Logótipos dos partidos ---------- */
+    // Pasta com um logo.png por partido (Política/<id>/logo.png), ao lado da pasta mapa-politico.
+    const LOGO_DIR = '../Política';
+    const missingLogos = new Set(); // partidos sem logótipo: não se volta a pedir a imagem
+
+    /** Logótipo do partido; se a imagem falhar, fica a sigla que está por baixo. */
+    function partyLogo(party) {
+      const img = missingLogos.has(party.id) ? '' : `
+        <img class="party-logo-img" src="${encodeURI(`${LOGO_DIR}/${party.id}/logo.png`)}" alt="${escapeHtml(party.sigla)}"
+             onload="this.classList.add('is-loaded')" onerror="logoFailed(this, '${party.id}')">`;
+      return `<span class="party-logo" style="--party-color:${party.cor}" aria-hidden="true">${img}<span class="party-logo-text">${escapeHtml(party.sigla)}</span></span>`;
+    }
+
+    function logoFailed(img, partyId) {
+      missingLogos.add(partyId);
+      img.hidden = true;
+    }
+
+    /* ---------- Pesquisa global (cabeçalho) ---------- */
+    const SEARCH_LIMITS = { partido: 5, dirigente: 5, proposta: 8 };
+    let searchIndex = null;
+    let searchActive = -1;
+
+    /** Índice com partidos, dirigentes e propostas (criado na primeira pesquisa). */
+    function buildSearchIndex() {
+      const entries = [];
+      for (const party of PARTIES) {
+        entries.push({ type: 'partido', party, text: `${party.sigla} · ${party.nome}`, meta: 'Partido' });
+        for (const d of party.dirigentes) {
+          entries.push({ type: 'dirigente', party, text: d.nome, meta: `${party.sigla} · ${d.funcao || UNAVAILABLE}` });
+        }
+        for (const category of CATEGORIES) {
+          for (const topic of party.programa[category.id] || []) {
+            entries.push({ type: 'proposta', party, category, topic, text: topic.texto, meta: `${party.sigla} · ${category.nome}` });
+          }
+        }
+      }
+      return entries.map((e) => ({ ...e, norm: normalize(e.text) }));
+    }
+
+    /** Destaca o termo no texto, ignorando acentos (só quando o texto normalizado mantém o comprimento). */
+    function highlightMatch(text, q) {
+      const norm = normalize(text);
+      const i = norm.indexOf(q);
+      if (i < 0 || norm.length !== text.length) return escapeHtml(text);
+      return `${escapeHtml(text.slice(0, i))}<mark>${escapeHtml(text.slice(i, i + q.length))}</mark>${escapeHtml(text.slice(i + q.length))}`;
+    }
+
+    function renderSearchResults(query) {
+      const panel = $('#global-search-results');
+      const input = $('#global-search-input');
+      const q = normalize(query.trim());
+      searchActive = -1;
+      input.removeAttribute('aria-activedescendant');
+      if (q.length < 2) { closeSearch(false); return; }
+
+      searchIndex ??= buildSearchIndex();
+      const groups = { partido: [], dirigente: [], proposta: [] };
+      for (const e of searchIndex) if (e.norm.includes(q)) groups[e.type].push(e);
+
+      const labels = { partido: 'Partidos', dirigente: 'Dirigentes', proposta: 'Propostas' };
+      let n = 0;
+      const item = (e) => {
+        const attrs = e.type === 'proposta'
+          ? `data-party="${e.party.id}" data-goto-category="${e.category.id}" data-goto-ideia="${escapeHtml(e.topic.ideia)}"`
+          : `data-party="${e.party.id}"${e.type === 'dirigente' ? ' data-goto-tab="quem"' : ''}`;
+        return `
+          <button class="search-item" type="button" role="option" id="search-opt-${n++}" ${attrs}>
+            ${partyLogo(e.party)}
+            <span class="search-item-body">
+              <span class="search-item-text">${highlightMatch(e.text, q)}</span>
+              <span class="search-item-meta">${escapeHtml(e.meta)}</span>
+            </span>
+          </button>`;
+      };
+      const html = Object.entries(groups).filter(([, list]) => list.length).map(([type, list]) => `
+        <div class="search-group" role="group" aria-label="${labels[type]}">
+          <p class="search-group-title">${labels[type]} <span>${list.length}</span></p>
+          ${list.slice(0, SEARCH_LIMITS[type]).map(item).join('')}
+          ${list.length > SEARCH_LIMITS[type] ? `<p class="search-more">e mais ${list.length - SEARCH_LIMITS[type]}. Escreve mais para afinar.</p>` : ''}
+        </div>`).join('');
+
+      panel.innerHTML = html || `<p class="search-empty">Sem resultados para «${escapeHtml(query.trim())}».</p>`;
+      panel.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeSearch(clear = true) {
+      const panel = $('#global-search-results');
+      const input = $('#global-search-input');
+      panel.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      if (clear) input.value = '';
+    }
+
+    /** Setas para cima/baixo percorrem os resultados. */
+    function moveSearchActive(step) {
+      const items = $$('#global-search-results .search-item');
+      if (!items.length) return;
+      items[searchActive]?.classList.remove('is-active');
+      searchActive = (searchActive + step + items.length) % items.length;
+      const el = items[searchActive];
+      el.classList.add('is-active');
+      el.scrollIntoView({ block: 'nearest' });
+      $('#global-search-input').setAttribute('aria-activedescendant', el.id);
+    }
+
     /* ---------- Bússola política (questionário) ---------- */
 
     /**
-     * Cada opção aponta para uma `ideia` real dos programas (na categoria da pergunta,
-     * ou em `categoria` quando a ideia está noutra). Os partidos de cada opção são
-     * calculados a partir dos dados, nunca escritos à mão.
+     * Banco de perguntas. Cada opção aponta para uma `ideia` real dos programas (na categoria
+     * da pergunta, ou em `categoria` quando a ideia está noutra). Os partidos de cada opção são
+     * calculados a partir dos dados, nunca escritos à mão. Cada ronda mostra QUIZ_SIZE perguntas.
      */
+    const QUIZ_SIZE = 8;
     const QUIZ = [
+      // Habitação
       { id: 'habitacao', categoria: 'habitacao', pergunta: 'Qual deve ser a prioridade para a Habitação?', opcoes: [
         { ideia: 'reforcar-habitacao-publica', texto: 'Construir mais habitação pública a preços acessíveis' },
         { ideia: 'tetos-rendas', texto: 'Pôr tetos máximos às rendas' },
         { ideia: 'fim-controlo-rendas', texto: 'Acabar com o controlo das rendas e liberalizar o arrendamento' },
       ] },
+      { id: 'habitacao-oferta', categoria: 'habitacao', pergunta: 'Como aumentar a oferta de casas?', opcoes: [
+        { ideia: 'simplificar-licenciamento-urbanistico', texto: 'Simplificar e acelerar o licenciamento da construção' },
+        { ideia: 'mobilizar-imoveis-publicos', texto: 'Pôr no mercado os imóveis e terrenos vazios do Estado' },
+        { ideia: 'regular-alojamento-local', texto: 'Limitar o Alojamento Local nas zonas com mais pressão' },
+      ] },
+      { id: 'habitacao-acessivel', categoria: 'habitacao', pergunta: 'Que medida torna as casas mais acessíveis?', opcoes: [
+        { ideia: 'iva-6-construcao', texto: 'Baixar o IVA da construção de habitação para 6%' },
+        { ideia: 'zonamento-inclusivo', texto: 'Reservar parte da nova construção para habitação acessível' },
+        { ideia: 'ppp-habitacao-acessivel', texto: 'Parcerias público-privadas para construir casas com rendas acessíveis' },
+      ] },
+      // Impostos e Fiscalidade
       { id: 'impostos', categoria: 'impostos', pergunta: 'Que mudança nos impostos é mais urgente?', opcoes: [
         { ideia: 'reduzir-irc', texto: 'Baixar o IRC das empresas' },
         { ideia: 'iva-zero-cabaz', texto: 'IVA zero num cabaz de bens alimentares essenciais' },
         { ideia: 'taxar-lucros-extraordinarios', texto: 'Taxar os lucros extraordinários da banca, da energia e da distribuição' },
       ] },
+      { id: 'impostos-irs', categoria: 'impostos', pergunta: 'Como deve mudar o IRS?', opcoes: [
+        { ideia: 'irs-duas-taxas', texto: 'Um IRS com apenas duas taxas' },
+        { ideia: 'englobamento-rendimentos-irs', texto: 'Somar todos os rendimentos no IRS, incluindo os de capital' },
+        { ideia: 'irs-jovem', categoria: 'juventude', texto: 'Manter ou alargar o IRS Jovem' },
+      ] },
+      { id: 'impostos-outros', categoria: 'impostos', pergunta: 'Que outra medida fiscal preferes?', opcoes: [
+        { ideia: 'imposto-grandes-herancas', texto: 'Criar um imposto sobre as grandes heranças' },
+        { ideia: 'contribuicao-banca', texto: 'Aumentar a contribuição paga pelo setor bancário' },
+        { ideia: 'reduzir-iuc', texto: 'Baixar o imposto de circulação (IUC) dos carros' },
+      ] },
+      // Saúde
       { id: 'saude', categoria: 'saude', pergunta: 'Como deve o SNS responder à falta de resposta?', opcoes: [
         { ideia: 'ppp-saude', texto: 'Mais parcerias com o setor privado (PPP e convenções)' },
         { ideia: 'fim-ppp-saude', texto: 'Gestão pública, sem novas PPP' },
         { ideia: 'dedicacao-exclusiva-sns', texto: 'Dedicação exclusiva dos profissionais ao SNS, com melhor salário' },
       ] },
-      { id: 'trabalho', categoria: 'trabalho', pergunta: 'Qual deve ser a prioridade no Trabalho?', opcoes: [
-        { ideia: 'salario-medio-2000', texto: 'Criar condições para um salário médio de 2.000€ em 2029' },
-        { ideia: 'reduzir-horario-semanal', texto: 'Reduzir o horário semanal de trabalho' },
-        { ideia: 'incentivos-contratacao-jovens', texto: 'Incentivar as empresas a contratar jovens' },
+      { id: 'saude-cuidados', categoria: 'saude', pergunta: 'Que cuidado de saúde deve chegar a todos primeiro?', opcoes: [
+        { ideia: 'medico-de-familia-para-todos', texto: 'Médico e equipa de família para toda a gente' },
+        { ideia: 'saude-oral-sns', texto: 'Dentista no Serviço Nacional de Saúde' },
+        { ideia: 'reforcar-saude-mental', texto: 'Psicólogos e saúde mental nos centros de saúde' },
       ] },
-      { id: 'imigracao', categoria: 'imigracao', pergunta: 'O que é mais importante na Imigração?', opcoes: [
-        { ideia: 'nacionalidade-mais-exigente', texto: 'Tornar mais exigentes as regras para obter a nacionalidade' },
-        { ideia: 'reforcar-aima', texto: 'Dar mais meios à AIMA para tratar dos processos' },
-        { ideia: 'imigracao-regulada-na-origem', texto: 'Abrir vias de imigração regulares e seguras a partir dos países de origem' },
+      { id: 'saude-esperas', categoria: 'saude', pergunta: 'Como reduzir as listas de espera?', opcoes: [
+        { ideia: 'privado-quando-sns-falha', texto: 'Encaminhar para o privado quando o SNS ultrapassa o tempo máximo' },
+        { ideia: 'fixacao-medicos-zonas-carenciadas', texto: 'Incentivos para fixar médicos nas zonas com falta deles' },
+        { ideia: 'transparencia-listas-espera', texto: 'Tornar as listas de espera públicas e consultáveis por cada doente' },
       ] },
+      // Educação
       { id: 'educacao', categoria: 'educacao', pergunta: 'Onde investir primeiro na Educação?', opcoes: [
         { ideia: 'pre-escolar-universal', texto: 'Creche e pré-escolar para todas as crianças' },
         { ideia: 'eliminar-propinas', texto: 'Acabar com as propinas no ensino superior' },
         { ideia: 'reforcar-ensino-profissional', texto: 'Reforçar o ensino técnico e profissional' },
       ] },
+      { id: 'educacao-escola', categoria: 'educacao', pergunta: 'O que mudar na escola e para os professores?', opcoes: [
+        { ideia: 'recuperar-tempo-servico-professores', texto: 'Recuperar todo o tempo de serviço dos professores' },
+        { ideia: 'apoio-deslocacao-professores', texto: 'Apoiar os professores colocados longe de casa' },
+        { ideia: 'eliminar-exames-nacionais', texto: 'Acabar com os exames nacionais' },
+      ] },
+      // Juventude
+      { id: 'juventude', categoria: 'juventude', pergunta: 'Qual a melhor ajuda para os jovens?', opcoes: [
+        { ideia: 'passe-gratuito-jovens', texto: 'Transportes públicos gratuitos para os jovens' },
+        { ideia: 'isencao-imt-jovens', texto: 'Isentar de impostos a compra da primeira casa' },
+        { ideia: 'porta-65-reforcado', texto: 'Reforçar o apoio à renda dos jovens (Porta 65)' },
+      ] },
+      { id: 'juventude-futuro', categoria: 'juventude', pergunta: 'Qual destas medidas para os jovens é mais importante?', opcoes: [
+        { ideia: 'voto-aos-16', texto: 'Direito de voto a partir dos 16 anos' },
+        { ideia: 'regresso-jovens-emigrados', texto: 'Programas para os jovens emigrados regressarem' },
+        { ideia: 'combate-precariedade-jovens', texto: 'Combater a precariedade laboral dos jovens' },
+      ] },
+      // Imigração e Integração
+      { id: 'imigracao', categoria: 'imigracao', pergunta: 'O que é mais importante na Imigração?', opcoes: [
+        { ideia: 'nacionalidade-mais-exigente', texto: 'Tornar mais exigentes as regras para obter a nacionalidade' },
+        { ideia: 'reforcar-aima', texto: 'Dar mais meios à AIMA para tratar dos processos' },
+        { ideia: 'imigracao-regulada-na-origem', texto: 'Abrir vias de imigração regulares e seguras a partir dos países de origem' },
+      ] },
+      { id: 'imigracao-entradas', categoria: 'imigracao', pergunta: 'Como gerir as entradas de imigrantes?', opcoes: [
+        { ideia: 'limitar-fluxos-migratorios', texto: 'Limitar as entradas segundo as necessidades do país' },
+        { ideia: 'policia-de-fronteiras', texto: 'Criar uma polícia dedicada às fronteiras' },
+        { ideia: 'resolver-processos-pendentes-aima', texto: 'Regularizar rapidamente os processos pendentes' },
+      ] },
+      // Segurança e Justiça
+      { id: 'seguranca', categoria: 'seguranca', pergunta: 'Qual deve ser a prioridade na Segurança?', opcoes: [
+        { ideia: 'videovigilancia', texto: 'Mais videovigilância nas zonas sensíveis' },
+        { ideia: 'suplemento-risco-policias', texto: 'Subir o suplemento de risco da PSP e da GNR' },
+        { ideia: 'reforma-sistema-prisional', texto: 'Reformar as prisões e apostar em penas alternativas' },
+      ] },
+      { id: 'justica', categoria: 'seguranca', pergunta: 'O que é mais urgente mudar na Justiça?', opcoes: [
+        { ideia: 'reduzir-custas-judiciais', texto: 'Baixar as custas judiciais' },
+        { ideia: 'acabar-megaprocessos', texto: 'Acabar com os megaprocessos' },
+        { ideia: 'violacao-crime-publico', texto: 'Tornar a violação crime público' },
+      ] },
+      // Trabalho e Emprego
+      { id: 'trabalho', categoria: 'trabalho', pergunta: 'Qual deve ser a prioridade no Trabalho?', opcoes: [
+        { ideia: 'salario-medio-2000', texto: 'Criar condições para um salário médio de 2.000€ em 2029' },
+        { ideia: 'reduzir-horario-semanal', texto: 'Reduzir o horário semanal de trabalho' },
+        { ideia: 'incentivos-contratacao-jovens', texto: 'Incentivar as empresas a contratar jovens' },
+      ] },
+      { id: 'trabalho-direitos', categoria: 'trabalho', pergunta: 'Que mudança laboral preferes?', opcoes: [
+        { ideia: 'fim-caducidade-contratacao-coletiva', texto: 'Acabar com a caducidade dos contratos coletivos' },
+        { ideia: 'semana-4-dias', texto: 'Alargar a semana de 4 dias' },
+        { ideia: 'profissoes-desgaste-rapido', texto: 'Definir na lei as profissões de desgaste rápido' },
+      ] },
+      // Estado Social e Pensões
+      { id: 'pensoes', categoria: 'estado-social', pergunta: 'Qual a prioridade para os reformados?', opcoes: [
+        { ideia: 'pensao-minima-digna', texto: 'Subir as pensões mais baixas' },
+        { ideia: 'reforma-sem-penalizacao-carreiras-longas', texto: 'Reforma sem penalizações para carreiras contributivas longas' },
+        { ideia: 'envelhecimento-ativo', texto: 'Facilitar trabalhar depois da idade da reforma' },
+      ] },
+      { id: 'familias', categoria: 'estado-social', pergunta: 'Como apoiar melhor as famílias?', opcoes: [
+        { ideia: 'reforcar-abono-familia', texto: 'Aumentar ou universalizar o abono de família' },
+        { ideia: 'licenca-parental-alargada', texto: 'Licença parental mais longa e paga' },
+        { ideia: 'reforcar-rsi', texto: 'Reforçar o Rendimento Social de Inserção' },
+      ] },
+      { id: 'seguranca-social', categoria: 'estado-social', pergunta: 'O que é mais importante na Segurança Social?', opcoes: [
+        { ideia: 'pensoes-publicas', texto: 'Manter o sistema de pensões público, sem privatização' },
+        { ideia: 'valorizar-pensoes', texto: 'Aumentar as pensões todos os anos' },
+        { ideia: 'combate-sem-abrigo', texto: 'Uma estratégia nacional para as pessoas sem-abrigo' },
+      ] },
+      // Ambiente e Energia
       { id: 'energia', categoria: 'ambiente', pergunta: 'Qual deve ser a aposta no Ambiente e na Energia?', opcoes: [
         { ideia: 'energia-nuclear', texto: 'Estudar ou avançar com energia nuclear' },
         { ideia: 'areas-marinhas-protegidas', texto: 'Proteger pelo menos 30% do mar' },
         { ideia: 'iva-eletricidade-6', categoria: 'impostos', texto: 'Baixar o IVA da eletricidade para 6%' },
       ] },
+      { id: 'energia-fatura', categoria: 'ambiente', pergunta: 'Como baixar a fatura da energia das famílias?', opcoes: [
+        { ideia: 'apoio-gas-engarrafado', texto: 'Baixar ou fixar o preço do gás de botija' },
+        { ideia: 'autoconsumo-comunidades-energia', texto: 'Produzir a própria energia (autoconsumo e comunidades de energia)' },
+        { ideia: 'eficiencia-energetica-edificios', texto: 'Apoiar obras de eficiência energética nas casas' },
+      ] },
+      { id: 'mobilidade', categoria: 'ambiente', pergunta: 'Onde investir na mobilidade?', opcoes: [
+        { ideia: 'passes-transportes-baratos', texto: 'Passes de transportes públicos mais baratos' },
+        { ideia: 'alta-velocidade-ferroviaria', categoria: 'coesao', texto: 'Comboio de alta velocidade' },
+        { ideia: 'abolir-portagens-ex-scut', categoria: 'coesao', texto: 'Acabar com as portagens nas ex-SCUT' },
+      ] },
+      // Cultura
+      { id: 'cultura', categoria: 'cultura', pergunta: 'Como apoiar a Cultura?', opcoes: [
+        { ideia: 'reforcar-orcamento-cultura', texto: 'Aumentar o orçamento da Cultura' },
+        { ideia: 'lei-mecenato-cultural', texto: 'Mais incentivos fiscais ao mecenato' },
+        { ideia: 'estatuto-profissionais-cultura', texto: 'Combater a precariedade dos profissionais da cultura' },
+      ] },
+      // Agricultura e Pescas
+      { id: 'agricultura', categoria: 'agricultura', pergunta: 'Qual a prioridade para a Agricultura?', opcoes: [
+        { ideia: 'agricultura-biologica', texto: 'Apostar na agricultura biológica' },
+        { ideia: 'emparcelamento', texto: 'Juntar terrenos pequenos para reduzir a fragmentação' },
+        { ideia: 'rendimentos-justos-agricultores', texto: 'Garantir rendimentos justos aos pequenos agricultores' },
+      ] },
+      { id: 'agua-mar', categoria: 'agricultura', pergunta: 'Que medida preferes para a água e o mar?', opcoes: [
+        { ideia: 'regadio-transferencias-agua', texto: 'Levar água do Norte para o Sul e expandir o regadio' },
+        { ideia: 'pesca-sustentavel', texto: 'Pesca mais sustentável, com quotas mais baixas' },
+        { ideia: 'modernizar-frota-pesqueira', texto: 'Modernizar a frota de pesca' },
+      ] },
+      // Coesão Territorial e Autonomias
+      { id: 'interior', categoria: 'coesao', pergunta: 'Como desenvolver o interior?', opcoes: [
+        { ideia: 'incentivos-fiscais-interior', texto: 'Benefícios fiscais para quem vive ou investe no interior' },
+        { ideia: 'servicos-publicos-interior', texto: 'Reabrir serviços públicos no interior' },
+        { ideia: 'deslocalizar-servicos-estado', texto: 'Instalar serviços do Estado fora de Lisboa' },
+      ] },
+      { id: 'territorio', categoria: 'coesao', pergunta: 'Como organizar o território?', opcoes: [
+        { ideia: 'regionalizacao', texto: 'Avançar com a regionalização' },
+        { ideia: 'descentralizacao-municipios', texto: 'Dar mais competências aos municípios' },
+        { ideia: 'lei-financas-regionais', texto: 'Rever a lei de finanças das regiões autónomas' },
+      ] },
+      // Transparência e Combate à Corrupção
+      { id: 'corrupcao', categoria: 'transparencia', pergunta: 'Qual a melhor arma contra a corrupção?', opcoes: [
+        { ideia: 'regulamentar-lobbying', texto: 'Regulamentar o lóbi, com registo público' },
+        { ideia: 'enriquecimento-ilicito', texto: 'Criminalizar o enriquecimento ilícito' },
+        { ideia: 'periodo-nojo', texto: 'Um período de espera maior antes de ex-governantes irem para empresas' },
+      ] },
+      { id: 'transparencia', categoria: 'transparencia', pergunta: 'Que medida de transparência é mais urgente?', opcoes: [
+        { ideia: 'reforcar-entidades-anticorrupcao', texto: 'Reforçar as entidades anticorrupção' },
+        { ideia: 'controlo-offshores', texto: 'Apertar o controlo das operações em offshores' },
+        { ideia: 'perda-alargada-bens', texto: 'Facilitar a perda de bens de origem criminosa' },
+      ] },
+      // Economia e Finanças
       { id: 'economia', categoria: 'economia', pergunta: 'Qual deve ser o papel do Estado na Economia?', opcoes: [
         { ideia: 'contas-publicas-equilibradas', texto: 'Contas públicas equilibradas e menos dívida' },
         { ideia: 'privatizar-empresas-publicas', texto: 'Abrir ou privatizar empresas públicas' },
         { ideia: 'controlo-publico-setores-estrategicos', texto: 'Controlo público de setores estratégicos, como a banca e a energia' },
+      ] },
+      { id: 'economia-estado', categoria: 'economia', pergunta: 'O que fazer com a despesa do Estado?', opcoes: [
+        { ideia: 'reduzir-despesa-estado', texto: 'Reduzir a despesa pública' },
+        { ideia: 'investimento-publico-5-pib', texto: 'Investir pelo menos 5% do PIB por ano em obra pública' },
+        { ideia: 'desburocratizar-estado', texto: 'Cortar burocracia e simplificar licenciamentos' },
       ] },
     ];
 
@@ -3104,9 +3499,35 @@
       return PARTIES.filter((p) => (p.programa[categoryId] || []).some((t) => t.ideia === option.ideia));
     }
 
+    /** Baralha uma cópia do array (Fisher–Yates). */
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    /** Nova ronda: QUIZ_SIZE perguntas ao acaso, de categorias diferentes sempre que possível. */
+    function newQuizRound() {
+      const picked = [];
+      const categories = new Set();
+      const pool = shuffle(QUIZ);
+      for (const q of pool) {
+        if (picked.length < QUIZ_SIZE && !categories.has(q.categoria)) { picked.push(q); categories.add(q.categoria); }
+      }
+      for (const q of pool) if (picked.length < QUIZ_SIZE && !picked.includes(q)) picked.push(q);
+      state.quizIds = picked.map((q) => q.id);
+      state.quiz = {};
+      state.quizShown = false;
+    }
+
+    const currentQuiz = () => state.quizIds.map((id) => QUIZ.find((q) => q.id === id));
+
     /** Ranking: percentagem das respostas dadas que coincidem com ideias de cada partido. */
     function quizResults(answers) {
-      const answered = QUIZ.filter((q) => answers[q.id] != null);
+      const answered = currentQuiz().filter((q) => answers[q.id] != null);
       const rows = PARTIES.map((party, order) => {
         const matched = answered.filter((q) => partiesForOption(q, q.opcoes[answers[q.id]]).includes(party));
         return { party, order, matched, pct: answered.length ? Math.round((matched.length / answered.length) * 100) : 0 };
@@ -3124,12 +3545,12 @@
           <h3>Resultados</h3>
           <button class="action-btn" type="button" data-action="quiz-reset">Recomeçar</button>
         </div>
-        <p class="quiz-note">Com base em ${answered} de ${QUIZ.length} respostas. Mede quantas das tuas escolhas coincidem com ideias registadas nos programas; alguns programas só estão registados em parte, por isso não é uma recomendação de voto.</p>
+        <p class="quiz-note">Com base em ${answered} de ${state.quizIds.length} respostas. Mede quantas das tuas escolhas coincidem com ideias registadas nos programas; alguns programas só estão registados em parte, por isso não é uma recomendação de voto.</p>
         <ol class="quiz-ranking">
           ${rows.map(({ party, matched, pct, rank }) => `
             <li class="quiz-row" style="--party-color:${party.cor}">
               <span class="quiz-rank">${rank}.º</span>
-              <span class="party-logo" aria-hidden="true">${escapeHtml(party.sigla)}</span>
+              ${partyLogo(party)}
               <div class="quiz-row-body">
                 <div class="quiz-row-head">
                   <strong>${escapeHtml(party.nome)}</strong>
@@ -3138,18 +3559,21 @@
                 <div class="quiz-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"
                      aria-label="Afinidade com ${escapeHtml(party.sigla)}"><span style="width:${pct}%"></span></div>
                 <p class="quiz-matches">${matched.length
-                  ? `Coincide em: ${matched.map((q) => escapeHtml(category(q.categoria))).join(', ')}`
+                  ? `Coincide em: ${[...new Set(matched.map((q) => category(q.categoria)))].map(escapeHtml).join(', ')}`
                   : 'Nenhuma resposta coincide.'}</p>
               </div>
             </li>`).join('')}
         </ol>`;
     }
 
+    const REFRESH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg>';
+
     function renderQuizView() {
-      const answered = QUIZ.filter((q) => state.quiz[q.id] != null).length;
-      const questions = QUIZ.map((q, i) => `
+      const quiz = currentQuiz();
+      const answered = quiz.filter((q) => state.quiz[q.id] != null).length;
+      const questions = quiz.map((q, i) => `
         <fieldset class="quiz-question">
-          <legend><span class="quiz-step">${i + 1}/${QUIZ.length}</span>${escapeHtml(q.pergunta)}</legend>
+          <legend><span class="quiz-step">${i + 1}/${quiz.length}</span>${escapeHtml(q.pergunta)}</legend>
           <div class="quiz-options">
             ${q.opcoes.map((o, j) => `
               <label class="quiz-option">
@@ -3161,12 +3585,16 @@
 
       return `
         <section class="quiz-view">
-          <h2>Bússola Política</h2>
-          <p>Responde a ${QUIZ.length} perguntas e descobre que partidos defendem as mesmas ideias que tu. Cada opção corresponde a uma proposta que aparece em programas eleitorais.</p>
+          <div class="view-head">
+            <h2>Bússola Política</h2>
+            <button class="icon-btn quiz-refresh" type="button" data-action="quiz-reset"
+                    aria-label="Novas perguntas" title="Novas perguntas">${REFRESH_ICON}</button>
+          </div>
+          <p>Responde a ${quiz.length} perguntas, escolhidas ao acaso entre ${QUIZ.length}, e descobre que partidos defendem as mesmas ideias que tu. Cada opção corresponde a uma proposta que aparece em programas eleitorais.</p>
           <form class="quiz-form" id="quiz-form">
             ${questions}
             <div class="quiz-actions">
-              <span class="quiz-progress" id="quiz-progress">${answered} de ${QUIZ.length} respondidas</span>
+              <span class="quiz-progress" id="quiz-progress">${answered} de ${quiz.length} respondidas</span>
               <button class="action-btn is-primary" type="submit" id="quiz-submit" ${answered ? '' : 'disabled'}>Ver Resultados</button>
             </div>
           </form>
@@ -3244,6 +3672,7 @@
        5. RENDERIZAÇÃO
        ========================================================= */
     let lastRoute = null;
+    let lastView = null;
     // O render corre no hashchange (assíncrono): o que depende do novo DOM espera por ele aqui.
     const afterRender = [];
 
@@ -3252,6 +3681,9 @@
       Object.assign(state, parseHash());
       // Na página inicial o painel lateral desaparece e os cartões ocupam o espaço todo.
       $('.app').classList.toggle('is-home', state.view === 'partidos' && !state.partyId);
+      // Ao entrar na Bússola baralham-se novas perguntas.
+      if (state.view === 'bussola' && (lastView !== 'bussola' || !state.quizIds.length)) newQuizRound();
+      lastView = state.view;
       closeModal();
       renderViewSwitch();
       renderPartyList();
@@ -3288,7 +3720,7 @@
           <li>
             <button class="party-item" type="button" data-party="${p.id}"
                     aria-current="${state.view === 'partidos' && p.id === state.partyId}" style="--party-color:${p.cor}">
-              <span class="party-logo" aria-hidden="true">${escapeHtml(p.sigla)}</span>
+              ${partyLogo(p)}
               <span class="party-meta">
                 <strong>${escapeHtml(p.sigla)}</strong>
                 <span>${escapeHtml(p.nome)}</span>
@@ -3306,7 +3738,7 @@
         return `
           <li>
             <button class="party-card" type="button" data-party="${p.id}" style="--party-color:${p.cor}">
-              <span class="party-logo" aria-hidden="true">${escapeHtml(p.sigla)}</span>
+              ${partyLogo(p)}
               <span class="party-card-sigla">${escapeHtml(p.sigla)}</span>
               <span class="party-card-nome">${escapeHtml(p.nome)}</span>
               <span class="party-card-meta">${topics} ${topics === 1 ? 'proposta' : 'propostas'} · ${categories} de ${CATEGORIES.length} categorias</span>
@@ -3336,7 +3768,7 @@
 
       return `
         <header class="party-header" style="--party-color:${party.cor}">
-          <span class="party-logo" aria-hidden="true">${escapeHtml(party.sigla)}</span>
+          ${partyLogo(party)}
           <div>
             <h2>${escapeHtml(party.sigla)}</h2>
             <p>${escapeHtml(party.nome)}</p>
@@ -3515,6 +3947,7 @@
           state.category = gotoCategory || 'todas';
           setSidebar(false);
           closeModal();
+          closeSearch();
           afterRender.push(() => {
             $('.chip[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
             if (!gotoIdeia) return;
@@ -3523,7 +3956,7 @@
             target?.scrollIntoView({ block: 'center' });
             target?.querySelector('.badge')?.focus({ preventScroll: true });
           });
-          navigate(`#/partido/${party}/programa`);
+          navigate(`#/partido/${party}/${el.dataset.gotoTab === 'quem' ? 'quem' : 'programa'}`);
         } else if (tab) {
           afterRender.push(() => $(`#tab-${tab}`)?.focus());
           navigate(`#/partido/${state.partyId}/${tab}`);
@@ -3541,9 +3974,9 @@
         } else if (action === 'print') {
           printProgram();
         } else if (action === 'quiz-reset') {
-          state.quiz = {};
-          state.quizShown = false;
+          newQuizRound();
           render();
+          $('#main').scrollTo({ top: 0, behavior: 'smooth' });
         } else if (action === 'home') {
           navigate('#/');
         } else if (action === 'toggle-theme') {
@@ -3592,8 +4025,8 @@
         }
         if (e.target.dataset.quiz) {
           state.quiz[e.target.dataset.quiz] = Number(e.target.value);
-          const answered = QUIZ.filter((q) => state.quiz[q.id] != null).length;
-          $('#quiz-progress').textContent = `${answered} de ${QUIZ.length} respondidas`;
+          const answered = currentQuiz().filter((q) => state.quiz[q.id] != null).length;
+          $('#quiz-progress').textContent = `${answered} de ${state.quizIds.length} respondidas`;
           $('#quiz-submit').disabled = !answered;
           if (state.quizShown) $('#quiz-results').innerHTML = renderQuizResults();
           return;
@@ -3611,6 +4044,35 @@
         results.innerHTML = renderQuizResults();
         results.hidden = false;
         results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      // Pesquisa global: resultados ao escrever, setas para navegar, Enter para abrir.
+      const globalInput = $('#global-search-input');
+      globalInput.addEventListener('input', () => renderSearchResults(globalInput.value));
+      globalInput.addEventListener('focus', () => { if (globalInput.value) renderSearchResults(globalInput.value); });
+      globalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          moveSearchActive(e.key === 'ArrowDown' ? 1 : -1);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          ($$('#global-search-results .search-item')[Math.max(searchActive, 0)])?.click();
+        } else if (e.key === 'Escape') {
+          closeSearch();
+          globalInput.blur();
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        const typing = e.target.closest('input, textarea, select');
+        if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing)) {
+          if (getComputedStyle($('#global-search')).display === 'none') return;
+          e.preventDefault();
+          globalInput.focus();
+          globalInput.select();
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#global-search')) closeSearch(false);
       });
 
       window.addEventListener('hashchange', render);
