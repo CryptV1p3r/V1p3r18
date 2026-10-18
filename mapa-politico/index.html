@@ -6,6 +6,11 @@
   <meta name="description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
   <title>Mapa Político de Portugal</title>
 
+  <!-- Fonte Inter (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+
   <!-- Fase 4: biblioteca do grafo (Vis.js), com versão fixa para o grafo não mudar sozinho -->
   <script type="text/javascript" src="https://unpkg.com/vis-network@10.1.2/standalone/umd/vis-network.min.js"></script>
 
@@ -14,25 +19,26 @@
        1. TOKENS DE DESIGN
        ========================================================= */
     :root {
-      --bg: #f6f7f9;
+      --bg: #fafafa;
       --surface: #ffffff;
-      --surface-2: #f0f2f5;
-      --border: #e2e5ea;
-      --text: #1b1f24;
-      --text-muted: #5b6573;
-      --accent: #2952e3;
-      --accent-soft: #e8edfd;
-      --focus: #2952e3;
-      --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 12px rgba(16, 24, 40, .06);
+      --surface-2: #f4f4f5;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --text-muted: #71717a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --focus: #2563eb;
+      --shadow: 0 1px 2px rgba(9, 9, 11, .05), 0 4px 14px rgba(9, 9, 11, .06);
+      --glass: rgba(255, 255, 255, .8);
 
       --radius-sm: 6px;
-      --radius: 10px;
+      --radius: 12px;
       --radius-lg: 16px;
 
       --sidebar-w: 288px;
       --header-h: 60px;
 
-      --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       --fs-xs: .75rem;
       --fs-sm: .875rem;
       --fs-md: 1rem;
@@ -42,21 +48,25 @@
       --ease: cubic-bezier(.2, .7, .2, 1);
 
       --graph-bg: #ffffff;
+      --graph-dot: rgba(24, 24, 27, .10);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #0f1216;
-        --surface: #171b21;
-        --surface-2: #1f242c;
-        --border: #2b313a;
-        --text: #e7eaee;
-        --text-muted: #9aa4b2;
-        --accent: #7c9cff;
-        --accent-soft: #222c4a;
-        --focus: #7c9cff;
-        --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 12px rgba(0, 0, 0, .3);
-        --graph-bg: #1a2029;
+        --bg: #09090b;
+        --surface: #18181b;
+        --surface-2: #222226;
+        --border: #27272a;
+        --text: #fafafa;
+        --text-muted: #a1a1aa;
+        --accent: #3b82f6;
+        --accent-soft: rgba(59, 130, 246, .15);
+        --focus: #3b82f6;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px rgba(0, 0, 0, .35);
+        --glass: rgba(24, 24, 27, .8);
+
+        --graph-bg: #0f0f12;
+        --graph-dot: rgba(255, 255, 255, .08);
       }
     }
 
@@ -77,7 +87,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    h1, h2, h3, h4 { margin: 0; line-height: 1.25; }
+    h1, h2, h3, h4 { margin: 0; line-height: 1.25; font-weight: 700; letter-spacing: -.02em; }
     p { margin: 0; }
     ul { margin: 0; padding: 0; list-style: none; }
 
@@ -102,6 +112,14 @@
       white-space: nowrap;
     }
 
+    /* Vidro fosco (cabeçalho e painel lateral) */
+    .app-header,
+    .sidebar {
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
+
     /* =========================================================
        3. LAYOUT (mobile-first)
        Telemóvel: cabeçalho + conteúdo; o painel de partidos abre
@@ -124,7 +142,6 @@
       align-items: center;
       gap: 12px;
       padding: 0 16px;
-      background: var(--surface);
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
@@ -134,8 +151,7 @@
     .app-title {
       min-width: 0;
       font-size: var(--fs-md);
-      font-weight: 700;
-      letter-spacing: -.01em;
+      font-weight: 800;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -147,6 +163,7 @@
       width: 40px; height: 40px;
       border-radius: var(--radius-sm);
       flex-shrink: 0;
+      transition: background .15s var(--ease);
     }
     .icon-btn:hover { background: var(--surface-2); }
     .icon-btn svg { width: 22px; height: 22px; }
@@ -157,21 +174,23 @@
       padding: 3px;
       gap: 2px;
       background: var(--surface-2);
+      border: 1px solid var(--border);
       border-radius: 999px;
       flex-shrink: 0;
     }
     .view-switch button {
-      padding: 6px 12px;
+      padding: 6px 14px;
       font-size: var(--fs-sm);
       font-weight: 600;
       color: var(--text-muted);
       border-radius: 999px;
       transition: background .15s var(--ease), color .15s var(--ease);
     }
+    .view-switch button:hover { color: var(--text); }
     .view-switch button[aria-pressed="true"] {
-      background: var(--surface);
-      color: var(--text);
-      box-shadow: var(--shadow);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 16px -4px var(--accent);
     }
 
     /* ---------- Painel lateral (partidos) ---------- */
@@ -181,7 +200,6 @@
       width: min(86vw, var(--sidebar-w));
       display: flex;
       flex-direction: column;
-      background: var(--surface);
       border-right: 1px solid var(--border);
       transform: translateX(-100%);
       transition: transform .25s var(--ease);
@@ -198,29 +216,43 @@
       border-bottom: 1px solid var(--border);
     }
     .sidebar-head h2 {
-      font-size: var(--fs-sm);
+      font-size: var(--fs-xs);
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .08em;
       color: var(--text-muted);
     }
 
     .sidebar-search { padding: 12px 16px; }
-    .sidebar-search input {
+    .sidebar-search input,
+    .graph-search input,
+    .graph-filter select {
       width: 100%;
       padding: 9px 12px;
       font: inherit;
       font-size: var(--fs-sm);
       color: var(--text);
-      background: var(--surface-2);
-      border: 1px solid transparent;
-      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
     }
-    .sidebar-search input:focus { border-color: var(--accent); outline: none; }
+    .sidebar-search input:focus,
+    .graph-search input:focus,
+    .graph-filter select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+      outline: none;
+    }
 
     .party-list {
       flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      gap: 4px;
       overflow-y: auto;
-      padding: 4px 8px 16px;
+      padding: 4px 10px 16px;
     }
 
     .party-item {
@@ -228,28 +260,39 @@
       align-items: center;
       gap: 12px;
       width: 100%;
-      padding: 10px 8px;
+      padding: 9px 10px;
       text-align: left;
+      border: 1px solid transparent;
       border-radius: var(--radius);
-      transition: background .15s var(--ease);
+      transition: background .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);
     }
-    .party-item:hover { background: var(--surface-2); }
-    .party-item[aria-current="true"] { background: var(--accent-soft); }
+    /* Ao passar o rato, a borda brilha com a cor do partido */
+    .party-item:hover {
+      background: var(--surface-2);
+      border-color: var(--party-color);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--party-color) 35%, transparent),
+                  0 0 18px -4px color-mix(in srgb, var(--party-color) 70%, transparent);
+    }
+    .party-item[aria-current="true"] {
+      background: color-mix(in srgb, var(--party-color) 12%, transparent);
+      border-color: color-mix(in srgb, var(--party-color) 55%, transparent);
+    }
 
     .party-logo {
       display: inline-grid;
       place-items: center;
       width: 40px; height: 40px;
       flex-shrink: 0;
-      border-radius: var(--radius-sm);
+      border-radius: 10px;
       font-size: var(--fs-xs);
       font-weight: 800;
+      letter-spacing: -.01em;
       color: #fff;
       background: var(--party-color, var(--text-muted));
     }
 
     .party-meta { min-width: 0; }
-    .party-meta strong { display: block; font-size: var(--fs-sm); }
+    .party-meta strong { display: block; font-size: var(--fs-sm); font-weight: 700; }
     .party-meta span {
       display: block;
       font-size: var(--fs-xs);
@@ -262,7 +305,7 @@
     .backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(10, 12, 16, .45);
+      background: rgba(9, 9, 11, .5);
       opacity: 0;
       pointer-events: none;
       transition: opacity .25s var(--ease);
@@ -297,8 +340,13 @@
       gap: 16px;
       margin-bottom: 20px;
     }
-    .party-header .party-logo { width: 56px; height: 56px; font-size: var(--fs-sm); }
-    .party-header h2 { font-size: var(--fs-xl); letter-spacing: -.02em; }
+    .party-header .party-logo {
+      width: 56px; height: 56px;
+      font-size: var(--fs-sm);
+      border-radius: 14px;
+      box-shadow: 0 0 24px -6px var(--party-color);
+    }
+    .party-header h2 { font-size: var(--fs-xl); }
     .party-header p { color: var(--text-muted); font-size: var(--fs-sm); }
 
     /* ---------- Abas ---------- */
@@ -317,6 +365,7 @@
       border-bottom: 2px solid transparent;
       margin-bottom: -1px;
       white-space: nowrap;
+      transition: color .15s var(--ease), border-color .15s var(--ease);
     }
     .tab:hover { color: var(--text); }
     .tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
@@ -341,22 +390,27 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 999px;
+      transition: color .15s var(--ease), background .15s var(--ease), border-color .15s var(--ease);
     }
+    .chip:hover { color: var(--text); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
     .chip[aria-pressed="true"] {
       color: var(--accent);
       background: var(--accent-soft);
-      border-color: transparent;
+      border-color: color-mix(in srgb, var(--accent) 45%, transparent);
     }
 
     /* ---------- Categorias do programa (acordeão) ---------- */
-    .category-list { display: grid; gap: 12px; }
+    .category-list { display: grid; gap: 10px; }
 
     .category {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
+      transition: background .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
     }
+    .category:hover { border-color: color-mix(in srgb, var(--text-muted) 35%, var(--border)); }
+    .category[open] { background: var(--surface-2); box-shadow: var(--shadow); }
     .category > summary {
       display: flex;
       align-items: center;
@@ -366,7 +420,9 @@
       font-weight: 600;
       cursor: pointer;
       list-style: none;
+      transition: background .2s var(--ease);
     }
+    .category > summary:hover { background: var(--surface-2); }
     .category > summary::-webkit-details-marker { display: none; }
     .category > summary::after {
       content: "";
@@ -374,16 +430,28 @@
       border-right: 2px solid var(--text-muted);
       border-bottom: 2px solid var(--text-muted);
       transform: rotate(45deg);
-      transition: transform .2s var(--ease);
+      transition: transform .25s var(--ease);
       flex-shrink: 0;
     }
     .category[open] > summary::after { transform: rotate(-135deg); }
+    /* Conteúdo do acordeão entra com um fade suave */
+    .category[open] > summary ~ * { animation: accordion-in .3s var(--ease); }
+    @keyframes accordion-in {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: none; }
+    }
 
     .category-count {
       margin-left: auto;
+      min-width: 24px;
+      padding: 1px 8px;
       font-size: var(--fs-xs);
       font-weight: 600;
+      text-align: center;
       color: var(--text-muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
     }
 
     .topic-list {
@@ -411,10 +479,11 @@
       line-height: 18px;
       color: var(--badge-text, #fff);
       background: var(--party-color, var(--text-muted));
-      border-radius: 4px;
+      border-radius: 5px;
       cursor: pointer;
+      transition: filter .15s var(--ease), box-shadow .15s var(--ease);
     }
-    .badge:hover { filter: brightness(1.1); }
+    .badge:hover { filter: brightness(1.1); box-shadow: 0 0 10px -2px var(--party-color); }
 
     /* Tópico de destino ao chegar por um badge */
     .topic.is-highlight { animation: topic-flash 2s ease-out; }
@@ -452,7 +521,9 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
     }
+    .person-card:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); box-shadow: var(--shadow); }
     .person-card h3 { font-size: var(--fs-md); }
     .person-role { font-size: var(--fs-sm); color: var(--accent); font-weight: 600; margin-top: 2px; }
     .person-fields { display: grid; gap: 8px; margin: 12px 0 0; }
@@ -467,11 +538,41 @@
     /* ---------- Vista do grafo (Fase 4) ---------- */
     .graph-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
     .graph-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+
+    /* Barra de pesquisa e filtro por cima do grafo */
+    .graph-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .graph-search { position: relative; flex: 3 1 280px; }
+    .graph-search svg {
+      position: absolute;
+      left: 12px; top: 50%;
+      width: 16px; height: 16px;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .graph-search input { padding-left: 36px; }
+    .graph-filter { flex: 1 1 200px; }
+    .graph-filter select { cursor: pointer; }
+    .graph-status {
+      flex-basis: 100%;
+      font-size: var(--fs-xs);
+      color: var(--text-muted);
+    }
+
+    /* "Tela infinita": grelha de pontos por baixo do canvas transparente do Vis.js */
     .graph-canvas {
       position: relative;
       height: min(70vh, 640px);
       min-height: 360px;
-      background: var(--graph-bg);
+      background-color: var(--graph-bg);
+      background-image: radial-gradient(circle, var(--graph-dot) 1px, transparent 1.5px);
+      background-size: 22px 22px;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
@@ -488,13 +589,13 @@
     }
     .legend-item { display: inline-flex; align-items: center; gap: 6px; }
     .legend-mark { display: inline-block; flex: none; }
-    .legend-mark.is-party { width: 22px; height: 14px; border-radius: 4px; background: linear-gradient(90deg, #f68a1e, #e5197e, #7ab51d, #00a3e0); }
-    .legend-mark.is-category { width: 20px; height: 13px; border-radius: 50%; background: #eef1f5; border: 1px solid #a3abb7; }
+    .legend-mark.is-party { width: 22px; height: 14px; border-radius: 4px; background: linear-gradient(90deg, #f68a1e, #e5197e, #7ab51d, #00a3e0); box-shadow: 0 0 8px -1px #e5197e; }
+    .legend-mark.is-category { width: 20px; height: 13px; border-radius: 50%; background: #f4f4f5; border: 1px solid #d4d4d8; }
     .legend-mark.is-idea { width: 8px; height: 8px; border-radius: 50%; background: #6b98f0; border: 0.5px solid #4a7bd8; }
-    @media (prefers-color-scheme: dark) {
-      .legend-mark.is-category { background: #2a323e; border-color: #4b5563; }
-    }
     .legend-mark.is-shared { width: 12px; height: 12px; border-radius: 50%; background: #2fb488; border: 0.5px solid #1c8a66; }
+    @media (prefers-color-scheme: dark) {
+      .legend-mark.is-category { background: #27272a; border-color: #3f3f46; }
+    }
     .graph-loading {
       position: absolute;
       inset: 0;
@@ -505,7 +606,7 @@
       text-align: center;
       font-size: var(--fs-sm);
       color: var(--text-muted);
-      background: var(--surface);
+      background: var(--graph-bg);
     }
     .graph-loading progress { width: 180px; accent-color: var(--accent); }
     /* Tooltips do Vis.js (mais específico que o CSS que a biblioteca injeta) */
@@ -517,9 +618,11 @@
       line-height: 1.45;
       color: var(--text);
       white-space: normal;
-      background: var(--surface);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      border-radius: 10px;
       box-shadow: var(--shadow);
     }
 
@@ -568,7 +671,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; }
+      *, *::before, *::after { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
@@ -1925,6 +2028,7 @@
       tab: 'programa',       // 'programa' | 'quem'
       category: 'todas',     // filtro de categoria na aba Programa
       search: '',
+      graphCategory: '',     // filtro de categoria no grafo ('' = todas)
     };
 
     function parseHash() {
@@ -2009,18 +2113,21 @@
      *   ideia     → cada proposta; propostas com a mesma `ideia` na mesma
      *               categoria partilham o nó, ligando os partidos através dele.
      * Ligações: partido → ideia e ideia → categoria.
+     * Com `categoryId`, só entram as ideias dessa categoria e os partidos ligados a elas.
      * @returns {{ nodes: Array, edges: Array }}
      */
-    function buildAffinityGraph() {
+    function buildAffinityGraph(categoryId = '') {
       const shorten = (s, max = 48) => (s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s);
+      const categories = CATEGORIES.filter((c) => !categoryId || c.id === categoryId);
       const nodes = [];
       const edges = [];
+      const addEdge = (edge) => edges.push({ id: `e${edges.length}`, ...edge });
       const ideas = new Map(); // "categoria|ideia" → nó da ideia
-      const ideasPerCategory = new Map(CATEGORIES.map((c) => [c.id, 0]));
+      const ideasPerCategory = new Map(categories.map((c) => [c.id, 0]));
 
       for (const party of PARTIES) {
         let total = 0;
-        for (const category of CATEGORIES) {
+        for (const category of categories) {
           (party.programa[category.id] || []).forEach((topic, i) => {
             total++;
             const key = `${category.id}|${topic.ideia || `${party.id}-${i}`}`;
@@ -2029,23 +2136,24 @@
               idea = { id: `i:${key}`, group: 'ideia', label: shorten(topic.texto), categoria: category.nome, parties: [] };
               ideas.set(key, idea);
               ideasPerCategory.set(category.id, ideasPerCategory.get(category.id) + 1);
-              edges.push({ from: idea.id, to: `c:${category.id}`, group: 'categoria' });
+              addEdge({ from: idea.id, to: `c:${category.id}`, group: 'categoria' });
             }
             if (idea.parties.some((p) => p.party === party)) return;
             idea.parties.push({ party, texto: topic.texto });
-            edges.push({ from: `p:${party.id}`, to: idea.id, group: 'partido', cor: party.cor });
+            addEdge({ from: `p:${party.id}`, to: idea.id, group: 'partido', cor: party.cor });
           });
         }
+        if (!total) continue; // com filtro, partidos sem propostas na categoria ficam de fora
         nodes.push({
           id: `p:${party.id}`,
           group: 'partido',
           label: party.sigla,
           cor: party.cor,
-          title: `${party.nome}\n${total} propostas. Clica para abrir o programa.`,
+          title: `${party.nome}\n${total} ${total === 1 ? 'proposta' : 'propostas'}. Clica para abrir o programa.`,
         });
       }
 
-      for (const category of CATEGORIES) {
+      for (const category of categories) {
         const n = ideasPerCategory.get(category.id);
         nodes.push({ id: `c:${category.id}`, group: 'categoria', label: category.nome, title: `${category.nome}\n${n} ${n === 1 ? 'ideia' : 'ideias'}` });
       }
@@ -2064,27 +2172,30 @@
     }
 
     let network = null;
+    let graphSearch = null; // pesquisa do grafo atual (definida em initGraph)
 
     function destroyGraph() {
       network?.destroy();
       network = null;
+      graphSearch = null;
     }
 
     /** "#rrggbb" → "rgba(r, g, b, a)" */
     const withAlpha = (hex, a) => `rgba(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')}, ${a})`;
 
-    const GRAPH_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+    const GRAPH_FONT = 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
     const IDEA_FONT = 12;
     const NODE_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.2)', size: 10, x: 0, y: 3 };
+    const GROUP_ORDER = { partido: 0, categoria: 1, ideia: 2 };
 
     /** Cores do mapa que dependem do tema claro/escuro. */
     function graphTheme() {
       const dark = matchMedia('(prefers-color-scheme: dark)').matches;
       return dark
-        ? { categoryBg: '#2a323e', categoryBorder: '#4b5563', categoryHover: '#343e4c', categoryText: '#d5dae1',
-            labelText: '#e7eaee', labelStroke: '#1a2029', neutral: '160, 170, 185' }
-        : { categoryBg: '#eef1f5', categoryBorder: '#a3abb7', categoryHover: '#e2e6ec', categoryText: '#3b4450',
-            labelText: '#3b4450', labelStroke: '#ffffff', neutral: '120, 130, 145' };
+        ? { categoryBg: '#27272a', categoryBorder: '#3f3f46', categoryHover: '#323238', categoryText: '#e4e4e7',
+            labelText: '#e4e4e7', labelStroke: '#0f0f12', neutral: '161, 161, 170' }
+        : { categoryBg: '#f4f4f5', categoryBorder: '#d4d4d8', categoryHover: '#e9e9ec', categoryText: '#3f3f46',
+            labelText: '#3f3f46', labelStroke: '#ffffff', neutral: '113, 113, 122' };
     }
 
     /** Estilo Vis.js de cada tipo de nó. */
@@ -2094,11 +2205,12 @@
           ...n,
           shape: 'box',
           mass: 3,
-          shadow: NODE_SHADOW,
+          // Efeito néon: sombra difusa na cor do partido.
+          shadow: { enabled: true, color: withAlpha(cor, 0.65), size: 22, x: 0, y: 0 },
           margin: { top: 16, right: 22, bottom: 16, left: 22 },
           borderWidth: 2,
           shapeProperties: { borderRadius: 10 },
-          color: { background: cor, border: cor, highlight: { background: cor, border: '#1b1f24' }, hover: { background: cor, border: '#1b1f24' } },
+          color: { background: cor, border: cor, highlight: { background: cor, border: '#ffffff' }, hover: { background: cor, border: '#ffffff' } },
           font: { color: textOn(cor), size: 20, face: GRAPH_FONT },
         };
       }
@@ -2132,13 +2244,16 @@
       };
     }
 
-    function styleEdge({ group, cor, ...e }, theme) {
-      return group === 'partido'
-        ? { ...e, width: 1, color: { color: withAlpha(cor, 0.3), hover: withAlpha(cor, 0.95), highlight: cor } }
-        : { ...e, width: 0.5, color: { color: `rgba(${theme.neutral}, 0.15)`, hover: `rgba(${theme.neutral}, 0.8)`, highlight: `rgba(${theme.neutral}, 0.9)` } };
+    /** `focus`: 'on' (partido em foco), 'off' (outro partido em foco) ou vazio. */
+    function styleEdge({ group, cor, ...e }, theme, focus = '') {
+      if (group !== 'partido') {
+        return { ...e, width: 0.5, color: { color: `rgba(${theme.neutral}, 0.15)`, hover: `rgba(${theme.neutral}, 0.8)`, highlight: `rgba(${theme.neutral}, 0.9)` } };
+      }
+      const alpha = { on: 0.9, off: 0.05 }[focus] ?? 0.3;
+      return { ...e, width: focus === 'on' ? 1.5 : 1, color: { color: withAlpha(cor, alpha), hover: withAlpha(cor, 0.95), highlight: cor } };
     }
 
-    /** Inicializa o mapa Vis.js dentro de `container`. */
+    /** Inicializa o mapa Vis.js dentro de `container`, filtrado por `state.graphCategory`. */
     function initGraph(container) {
       destroyGraph();
       if (!container) return;
@@ -2147,15 +2262,25 @@
         return;
       }
 
-      const { nodes, edges } = buildAffinityGraph();
+      const { nodes, edges } = buildAffinityGraph(state.graphCategory);
       const theme = graphTheme();
       const nodeSet = new vis.DataSet(nodes.map((n) => styleNode(n, theme)));
       const edgeSet = new vis.DataSet(edges.map((e) => styleEdge(e, theme)));
+      const partyEdges = edges.filter((e) => e.group === 'partido');
+
+      const status = $('#graph-status');
+      const count = (group) => nodes.filter((n) => n.group === group).length;
+      const summary = `${count('partido')} partidos · ${count('categoria')} ${count('categoria') === 1 ? 'categoria' : 'categorias'} · ${count('ideia')} propostas`;
+      if (status) status.textContent = summary;
 
       const options = {
         layout: { improvedLayout: false }, // o layout inicial "melhorado" é muito lento com centenas de nós
-        // Ao passar o rato (ou selecionar) as linhas ficam mais espessas e opacas.
-        edges: { smooth: { type: 'continuous' }, hoverWidth: (w) => w + 1.5, selectionWidth: (w) => w + 1.5 },
+        edges: {
+          smooth: { type: 'cubicBezier', forceDirection: 'horizontal', roundness: 0.4 },
+          // Ao passar o rato (ou selecionar) as linhas ficam mais espessas e opacas.
+          hoverWidth: (w) => w + 1.5,
+          selectionWidth: (w) => w + 1.5,
+        },
         physics: {
           enabled: true,
           solver: 'forceAtlas2Based',
@@ -2188,6 +2313,45 @@
         nodeSet.update(fixedLabels.map(({ id, px }) => ({ id, font: { size: Math.max(px, px / scale) } })));
       };
       network.on('zoom', keepLabelsReadable);
+      network.on('animationFinished', keepLabelsReadable);
+
+      // Pesquisa: procura no rótulo e no texto completo; Enter salta para o resultado seguinte.
+      const searchable = nodes
+        .map((n) => ({ id: n.id, group: n.group, text: normalize(`${n.label} ${n.title}`) }))
+        .sort((a, b) => GROUP_ORDER[a.group] - GROUP_ORDER[b.group]);
+      let ready = false;
+      let matches = [];
+      let current = -1;
+      let lastQuery = '';
+      graphSearch = (query, next = false) => {
+        const q = normalize(query.trim());
+        if (!ready) { lastQuery = query; return; }
+        if (!q) {
+          matches = [];
+          network.unselectAll();
+          if (status) status.textContent = summary;
+          return;
+        }
+        if (!next || q !== lastQuery) {
+          matches = searchable.filter((n) => n.text.includes(q)).map((n) => n.id);
+          current = -1;
+        }
+        lastQuery = q;
+        if (!matches.length) {
+          network.unselectAll();
+          if (status) status.textContent = `Sem resultados para "${query.trim()}".`;
+          return;
+        }
+        current = (current + 1) % matches.length;
+        const id = matches[current];
+        network.selectNodes([id]);
+        network.focus(id, { scale: id.startsWith('i:') ? 1.4 : 0.9, animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+        if (status) {
+          status.textContent = `${current + 1} de ${matches.length} ${matches.length === 1 ? 'resultado' : 'resultados'}`
+            + (matches.length > 1 ? ' · Enter para o seguinte' : '');
+        }
+      };
+
       network.once('stabilizationIterationsDone', () => {
         // Com 500+ nós a física nunca acalma por completo: desliga-se para parar o tremor.
         // Os nós ficam fixos, mas continuam a poder ser arrastados (dragNodes).
@@ -2198,15 +2362,25 @@
           keepLabelsReadable();
         }
         loading.remove();
+        ready = true;
+        const pending = $('#graph-search')?.value || lastQuery;
+        if (pending) graphSearch(pending);
       });
 
-      // Ao passar o rato, o rótulo da ideia cresce o suficiente para se ler a qualquer zoom.
+      // Foco num partido: as suas linhas engrossam e as dos outros partidos quase desaparecem.
+      const focusParty = (partyNodeId) => {
+        edgeSet.update(partyEdges.map((e) => styleEdge(e, theme, !partyNodeId ? '' : e.from === partyNodeId ? 'on' : 'off')));
+      };
+
       network.on('hoverNode', ({ node }) => {
         container.style.cursor = node.startsWith('p:') ? 'pointer' : '';
+        if (node.startsWith('p:')) focusParty(node);
+        // O rótulo da ideia cresce o suficiente para se ler a qualquer zoom.
         if (node.startsWith('i:')) nodeSet.update({ id: node, font: { size: Math.max(IDEA_FONT, 13 / network.getScale()) } });
       });
       network.on('blurNode', ({ node }) => {
         container.style.cursor = '';
+        if (node.startsWith('p:')) focusParty(null);
         if (node.startsWith('i:')) nodeSet.update({ id: node, font: { size: IDEA_FONT } });
       });
 
@@ -2382,12 +2556,28 @@
       const ideas = count((n) => n.group === 'ideia');
       const shared = count((n) => n.shared);
       const item = (cls, text) => `<span class="legend-item"><i class="legend-mark ${cls}"></i>${text}</span>`;
+      const options = CATEGORIES.map((c) => `
+            <option value="${c.id}" ${c.id === state.graphCategory ? 'selected' : ''}>${escapeHtml(c.nome)}</option>`).join('');
 
       return `
         <section class="graph-view">
           <h2>Mapa de afinidades</h2>
           <p>Um mapa complexo, ao estilo Obsidian, que liga os ${count((n) => n.group === 'partido')} partidos, as ${count((n) => n.group === 'categoria')} categorias e as ${ideas} propostas dos programas. Cada partido liga-se às suas propostas e cada proposta à sua categoria. Quando dois ou mais partidos defendem a mesma ideia, ficam ligados através dela (${shared} ideias partilhadas).</p>
-          <p>Faz zoom para ler as propostas, passa o rato por um nó para ver os detalhes, arrasta os nós para explorar a teia e clica num partido para abrir o programa.</p>
+          <p>Pesquisa um partido, uma categoria ou uma proposta, filtra por categoria para limpar o mapa, passa o rato por um partido para destacar as suas ligações e clica nele para abrir o programa.</p>
+          <div class="graph-toolbar">
+            <label class="graph-search">
+              <span class="visually-hidden">Pesquisar no mapa</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input id="graph-search" type="search" placeholder="Pesquisar partido, categoria ou proposta…" autocomplete="off">
+            </label>
+            <label class="graph-filter">
+              <span class="visually-hidden">Filtrar por categoria</span>
+              <select id="graph-category">
+                <option value="">Todas as categorias</option>${options}
+              </select>
+            </label>
+            <span class="graph-status" id="graph-status" aria-live="polite"></span>
+          </div>
           <div class="graph-legend">
             ${item('is-party', 'Partido')}
             ${item('is-category', 'Categoria')}
@@ -2457,6 +2647,25 @@
       $('#party-search').addEventListener('input', (e) => {
         state.search = e.target.value;
         renderPartyList();
+      });
+
+      // Pesquisa e filtro do grafo (delegados: a vista é recriada a cada render).
+      let searchTimer;
+      document.addEventListener('input', (e) => {
+        if (e.target.id !== 'graph-search') return;
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => graphSearch?.(e.target.value), 200);
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.target.id !== 'graph-search' || e.key !== 'Enter') return;
+        e.preventDefault();
+        clearTimeout(searchTimer);
+        graphSearch?.(e.target.value, true);
+      });
+      document.addEventListener('change', (e) => {
+        if (e.target.id !== 'graph-category') return;
+        state.graphCategory = e.target.value;
+        initGraph($('#graph'));
       });
 
       window.addEventListener('hashchange', render);
