@@ -1209,6 +1209,20 @@
     .radar-values ul { display: grid; gap: 4px; margin-top: 8px; }
     .radar-values li { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
     .radar-values b { font-variant-numeric: tabular-nums; }
+    /* ---------- Distribuição visual (sunburst) ----------
+       Reutiliza .radar-canvas, .radar-note e .radar-values; aqui só o que é próprio do sunburst. */
+    .sunburst-canvas { height: min(62vh, 560px); }
+    /* No telemóvel o círculo é limitado pela largura: chega a altura do radar. */
+    @media (max-width: 599px) { .sunburst-canvas { height: 360px; } }
+    /* Lista de valores com sub-lista de propostas: a linha da categoria mantém o estilo do radar. */
+    .sunburst-values .sunburst-group { display: block; padding-bottom: 6px; }
+    .sunburst-values .sunburst-row { display: flex; justify-content: space-between; gap: 12px; }
+    .sunburst-values .sunburst-row span { display: inline-flex; align-items: center; gap: 8px; }
+    .sunburst-swatch { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+    .sunburst-values .sunburst-group ul { display: grid; gap: 2px; margin: 4px 0 0 18px; list-style: disc; color: var(--text-muted); font-size: var(--fs-xs); }
+    .sunburst-values .sunburst-group ul li { display: list-item; padding: 0; border: 0; }
+    /* A lista é longa (uma linha por proposta): limita a altura dentro do modal. */
+    .sunburst-values > ul { max-height: 320px; overflow-y: auto; padding-right: 6px; }
     .party-header-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 
     /* ---------- Construtor de coligações ---------- */
@@ -4264,6 +4278,212 @@
       });
     }
 
+    /* ---------- Distribuição visual do partido (sunburst com Chart.js) ---------- */
+    // Abordagem (A): um único gráfico `doughnut` com dois datasets, sem dependências novas.
+    // Preferi um gráfico só a dois doughnuts sobrepostos: os anéis ficam sempre alinhados (o
+    // Chart.js reparte o mesmo círculo pelos dois datasets), há um único tooltip e um único
+    // clique para tratar, e não é preciso sincronizar tamanhos ao redimensionar. O senão é
+    // o `cutout` ser do gráfico e não de cada anel; compensa-se com `weight` (anel das
+    // propostas com o dobro da espessura do das categorias) e um `cutout` de 28%.
+    // Cada proposta vale 1 e as propostas vêm pela mesma ordem das categorias, por isso cada
+    // fatia de categoria fica exatamente por baixo das suas propostas, como num sunburst.
+
+    // Paleta das 15 categorias: tons de saturação e luminosidade médias, legíveis sobre o
+    // fundo claro e o escuro. Algumas cores seguem o tema (verde no ambiente, vermelho na
+    // saúde, oliva na agricultura) e a ordem alterna tons quentes e frios para que fatias
+    // vizinhas nunca tenham cores parecidas. Não usa a cor do partido de propósito: com nove
+    // partidos e 15 categorias, as cores das categorias ficam iguais em todos os gráficos.
+    const CATEGORY_COLORS = {
+      economia: '#3b78c4',      // azul
+      impostos: '#d4892a',      // âmbar
+      juventude: '#d1495b',     // vermelho-rosado
+      educacao: '#8e5cc4',      // violeta
+      habitacao: '#c4573a',     // terracota
+      saude: '#2a9d8f',         // verde-azulado
+      imigracao: '#c9a227',     // mostarda
+      seguranca: '#3d4f8c',     // azul-marinho
+      trabalho: '#8d6e63',      // castanho
+      ambiente: '#3f9a4b',      // verde
+      'estado-social': '#b5568f', // magenta
+      cultura: '#6a5acd',       // índigo
+      agricultura: '#7f9a2e',   // oliva
+      coesao: '#2aa2c7',        // azul-céu
+      transparencia: '#5c6b78', // ardósia
+    };
+
+    let sunburstChart = null;
+
+    /** Mistura uma cor #rrggbb com branco (`amount` de 0 a 1): os tons mais claros do anel exterior. */
+    const lighten = (hex, amount) => `#${[1, 3, 5].map((i) => {
+      const c = parseInt(hex.slice(i, i + 2), 16);
+      return Math.round(c + (255 - c) * amount).toString(16).padStart(2, '0');
+    }).join('')}`;
+
+    /** Parte um texto longo em linhas de até `width` caracteres (o tooltip do Chart.js não faz wrap). */
+    function wrapText(text, width = 48) {
+      const lines = [];
+      for (const word of text.split(/\s+/)) {
+        const last = lines.at(-1);
+        if (last && (last + ' ' + word).length <= width) lines[lines.length - 1] = `${last} ${word}`;
+        else lines.push(word);
+      }
+      return lines;
+    }
+
+    /** Fecha o modal e abre o programa do partido na categoria, com a proposta destacada. */
+    function goToTopic(partyId, categoryId, ideia) {
+      closeModal();
+      state.category = categoryId;
+      // Mesmo destaque que os badges e o modal da matriz usam (ramo `data-party` do bindEvents).
+      afterRender.push(() => {
+        $('.chip[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+        const target = $(`.topic[data-ideia="${CSS.escape(ideia)}"]`);
+        target?.classList.add('is-highlight');
+        target?.scrollIntoView({ block: 'center' });
+        target?.querySelector('.badge')?.focus({ preventScroll: true });
+      });
+      navigate(`#/partido/${partyId}/programa`);
+    }
+
+    function openSunburstModal(party) {
+      if (!party) return;
+      // Transformação dos dados: categorias com propostas e, por ordem, cada proposta.
+      const groups = CATEGORIES
+        .map((c) => ({ category: c, topics: party.programa[c.id] || [] }))
+        .filter((g) => g.topics.length);
+      const total = groups.reduce((n, g) => n + g.topics.length, 0);
+      const topics = groups.flatMap((g) => g.topics.map((topic) => ({ category: g.category, topic })));
+      const fmt = (v) => v.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
+      const pct = (n) => fmt(total ? Math.round((n / total) * 1000) / 10 : 0);
+      const plural = (n) => `${n} ${n === 1 ? 'proposta' : 'propostas'}`;
+      const summary = groups.map((g) => `${g.category.nome} ${g.topics.length}`).join(', ');
+      const missing = CATEGORIES.length - groups.length;
+
+      const values = groups.map((g) => `
+        <li class="sunburst-group">
+          <span class="sunburst-row">
+            <span><i class="sunburst-swatch" style="background:${CATEGORY_COLORS[g.category.id]}"></i>${escapeHtml(g.category.nome)}</span>
+            <b>${plural(g.topics.length)} (${pct(g.topics.length)}%)</b>
+          </span>
+          <ul>${g.topics.map((t) => `<li>${escapeHtml(t.texto)}</li>`).join('')}</ul>
+        </li>`).join('');
+
+      openModal(`
+        <p class="modal-kicker">Distribuição visual</p>
+        <div class="modal-head" style="--party-color:${party.cor}">
+          ${partyLogo(party)}
+          <h2 id="modal-title">${escapeHtml(party.sigla)} · ${plural(total)}</h2>
+        </div>
+        <p class="radar-note">Peso de cada categoria no total de propostas e, dentro de cada uma, cada proposta individual. Passa o rato para ver o texto completo.${missing ? ` ${missing === 1 ? 'Uma categoria não tem' : `${missing} categorias não têm`} propostas registadas e não aparece${missing === 1 ? '' : 'm'} no gráfico.` : ''}</p>
+        <div class="radar-canvas sunburst-canvas">
+          <canvas id="sunburst-chart" role="img" aria-label="Distribuição das ${plural(total)} ${escapeHtml(ofParty(party))}: ${escapeHtml(summary)}"></canvas>
+          <p class="placeholder" id="sunburst-status">A carregar o gráfico…</p>
+        </div>
+        <details class="radar-values sunburst-values">
+          <summary>Ver os valores</summary>
+          <ul>${values}</ul>
+        </details>`, 'modal-title');
+      $('.modal').classList.add('is-wide');
+
+      loadChartJs().then((Chart) => {
+        const canvas = $('#sunburst-chart');
+        if (!canvas) return; // o modal já foi fechado
+        $('#sunburst-status')?.remove();
+        const css = getComputedStyle(document.documentElement);
+        const text = css.getPropertyValue('--text').trim();
+        const muted = css.getPropertyValue('--text-muted').trim();
+        const surface = css.getPropertyValue('--surface').trim();
+        const grid = css.getPropertyValue('--border').trim();
+        const colorOf = (category) => CATEGORY_COLORS[category.id] || muted;
+        let touchedTopic = -1;
+        sunburstChart?.destroy();
+        sunburstChart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            datasets: [
+              {
+                // Anel exterior (o primeiro dataset é o de fora): uma fatia por proposta, que vale 1.
+                // Tons mais claros da categoria-mãe, alternados para separar propostas vizinhas.
+                label: 'Propostas',
+                data: topics.map(() => 1),
+                backgroundColor: topics.map(({ category }, i) => lighten(colorOf(category), i % 2 ? 0.38 : 0.24)),
+                hoverBackgroundColor: topics.map(({ category }) => colorOf(category)),
+                borderColor: surface,
+                borderWidth: 1,
+                weight: 1,
+              },
+              {
+                // Anel interior: uma fatia por categoria, com o número de propostas.
+                label: 'Categorias',
+                data: groups.map((g) => g.topics.length),
+                backgroundColor: groups.map((g) => colorOf(g.category)),
+                hoverBackgroundColor: groups.map((g) => lighten(colorOf(g.category), 0.12)),
+                borderColor: surface,
+                borderWidth: 2,
+                weight: 0.5,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '28%',
+            layout: { padding: 6 },
+            animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 700 },
+            onHover: (event, elements) => {
+              // Só as propostas são clicáveis; o cursor de mão indica-o.
+              if (event.native) event.native.target.style.cursor = elements[0]?.datasetIndex === 0 ? 'pointer' : 'default';
+            },
+            onClick: (event, elements) => {
+              const el = elements[0];
+              if (el?.datasetIndex !== 0) return;
+              // No ecrã tátil o primeiro toque só mostra o tooltip; o segundo, na mesma proposta, abre-a.
+              if (event.native?.pointerType === 'touch' && touchedTopic !== el.index) {
+                touchedTopic = el.index;
+                return;
+              }
+              const { category, topic } = topics[el.index];
+              goToTopic(party.id, category.id, topic.ideia);
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: surface,
+                titleColor: text,
+                bodyColor: text,
+                footerColor: muted,
+                borderColor: grid,
+                borderWidth: 1,
+                padding: 10,
+                boxPadding: 4,
+                titleFont: { family: GRAPH_FONT, size: 12, weight: '600' },
+                bodyFont: { family: GRAPH_FONT, size: 12 },
+                footerFont: { family: GRAPH_FONT, size: 11, weight: '400' },
+                callbacks: {
+                  title: (items) => {
+                    const { datasetIndex, dataIndex } = items[0];
+                    return datasetIndex === 0 ? topics[dataIndex].category.nome : '';
+                  },
+                  label: (item) => {
+                    if (item.datasetIndex === 1) {
+                      const g = groups[item.dataIndex];
+                      return ` ${g.category.nome}: ${plural(g.topics.length)} (${pct(g.topics.length)}%)`;
+                    }
+                    return wrapText(topics[item.dataIndex].topic.texto);
+                  },
+                  footer: (items) => (items[0].datasetIndex === 0 ? 'Clica para abrir no programa' : ''),
+                },
+              },
+            },
+          },
+        });
+      }).catch(() => {
+        const status = $('#sunburst-status');
+        if (status) status.textContent = 'Não foi possível carregar o gráfico (Chart.js). Os valores estão na lista abaixo.';
+        $('.sunburst-values')?.setAttribute('open', '');
+      });
+    }
+
     /* ---------- Visita guiada (onboarding de primeira visita) ---------- */
     const ONBOARDED_KEY = 'mapa-politico:onboarded';
 
@@ -4482,6 +4702,8 @@
       if (!backdrop) return;
       radarChart?.destroy();
       radarChart = null;
+      sunburstChart?.destroy();
+      sunburstChart = null;
       backdrop.remove();
       modalReturnFocus?.focus?.({ preventScroll: true });
       modalReturnFocus = null;
@@ -5002,6 +5224,7 @@
     const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
     const PRINT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>';
     const RADAR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 21 9l-3.4 10.5H6.4L3 9z"/><path d="M12 7l4.5 3.3-1.7 5.2H9.2l-1.7-5.2z" fill="currentColor" fill-opacity=".25"/></svg>';
+    const SUNBURST_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 3v5.5M20.2 15.5l-5-2M5.5 18l4-3.3"/></svg>';
     const shareButton = () => `<button class="action-btn" type="button" data-action="share">${SHARE_ICON}<span>Partilhar</span></button>`;
 
     /* ---------- Impressão / PDF ---------- */
@@ -5241,6 +5464,7 @@
           </div>
           <div class="party-header-actions">
             <button class="action-btn" type="button" data-action="radar">${RADAR_ICON}<span>Perfil visual</span></button>
+            <button class="action-btn" type="button" data-action="sunburst" aria-label="Distribuição visual: categorias e propostas do partido">${SUNBURST_ICON}<span>Distribuição visual</span></button>
             <button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>
           </div>
         </header>
@@ -5465,6 +5689,8 @@
           }
         } else if (action === 'radar') {
           openRadarModal(getParty(state.partyId));
+        } else if (action === 'sunburst') {
+          openSunburstModal(getParty(state.partyId));
         } else if (action === 'fav-clear') {
           clearFavorites(el);
         } else if (action === 'coalition-clear') {
