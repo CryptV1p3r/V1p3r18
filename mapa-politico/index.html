@@ -6,30 +6,48 @@
   <meta name="description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
   <title>Mapa Político de Portugal</title>
 
+  <!-- Fonte Inter (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+
+  <!-- Fase 4: biblioteca do grafo (Vis.js), com versão fixa para o grafo não mudar sozinho -->
+  <script type="text/javascript" src="https://unpkg.com/vis-network@10.1.2/standalone/umd/vis-network.min.js"></script>
+
+  <!-- Tema escolhido pelo utilizador, aplicado antes de a página aparecer (evita um flash do outro tema) -->
+  <script>
+    try {
+      const tema = localStorage.getItem('mapa-politico:tema');
+      if (tema === 'light' || tema === 'dark') document.documentElement.dataset.theme = tema;
+    } catch { /* sem armazenamento: segue o tema do sistema */ }
+  </script>
+
   <style>
     /* =========================================================
        1. TOKENS DE DESIGN
        ========================================================= */
     :root {
-      --bg: #f6f7f9;
+      color-scheme: light;
+      --bg: #fafafa;
       --surface: #ffffff;
-      --surface-2: #f0f2f5;
-      --border: #e2e5ea;
-      --text: #1b1f24;
-      --text-muted: #5b6573;
-      --accent: #2952e3;
-      --accent-soft: #e8edfd;
-      --focus: #2952e3;
-      --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 12px rgba(16, 24, 40, .06);
+      --surface-2: #f4f4f5;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --text-muted: #71717a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --focus: #2563eb;
+      --shadow: 0 1px 2px rgba(9, 9, 11, .05), 0 4px 14px rgba(9, 9, 11, .06);
+      --glass: rgba(255, 255, 255, .8);
 
       --radius-sm: 6px;
-      --radius: 10px;
+      --radius: 12px;
       --radius-lg: 16px;
 
       --sidebar-w: 288px;
       --header-h: 60px;
 
-      --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       --fs-xs: .75rem;
       --fs-sm: .875rem;
       --fs-md: 1rem;
@@ -37,21 +55,48 @@
       --fs-xl: 1.625rem;
 
       --ease: cubic-bezier(.2, .7, .2, 1);
+
+      --graph-bg: #ffffff;
+      --graph-dot: rgba(24, 24, 27, .10);
     }
 
+    /* Tema escuro: segue o sistema, a não ser que o utilizador force um tema
+       (atributo data-theme no <html>). Os dois blocos têm de ficar iguais. */
     @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f1216;
-        --surface: #171b21;
-        --surface-2: #1f242c;
-        --border: #2b313a;
-        --text: #e7eaee;
-        --text-muted: #9aa4b2;
-        --accent: #7c9cff;
-        --accent-soft: #222c4a;
-        --focus: #7c9cff;
-        --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 12px rgba(0, 0, 0, .3);
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #09090b;
+        --surface: #18181b;
+        --surface-2: #222226;
+        --border: #27272a;
+        --text: #fafafa;
+        --text-muted: #a1a1aa;
+        --accent: #3b82f6;
+        --accent-soft: rgba(59, 130, 246, .15);
+        --focus: #3b82f6;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px rgba(0, 0, 0, .35);
+        --glass: rgba(24, 24, 27, .8);
+
+        --graph-bg: #0f0f12;
+        --graph-dot: rgba(255, 255, 255, .08);
       }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #09090b;
+      --surface: #18181b;
+      --surface-2: #222226;
+      --border: #27272a;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, .15);
+      --focus: #3b82f6;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px rgba(0, 0, 0, .35);
+      --glass: rgba(24, 24, 27, .8);
+
+      --graph-bg: #0f0f12;
+      --graph-dot: rgba(255, 255, 255, .08);
     }
 
     /* =========================================================
@@ -71,7 +116,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    h1, h2, h3, h4 { margin: 0; line-height: 1.25; }
+    h1, h2, h3, h4 { margin: 0; line-height: 1.25; font-weight: 700; letter-spacing: -.02em; }
     p { margin: 0; }
     ul { margin: 0; padding: 0; list-style: none; }
 
@@ -96,6 +141,14 @@
       white-space: nowrap;
     }
 
+    /* Vidro fosco (cabeçalho e painel lateral) */
+    .app-header,
+    .sidebar {
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
+
     /* =========================================================
        3. LAYOUT (mobile-first)
        Telemóvel: cabeçalho + conteúdo; o painel de partidos abre
@@ -118,7 +171,6 @@
       align-items: center;
       gap: 12px;
       padding: 0 16px;
-      background: var(--surface);
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
@@ -128,8 +180,7 @@
     .app-title {
       min-width: 0;
       font-size: var(--fs-md);
-      font-weight: 700;
-      letter-spacing: -.01em;
+      font-weight: 800;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -141,9 +192,12 @@
       width: 40px; height: 40px;
       border-radius: var(--radius-sm);
       flex-shrink: 0;
+      transition: background .15s var(--ease);
     }
     .icon-btn:hover { background: var(--surface-2); }
     .icon-btn svg { width: 22px; height: 22px; }
+    .theme-btn svg { width: 20px; height: 20px; }
+    .theme-btn [hidden] { display: none; }
 
     .view-switch {
       margin-left: auto;
@@ -151,21 +205,23 @@
       padding: 3px;
       gap: 2px;
       background: var(--surface-2);
+      border: 1px solid var(--border);
       border-radius: 999px;
       flex-shrink: 0;
     }
     .view-switch button {
-      padding: 6px 12px;
+      padding: 6px 14px;
       font-size: var(--fs-sm);
       font-weight: 600;
       color: var(--text-muted);
       border-radius: 999px;
       transition: background .15s var(--ease), color .15s var(--ease);
     }
+    .view-switch button:hover { color: var(--text); }
     .view-switch button[aria-pressed="true"] {
-      background: var(--surface);
-      color: var(--text);
-      box-shadow: var(--shadow);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 16px -4px var(--accent);
     }
 
     /* ---------- Painel lateral (partidos) ---------- */
@@ -175,7 +231,6 @@
       width: min(86vw, var(--sidebar-w));
       display: flex;
       flex-direction: column;
-      background: var(--surface);
       border-right: 1px solid var(--border);
       transform: translateX(-100%);
       transition: transform .25s var(--ease);
@@ -192,29 +247,45 @@
       border-bottom: 1px solid var(--border);
     }
     .sidebar-head h2 {
-      font-size: var(--fs-sm);
+      font-size: var(--fs-xs);
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .08em;
       color: var(--text-muted);
     }
 
     .sidebar-search { padding: 12px 16px; }
-    .sidebar-search input {
+    .sidebar-search input,
+    .graph-search input,
+    .graph-filter select,
+    .duel-select select {
       width: 100%;
       padding: 9px 12px;
       font: inherit;
       font-size: var(--fs-sm);
       color: var(--text);
-      background: var(--surface-2);
-      border: 1px solid transparent;
-      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
     }
-    .sidebar-search input:focus { border-color: var(--accent); outline: none; }
+    .sidebar-search input:focus,
+    .graph-search input:focus,
+    .graph-filter select:focus,
+    .duel-select select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+      outline: none;
+    }
 
     .party-list {
       flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      gap: 4px;
       overflow-y: auto;
-      padding: 4px 8px 16px;
+      padding: 4px 10px 16px;
     }
 
     .party-item {
@@ -222,28 +293,39 @@
       align-items: center;
       gap: 12px;
       width: 100%;
-      padding: 10px 8px;
+      padding: 9px 10px;
       text-align: left;
+      border: 1px solid transparent;
       border-radius: var(--radius);
-      transition: background .15s var(--ease);
+      transition: background .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);
     }
-    .party-item:hover { background: var(--surface-2); }
-    .party-item[aria-current="true"] { background: var(--accent-soft); }
+    /* Ao passar o rato, a borda brilha com a cor do partido */
+    .party-item:hover {
+      background: var(--surface-2);
+      border-color: var(--party-color);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--party-color) 35%, transparent),
+                  0 0 18px -4px color-mix(in srgb, var(--party-color) 70%, transparent);
+    }
+    .party-item[aria-current="true"] {
+      background: color-mix(in srgb, var(--party-color) 12%, transparent);
+      border-color: color-mix(in srgb, var(--party-color) 55%, transparent);
+    }
 
     .party-logo {
       display: inline-grid;
       place-items: center;
       width: 40px; height: 40px;
       flex-shrink: 0;
-      border-radius: var(--radius-sm);
+      border-radius: 10px;
       font-size: var(--fs-xs);
       font-weight: 800;
+      letter-spacing: -.01em;
       color: #fff;
       background: var(--party-color, var(--text-muted));
     }
 
     .party-meta { min-width: 0; }
-    .party-meta strong { display: block; font-size: var(--fs-sm); }
+    .party-meta strong { display: block; font-size: var(--fs-sm); font-weight: 700; }
     .party-meta span {
       display: block;
       font-size: var(--fs-xs);
@@ -256,7 +338,7 @@
     .backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(10, 12, 16, .45);
+      background: rgba(9, 9, 11, .5);
       opacity: 0;
       pointer-events: none;
       transition: opacity .25s var(--ease);
@@ -291,8 +373,13 @@
       gap: 16px;
       margin-bottom: 20px;
     }
-    .party-header .party-logo { width: 56px; height: 56px; font-size: var(--fs-sm); }
-    .party-header h2 { font-size: var(--fs-xl); letter-spacing: -.02em; }
+    .party-header .party-logo {
+      width: 56px; height: 56px;
+      font-size: var(--fs-sm);
+      border-radius: 14px;
+      box-shadow: 0 0 24px -6px var(--party-color);
+    }
+    .party-header h2 { font-size: var(--fs-xl); }
     .party-header p { color: var(--text-muted); font-size: var(--fs-sm); }
 
     /* ---------- Abas ---------- */
@@ -311,6 +398,7 @@
       border-bottom: 2px solid transparent;
       margin-bottom: -1px;
       white-space: nowrap;
+      transition: color .15s var(--ease), border-color .15s var(--ease);
     }
     .tab:hover { color: var(--text); }
     .tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
@@ -335,22 +423,27 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 999px;
+      transition: color .15s var(--ease), background .15s var(--ease), border-color .15s var(--ease);
     }
+    .chip:hover { color: var(--text); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
     .chip[aria-pressed="true"] {
       color: var(--accent);
       background: var(--accent-soft);
-      border-color: transparent;
+      border-color: color-mix(in srgb, var(--accent) 45%, transparent);
     }
 
     /* ---------- Categorias do programa (acordeão) ---------- */
-    .category-list { display: grid; gap: 12px; }
+    .category-list { display: grid; gap: 10px; }
 
     .category {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
+      transition: background .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
     }
+    .category:hover { border-color: color-mix(in srgb, var(--text-muted) 35%, var(--border)); }
+    .category[open] { background: var(--surface-2); box-shadow: var(--shadow); }
     .category > summary {
       display: flex;
       align-items: center;
@@ -360,7 +453,9 @@
       font-weight: 600;
       cursor: pointer;
       list-style: none;
+      transition: background .2s var(--ease);
     }
+    .category > summary:hover { background: var(--surface-2); }
     .category > summary::-webkit-details-marker { display: none; }
     .category > summary::after {
       content: "";
@@ -368,16 +463,28 @@
       border-right: 2px solid var(--text-muted);
       border-bottom: 2px solid var(--text-muted);
       transform: rotate(45deg);
-      transition: transform .2s var(--ease);
+      transition: transform .25s var(--ease);
       flex-shrink: 0;
     }
     .category[open] > summary::after { transform: rotate(-135deg); }
+    /* Conteúdo do acordeão entra com um fade suave */
+    .category[open] > summary ~ * { animation: accordion-in .3s var(--ease); }
+    @keyframes accordion-in {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: none; }
+    }
 
     .category-count {
       margin-left: auto;
+      min-width: 24px;
+      padding: 1px 8px;
       font-size: var(--fs-xs);
       font-weight: 600;
+      text-align: center;
       color: var(--text-muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
     }
 
     .topic-list {
@@ -405,10 +512,11 @@
       line-height: 18px;
       color: var(--badge-text, #fff);
       background: var(--party-color, var(--text-muted));
-      border-radius: 4px;
+      border-radius: 5px;
       cursor: pointer;
+      transition: filter .15s var(--ease), box-shadow .15s var(--ease);
     }
-    .badge:hover { filter: brightness(1.1); }
+    .badge:hover { filter: brightness(1.1); box-shadow: 0 0 10px -2px var(--party-color); }
 
     /* Tópico de destino ao chegar por um badge */
     .topic.is-highlight { animation: topic-flash 2s ease-out; }
@@ -446,7 +554,9 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
     }
+    .person-card:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); box-shadow: var(--shadow); }
     .person-card h3 { font-size: var(--fs-md); }
     .person-role { font-size: var(--fs-sm); color: var(--accent); font-weight: 600; margin-top: 2px; }
     .person-fields { display: grid; gap: 8px; margin: 12px 0 0; }
@@ -461,28 +571,663 @@
     /* ---------- Vista do grafo (Fase 4) ---------- */
     .graph-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
     .graph-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+
+    /* Barra de pesquisa e filtro por cima do grafo */
+    .graph-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .graph-search { position: relative; flex: 3 1 280px; }
+    .graph-search svg {
+      position: absolute;
+      left: 12px; top: 50%;
+      width: 16px; height: 16px;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .graph-search input { padding-left: 36px; }
+    .graph-filter { flex: 1 1 200px; }
+    .graph-filter select,
+    .duel-select select { cursor: pointer; }
+    .graph-status {
+      flex-basis: 100%;
+      font-size: var(--fs-xs);
+      color: var(--text-muted);
+    }
+
+    /* "Tela infinita": grelha de pontos por baixo do canvas transparente do Vis.js */
     .graph-canvas {
       position: relative;
       height: min(70vh, 640px);
       min-height: 360px;
-      background: var(--surface);
+      background-color: var(--graph-bg);
+      background-image: radial-gradient(circle, var(--graph-dot) 1px, transparent 1.5px);
+      background-size: 22px 22px;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
     }
     .graph-canvas .empty-state { position: absolute; inset: 0; align-content: center; }
+    .graph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 16px;
+      margin-bottom: 12px;
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-mark { display: inline-block; flex: none; }
+    .legend-mark.is-party { width: 22px; height: 14px; border-radius: 4px; background: linear-gradient(90deg, #f68a1e, #e5197e, #7ab51d, #00a3e0); box-shadow: 0 0 8px -1px #e5197e; }
+    .legend-mark.is-category { width: 20px; height: 13px; border-radius: 50%; background: #f4f4f5; border: 1px solid #d4d4d8; }
+    .legend-mark.is-idea { width: 8px; height: 8px; border-radius: 50%; background: #6b98f0; border: 0.5px solid #4a7bd8; }
+    .legend-mark.is-shared { width: 12px; height: 12px; border-radius: 50%; background: #2fb488; border: 0.5px solid #1c8a66; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .legend-mark.is-category { background: #27272a; border-color: #3f3f46; }
+    }
+    :root[data-theme="dark"] .legend-mark.is-category { background: #27272a; border-color: #3f3f46; }
+    .graph-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: grid;
+      place-content: center;
+      gap: 10px;
+      text-align: center;
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+      background: var(--graph-bg);
+    }
+    .graph-loading progress { width: 180px; accent-color: var(--accent); }
+    /* Tooltips do Vis.js (mais específico que o CSS que a biblioteca injeta) */
+    .graph-canvas div.vis-tooltip {
+      max-width: 320px;
+      padding: 8px 10px;
+      font-family: var(--font);
+      font-size: var(--fs-sm);
+      line-height: 1.45;
+      color: var(--text);
+      white-space: normal;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ---------- Duelo ---------- */
+    .duel-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .duel-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+    .duel-pickers {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      align-items: end;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .duel-select { display: grid; gap: 6px; }
+    .duel-select span {
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+    }
+    .duel-vs {
+      justify-self: center;
+      font-size: var(--fs-sm);
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .duel-summary {
+      line-height: 1.9;
+      margin-bottom: 20px !important;
+      color: var(--text) !important;
+    }
+    .duel-chip {
+      display: inline-block;
+      padding: 1px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 18px;
+      color: var(--badge-text, #fff);
+      background: var(--party-color);
+      border-radius: 5px;
+      box-shadow: 0 0 12px -3px var(--party-color);
+    }
+    .duel-list { display: grid; gap: 22px; }
+    .duel-category { display: grid; gap: 10px; }
+    .duel-category h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: var(--fs-md);
+    }
+    .duel-score {
+      padding: 1px 8px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      letter-spacing: 0;
+      color: #16a34a;
+      background: rgba(34, 197, 94, .12);
+      border-radius: 999px;
+    }
+    .duel-card {
+      --tone: #ef4444;
+      padding: 14px 16px;
+      background: color-mix(in srgb, var(--tone) 7%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--tone) 35%, var(--border));
+      border-radius: var(--radius);
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .duel-card:hover { box-shadow: 0 0 22px -10px var(--tone); border-color: color-mix(in srgb, var(--tone) 60%, var(--border)); }
+    .duel-card.is-agree { --tone: #22c55e; }
+    .duel-card h4 {
+      margin: 0 0 10px;
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: color-mix(in srgb, var(--tone) 75%, var(--text));
+    }
+    .duel-sides { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .duel-sides > div { display: grid; align-content: start; gap: 6px; font-size: var(--fs-sm); }
+    .duel-sides .duel-chip { justify-self: start; }
+    .duel-sides ul { display: grid; gap: 6px; padding-left: 16px; list-style: disc; }
+    .duel-sides .placeholder { padding: 0; }
+
+    /* ---------- Modal (explorador de ideias) ---------- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(9, 9, 11, .6);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      animation: fade-in .2s var(--ease);
+    }
+    .modal {
+      position: relative;
+      width: min(100%, 560px);
+      max-height: min(80vh, 720px);
+      overflow-y: auto;
+      padding: 24px;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .45);
+      animation: modal-in .25s var(--ease);
+    }
+    .modal-close { position: absolute; top: 12px; right: 12px; color: var(--text-muted); }
+    .modal-close:hover { color: var(--text); }
+    .modal-kicker {
+      margin-bottom: 4px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #2fb488;
+    }
+    .modal h2 { font-size: var(--fs-lg); margin-right: 36px; }
+    .modal-parties { display: grid; gap: 10px; margin-top: 18px; }
+    .modal-party {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--party-color);
+      border-radius: var(--radius);
+    }
+    .modal-party .party-logo { width: 36px; height: 36px; box-shadow: 0 0 16px -4px var(--party-color); }
+    .modal-party strong { display: block; font-size: var(--fs-sm); }
+    .modal-party p { margin: 4px 0 6px; font-size: var(--fs-sm); }
+    .modal-link { font-size: var(--fs-xs); font-weight: 600; color: var(--accent); }
+    .modal-link:hover { text-decoration: underline; }
+    @keyframes fade-in { from { opacity: 0; } }
+    @keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+
+    /* ---------- Página inicial (cartões de partidos) ---------- */
+    .home { display: grid; gap: 28px; }
+    .home-hero { display: grid; gap: 10px; max-width: 64ch; }
+    .home-hero h2 { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem); letter-spacing: -.03em; }
+    .home-hero p { color: var(--text-muted); }
+    .home-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .home-action {
+      padding: 8px 14px;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .home-action:hover { border-color: var(--accent); box-shadow: 0 0 18px -6px var(--accent); }
+
+    .party-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+      gap: 14px;
+    }
+    .party-card {
+      position: relative;
+      display: grid;
+      gap: 4px;
+      justify-items: start;
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      overflow: hidden;
+      text-align: left;
+      background: color-mix(in srgb, var(--party-color) 6%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--party-color) 28%, var(--border));
+      border-radius: var(--radius-lg);
+      transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s var(--ease);
+    }
+    /* Faixa de cor no topo do cartão */
+    .party-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 3px;
+      background: var(--party-color);
+    }
+    .party-card:hover,
+    .party-card:focus-visible {
+      transform: translateY(-4px);
+      border-color: color-mix(in srgb, var(--party-color) 65%, var(--border));
+      box-shadow: 0 14px 32px -14px var(--party-color), 0 0 0 1px color-mix(in srgb, var(--party-color) 25%, transparent);
+    }
+    .party-card .party-logo {
+      width: 52px; height: 52px;
+      margin-bottom: 10px;
+      font-size: var(--fs-sm);
+      border-radius: 14px;
+      box-shadow: 0 0 22px -6px var(--party-color);
+    }
+    .party-card-sigla { font-size: var(--fs-lg); font-weight: 800; letter-spacing: -.02em; }
+    .party-card-nome { font-size: var(--fs-sm); color: var(--text-muted); }
+    .party-card-meta { margin-top: 10px; font-size: var(--fs-xs); color: var(--text-muted); }
+    .party-card-cta {
+      margin-top: 4px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: color-mix(in srgb, var(--party-color) 70%, var(--text));
+    }
+
+    /* Página inicial: sem painel lateral, os cartões ocupam a largura toda. */
+    .app.is-home .sidebar,
+    .app.is-home .backdrop,
+    .app.is-home .menu-btn { display: none; }
+    .app.is-home .main-inner { max-width: 1200px; }
+
+    /* ---------- Botões de ação e cabeçalho de vista ---------- */
+    .view-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 16px;
+      margin-bottom: 6px;
+    }
+    .view-head h2 { margin: 0 !important; }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease), opacity .2s var(--ease);
+    }
+    .action-btn { white-space: nowrap; }
+    .action-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .action-btn:hover:not(:disabled) { border-color: var(--accent); box-shadow: 0 0 18px -6px var(--accent); }
+    .action-btn.is-primary { color: #fff; background: var(--accent); border-color: var(--accent); }
+    .action-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .party-header { flex-wrap: wrap; }
+    .party-header .action-btn { margin-left: auto; }
+
+    /* ---------- Aviso (toast) ---------- */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 120;
+      max-width: calc(100% - 32px);
+      padding: 12px 18px;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-left: 3px solid #22c55e;
+      border-radius: var(--radius);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .35);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 12px);
+      transition: opacity .25s var(--ease), transform .25s var(--ease);
+    }
+    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ---------- Bússola política ---------- */
+    .quiz-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .quiz-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 20px; }
+    .quiz-form { display: grid; gap: 14px; }
+    .quiz-question {
+      margin: 0;
+      padding: 16px;
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .quiz-question legend {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      float: left;
+      width: 100%;
+      margin-bottom: 12px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .quiz-step { font-size: var(--fs-xs); font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .quiz-options { clear: both; display: grid; gap: 8px; }
+    .quiz-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      font-size: var(--fs-sm);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .quiz-option:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+    .quiz-option input { width: 18px; height: 18px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
+    .quiz-option:has(input:checked) {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px -10px var(--accent);
+    }
+    /* Barra flutuante com o progresso e o botão de resultados */
+    .quiz-actions {
+      position: sticky;
+      bottom: 12px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 8px 8px 18px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+    }
+    .quiz-progress { font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
+
+    .quiz-results { margin-top: 28px; scroll-margin-top: 16px; }
+    .quiz-results h3 { font-size: var(--fs-lg); }
+    .quiz-note { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: 16px; }
+    .quiz-ranking { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+    .quiz-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: color-mix(in srgb, var(--party-color) 5%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--party-color) 22%, var(--border));
+      border-radius: var(--radius-lg);
+      animation: modal-in .35s var(--ease) both;
+    }
+    .quiz-row:nth-child(-n + 3) { border-color: color-mix(in srgb, var(--party-color) 50%, var(--border)); }
+    .quiz-rank { width: 30px; flex-shrink: 0; font-weight: 800; color: var(--text-muted); }
+    .quiz-row:first-child .quiz-rank { color: var(--accent); }
+    .quiz-row .party-logo { width: 38px; height: 38px; box-shadow: 0 0 16px -4px var(--party-color); }
+    .quiz-row-body { flex: 1; min-width: 0; display: grid; gap: 6px; }
+    .quiz-row-head { display: flex; justify-content: space-between; gap: 10px; font-size: var(--fs-sm); }
+    .quiz-pct { font-weight: 800; font-variant-numeric: tabular-nums; }
+    .quiz-bar { height: 8px; overflow: hidden; background: var(--surface-2); border-radius: 999px; }
+    .quiz-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--party-color) 70%, transparent), var(--party-color));
+      border-radius: inherit;
+      box-shadow: 0 0 12px var(--party-color);
+      animation: bar-grow .8s var(--ease) both;
+      transform-origin: left;
+    }
+    .quiz-matches { font-size: var(--fs-xs); color: var(--text-muted); }
+    @keyframes bar-grow { from { transform: scaleX(0); } }
+
+    /* ---------- Impressão / PDF: só o conteúdo do partido, a preto e branco ---------- */
+    @media print {
+      @page { margin: 16mm 14mm; }
+      html, body, .app, .main {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      *, *::before, *::after {
+        color: #000 !important;
+        background: transparent !important;
+        border-color: #000 !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        animation: none !important;
+        transition: none !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+      }
+      body { font-size: 11pt; background: #fff !important; }
+      .app-header, .sidebar, .backdrop, .tabs, .chips, .badges, .party-grid,
+      .toast, .modal-backdrop, button { display: none !important; }
+      .main { padding: 0 !important; }
+      .main-inner { max-width: none; }
+      .party-header { margin-bottom: 8pt; }
+      .party-header .party-logo { border: 1.5pt solid #000; }
+      .party-logo-img { filter: grayscale(1); background: #fff !important; }
+      .source-note { margin-bottom: 12pt; font-style: italic; }
+      .category-list { display: block; }
+      /* Categorias sempre abertas (o JS também as abre no beforeprint) */
+      details.category::details-content { content-visibility: visible; display: block; }
+      .category {
+        margin: 0 0 10pt;
+        border: 0 !important;
+        border-top: 1pt solid #000 !important;
+        border-radius: 0;
+      }
+      .category > summary { padding: 6pt 0 4pt; font-size: 13pt; break-after: avoid; }
+      .category > summary::after { display: none; }
+      .category-count { border: 0; padding: 0; }
+      .category-count::before { content: "("; }
+      .category-count::after { content: ")"; }
+      .topic-list { padding: 0 0 0 14pt; list-style: disc; }
+      .topic { display: list-item; padding: 2pt 0; break-inside: avoid; }
+      .tab-panel[hidden] { display: none !important; }
+    }
+
+    /* ---------- Logótipos (imagem sobre a sigla, que fica como alternativa) ---------- */
+    .party-logo { position: relative; overflow: hidden; }
+    .party-logo-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #fff;
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity .2s var(--ease);
+    }
+    .party-logo-img.is-loaded { opacity: 1; }
+    .party-logo-img[hidden] { display: none; }
+
+    /* ---------- Bússola: botão de novas perguntas ---------- */
+    .quiz-refresh {
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: color .2s var(--ease), border-color .2s var(--ease), transform .5s var(--ease);
+    }
+    .quiz-refresh svg { width: 18px; height: 18px; }
+    .quiz-refresh:hover { color: var(--accent); border-color: var(--accent); transform: rotate(180deg); }
+    .quiz-question { animation: modal-in .35s var(--ease) both; }
+
+    /* ---------- Pesquisa global (só em computador) ---------- */
+    .global-search { display: none; }
+    .global-search-field {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .global-search-field > svg {
+      position: absolute;
+      left: 12px;
+      width: 16px; height: 16px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .global-search input {
+      width: 100%;
+      padding: 8px 64px 8px 36px;
+      font: inherit;
+      font-size: var(--fs-sm);
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: border-color .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
+    }
+    .global-search input::-webkit-search-cancel-button { display: none; }
+    .global-search input:focus {
+      outline: none;
+      background: var(--surface);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .global-search kbd {
+      position: absolute;
+      right: 10px;
+      padding: 1px 6px;
+      font: 600 11px var(--font);
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      pointer-events: none;
+    }
+    .search-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      min-width: 420px;
+      max-height: min(70vh, 560px);
+      overflow-y: auto;
+      padding: 8px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .35);
+      animation: modal-in .18s var(--ease);
+    }
+    .search-group + .search-group { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+    .search-group-title {
+      padding: 6px 10px 4px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+    }
+    .search-group-title span { margin-left: 4px; font-weight: 500; letter-spacing: 0; }
+    .search-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 10px;
+      text-align: left;
+      border-radius: var(--radius);
+      transition: background .12s var(--ease);
+    }
+    .search-item:hover,
+    .search-item.is-active { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+    .search-item .party-logo { width: 32px; height: 32px; border-radius: 8px; font-size: 10px; }
+    .search-item-body { display: grid; min-width: 0; }
+    .search-item-text {
+      display: -webkit-box;
+      overflow: hidden;
+      font-size: var(--fs-sm);
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .search-item-meta { font-size: var(--fs-xs); color: var(--text-muted); }
+    .search-item mark { color: inherit; background: color-mix(in srgb, var(--accent) 35%, transparent); border-radius: 3px; padding: 0 1px; }
+    .search-more, .search-empty { padding: 6px 10px; font-size: var(--fs-xs); color: var(--text-muted); }
+    .search-empty { padding: 14px 10px; font-size: var(--fs-sm); }
 
     /* =========================================================
        4. BREAKPOINTS
        ========================================================= */
     .title-extra { display: none; }
 
-    @media (min-width: 480px) {
+    /* Telemóvel: o menu de vistas passa para uma segunda linha do cabeçalho. */
+    @media (max-width: 599px) {
+      .app { grid-template-rows: auto 1fr; }
+      .app-header { flex-wrap: wrap; gap: 8px 4px; padding: 8px 12px; }
+      .app-header .icon-btn { width: 36px; height: 36px; }
+      .app-title { flex: 1; }
+      .view-switch { order: 1; flex-basis: 100%; margin-left: 0; }
+      .view-switch button { flex: 1; padding: 6px 4px; }
+    }
+
+    @media (min-width: 768px) {
       .title-extra { display: inline; }
     }
 
     @media (min-width: 560px) {
       .people-grid { grid-template-columns: repeat(2, 1fr); }
+      .duel-pickers { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+      .duel-vs { padding-bottom: 10px; }
+      .duel-sides { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (min-width: 768px) {
@@ -506,18 +1251,33 @@
       }
       .sidebar-head { height: auto; padding: 16px 16px 4px; border-bottom: 0; }
       .backdrop { display: none; }
+      .sidebar { animation: sidebar-in .3s var(--ease); z-index: auto; } /* como item da grelha, não pode tapar o cabeçalho */
+
+      .app.is-home {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+          "header"
+          "main";
+      }
 
       .main { padding: 32px 32px 64px; }
       .chips { flex-wrap: wrap; overflow-x: visible; }
       .app-title { font-size: var(--fs-lg); }
     }
 
+    @media (min-width: 1024px) {
+      .global-search { display: block; position: relative; flex: 1 1 280px; max-width: 420px; margin-left: auto; }
+      .view-switch { margin-left: 0; }
+    }
+
     @media (min-width: 1100px) {
       .people-grid { grid-template-columns: repeat(3, 1fr); }
     }
 
+    @keyframes sidebar-in { from { opacity: 0; transform: translateX(-12px); } }
+
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; }
+      *, *::before, *::after { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
@@ -528,11 +1288,31 @@
       <button class="icon-btn menu-btn" type="button" aria-label="Abrir lista de partidos" aria-controls="sidebar" aria-expanded="false" data-action="open-sidebar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
+      <button class="icon-btn home-btn" type="button" aria-label="Página inicial" title="Página inicial" data-action="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9"/></svg>
+      </button>
       <h1 class="app-title">Mapa Político<span class="title-extra"> de Portugal</span></h1>
+      <div class="global-search" id="global-search">
+        <label class="global-search-field">
+          <span class="visually-hidden">Pesquisar partidos, dirigentes e propostas</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="global-search-input" type="search" placeholder="Pesquisar partidos, dirigentes e propostas…" autocomplete="off"
+                 role="combobox" aria-expanded="false" aria-controls="global-search-results" aria-autocomplete="list">
+          <kbd aria-hidden="true">Ctrl K</kbd>
+        </label>
+        <div class="search-panel" id="global-search-results" role="listbox" aria-label="Resultados da pesquisa" hidden></div>
+      </div>
       <nav class="view-switch" aria-label="Vista">
         <button type="button" data-view="partidos" aria-pressed="true">Partidos</button>
         <button type="button" data-view="grafo" aria-pressed="false">Grafo</button>
+        <button type="button" data-view="duelo" aria-pressed="false">Duelo</button>
+        <button type="button" data-view="bussola" aria-pressed="false">Bússola</button>
       </nav>
+      <button class="icon-btn theme-btn" type="button" aria-label="Mudar para o tema escuro" data-action="toggle-theme">
+        <!-- sol: mostrado no tema escuro (passa a claro); lua: no tema claro -->
+        <svg data-icon="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg data-icon="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg>
+      </button>
     </header>
 
     <!-- ================= PAINEL DE PARTIDOS ================= -->
@@ -556,8 +1336,6 @@
       <div class="main-inner" id="view"><!-- gerado pelo JS --></div>
     </main>
   </div>
-
-  <!-- Fase 4: a biblioteca do grafo (Vis.js) será carregada aqui. -->
 
   <script>
     'use strict';
@@ -1869,18 +2647,35 @@
          #/partido/<id>/programa    → aba Programa
          #/partido/<id>/quem        → aba Quem é Quem
          #/grafo                    → grafo de afinidades
+         #/duelo/<idA>/<idB>        → duelo entre dois partidos (por defeito AD e PS)
+         #/grafo/<categoria>        → grafo filtrado por uma categoria
+         #/bussola                  → bússola política (questionário)
        ========================================================= */
     const state = {
-      view: 'partidos',      // 'partidos' | 'grafo'
+      view: 'partidos',      // 'partidos' | 'grafo' | 'duelo' | 'bussola'
       partyId: null,
       tab: 'programa',       // 'programa' | 'quem'
       category: 'todas',     // filtro de categoria na aba Programa
       search: '',
+      graphCategory: '',     // filtro de categoria no grafo ('' = todas)
+      duelA: 'ad',           // partidos do duelo
+      duelB: 'ps',
+      quiz: {},              // respostas da bússola: { idPergunta: índiceOpção }
+      quizShown: false,      // resultados da bússola visíveis
+      quizIds: [],           // perguntas da ronda atual (escolhidas ao acaso)
     };
 
     function parseHash() {
       const [, section, id, tab] = location.hash.replace(/^#/, '').split('/');
-      if (section === 'grafo') return { view: 'grafo' };
+      if (section === 'grafo') {
+        return { view: 'grafo', graphCategory: CATEGORIES.some((c) => c.id === id) ? id : '' };
+      }
+      if (section === 'bussola') return { view: 'bussola' };
+      if (section === 'duelo') {
+        const duelA = getParty(id) ? id : 'ad';
+        const duelB = getParty(tab) && tab !== duelA ? tab : (duelA === 'ps' ? 'ad' : 'ps');
+        return { view: 'duelo', duelA, duelB };
+      }
       if (section === 'partido' && getParty(id)) {
         return { view: 'partidos', partyId: id, tab: tab === 'quem' ? 'quem' : 'programa' };
       }
@@ -1954,39 +2749,1024 @@
     }
 
     /**
-     * Constrói nós e arestas para o grafo: aresta entre dois partidos
-     * que partilhem ideias em pelo menos 3 categorias.
+     * Constrói o mapa completo, ao estilo Obsidian, com três tipos de nó:
+     *   partido   → os 9 partidos
+     *   categoria → as 15 categorias
+     *   ideia     → cada proposta; propostas com a mesma `ideia` na mesma
+     *               categoria partilham o nó, ligando os partidos através dele.
+     * Ligações: partido → ideia e ideia → categoria.
+     * Com `categoryId`, só entram as ideias dessa categoria e os partidos ligados a elas.
      * @returns {{ nodes: Array, edges: Array }}
      */
-    function buildAffinityGraph(minCategories = 3) {
-      // TODO Fase 4
-      return { nodes: [], edges: [] };
+    function buildAffinityGraph(categoryId = '') {
+      const shorten = (s, max = 48) => (s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s);
+      const categories = CATEGORIES.filter((c) => !categoryId || c.id === categoryId);
+      const nodes = [];
+      const edges = [];
+      const addEdge = (edge) => edges.push({ id: `e${edges.length}`, ...edge });
+      const ideas = new Map(); // "categoria|ideia" → nó da ideia
+      const ideasPerCategory = new Map(categories.map((c) => [c.id, 0]));
+
+      for (const party of PARTIES) {
+        let total = 0;
+        for (const category of categories) {
+          (party.programa[category.id] || []).forEach((topic, i) => {
+            total++;
+            const key = `${category.id}|${topic.ideia || `${party.id}-${i}`}`;
+            let idea = ideas.get(key);
+            if (!idea) {
+              idea = { id: `i:${key}`, group: 'ideia', label: shorten(topic.texto), categoria: category.nome, parties: [] };
+              ideas.set(key, idea);
+              ideasPerCategory.set(category.id, ideasPerCategory.get(category.id) + 1);
+              addEdge({ from: idea.id, to: `c:${category.id}`, group: 'categoria' });
+            }
+            if (idea.parties.some((p) => p.party === party)) return;
+            idea.parties.push({ party, texto: topic.texto });
+            addEdge({ from: `p:${party.id}`, to: idea.id, group: 'partido', cor: party.cor });
+          });
+        }
+        if (!total) continue; // com filtro, partidos sem propostas na categoria ficam de fora
+        nodes.push({
+          id: `p:${party.id}`,
+          group: 'partido',
+          label: party.sigla,
+          cor: party.cor,
+          title: `${party.nome}\n${total} ${total === 1 ? 'proposta' : 'propostas'}. Clica para abrir o programa.`,
+        });
+      }
+
+      for (const category of categories) {
+        const n = ideasPerCategory.get(category.id);
+        nodes.push({ id: `c:${category.id}`, group: 'categoria', label: category.nome, title: `${category.nome}\n${n} ${n === 1 ? 'ideia' : 'ideias'}` });
+      }
+
+      for (const idea of ideas.values()) {
+        const shared = idea.parties.length > 1;
+        nodes.push({
+          ...idea,
+          shared,
+          title: `${idea.categoria}${shared ? ` · ideia partilhada por ${idea.parties.length} partidos` : ''}\n`
+            + idea.parties.map(({ party, texto }) => `${party.sigla}: ${texto}`).join('\n'),
+        });
+      }
+
+      return { nodes, edges };
     }
 
-    /** Inicializa o grafo Vis.js dentro de `container`. */
+    let network = null;
+    let graphSearch = null; // pesquisa do grafo atual (definida em initGraph)
+    let graphRetheme = null; // recolore o grafo atual quando o tema muda
+
+    function destroyGraph() {
+      network?.destroy();
+      network = null;
+      graphSearch = null;
+      graphRetheme = null;
+    }
+
+    /** "#rrggbb" → "rgba(r, g, b, a)" */
+    const withAlpha = (hex, a) => `rgba(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')}, ${a})`;
+
+    const GRAPH_FONT = 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+    const IDEA_FONT = 12;
+    const NODE_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.2)', size: 10, x: 0, y: 3 };
+    const GROUP_ORDER = { partido: 0, categoria: 1, ideia: 2 };
+
+    /** Cores do mapa que dependem do tema claro/escuro. */
+    function graphTheme() {
+      return currentTheme() === 'dark'
+        ? { categoryBg: '#27272a', categoryBorder: '#3f3f46', categoryHover: '#323238', categoryText: '#e4e4e7',
+            labelText: '#e4e4e7', labelStroke: '#0f0f12', neutral: '161, 161, 170' }
+        : { categoryBg: '#f4f4f5', categoryBorder: '#d4d4d8', categoryHover: '#e9e9ec', categoryText: '#3f3f46',
+            labelText: '#3f3f46', labelStroke: '#ffffff', neutral: '113, 113, 122' };
+    }
+
+    /** Estilo Vis.js de cada tipo de nó. */
+    function styleNode({ group, cor, shared, parties, categoria, logo, ...n }, theme) {
+      if (group === 'partido' && logo) {
+        // Com logótipo: círculo branco com a imagem, contorno e néon na cor do partido, sigla por baixo.
+        return {
+          ...n,
+          shape: 'circularImage',
+          image: logo,
+          size: 20,
+          mass: 3,
+          shadow: { enabled: true, color: withAlpha(cor, 0.65), size: 22, x: 0, y: 0 },
+          borderWidth: 3,
+          borderWidthSelected: 4,
+          color: { background: '#ffffff', border: cor, highlight: { background: '#ffffff', border: theme.labelText }, hover: { background: '#ffffff', border: theme.labelText } },
+          font: { color: theme.labelText, size: 20, face: GRAPH_FONT, strokeWidth: 3, strokeColor: theme.labelStroke },
+        };
+      }
+      if (group === 'partido') {
+        return {
+          ...n,
+          shape: 'box',
+          mass: 3,
+          // Efeito néon: sombra difusa na cor do partido.
+          shadow: { enabled: true, color: withAlpha(cor, 0.65), size: 22, x: 0, y: 0 },
+          margin: { top: 16, right: 22, bottom: 16, left: 22 },
+          borderWidth: 2,
+          shapeProperties: { borderRadius: 10 },
+          color: { background: cor, border: cor, highlight: { background: cor, border: '#ffffff' }, hover: { background: cor, border: '#ffffff' } },
+          font: { color: textOn(cor), size: 20, face: GRAPH_FONT },
+        };
+      }
+      if (group === 'categoria') {
+        return {
+          ...n,
+          shape: 'ellipse',
+          mass: 2,
+          shadow: NODE_SHADOW,
+          borderWidth: 1,
+          color: {
+            background: theme.categoryBg,
+            border: theme.categoryBorder,
+            highlight: { background: theme.categoryHover, border: theme.categoryText },
+            hover: { background: theme.categoryHover, border: theme.categoryText },
+          },
+          font: { color: theme.categoryText, size: 14, face: GRAPH_FONT },
+        };
+      }
+      const [fill, border] = shared ? ['#2fb488', '#1c8a66'] : ['#6b98f0', '#4a7bd8'];
+      return {
+        ...n,
+        shape: 'dot',
+        size: shared ? 4 + 1.5 * parties.length : 4,
+        borderWidth: 0.5,
+        borderWidthSelected: 1.5,
+        color: { background: fill, border, highlight: { background: fill, border: theme.labelText }, hover: { background: fill, border: theme.labelText } },
+        // Rótulo só desenhado quando o texto no ecrã tiver pelo menos 10px, ou seja, com zoom.
+        font: { color: theme.labelText, size: IDEA_FONT, face: GRAPH_FONT, strokeWidth: 3, strokeColor: theme.labelStroke },
+        scaling: { label: { drawThreshold: 10 } },
+      };
+    }
+
+    /** `focus`: 'on' (partido em foco), 'off' (outro partido em foco) ou vazio. */
+    function styleEdge({ group, cor, ...e }, theme, focus = '') {
+      if (group !== 'partido') {
+        return { ...e, width: 0.5, color: { color: `rgba(${theme.neutral}, 0.15)`, hover: `rgba(${theme.neutral}, 0.8)`, highlight: `rgba(${theme.neutral}, 0.9)` } };
+      }
+      const alpha = { on: 0.9, off: 0.05 }[focus] ?? 0.3;
+      return { ...e, width: focus === 'on' ? 1.5 : 1, color: { color: withAlpha(cor, alpha), hover: withAlpha(cor, 0.95), highlight: cor } };
+    }
+
+    /** Inicializa o mapa Vis.js dentro de `container`, filtrado por `state.graphCategory`. */
     function initGraph(container) {
-      // TODO Fase 4
+      destroyGraph();
+      if (!container) return;
+      if (typeof vis === 'undefined') {
+        container.innerHTML = '<div class="empty-state"><p>Não foi possível carregar a biblioteca do grafo (Vis.js). Verifica a ligação à Internet e recarrega a página.</p></div>';
+        return;
+      }
+
+      const { nodes, edges } = buildAffinityGraph(state.graphCategory);
+      let theme = graphTheme();
+      const nodeSet = new vis.DataSet(nodes.map((n) => styleNode(n, theme)));
+      const edgeSet = new vis.DataSet(edges.map((e) => styleEdge(e, theme)));
+      const partyEdges = edges.filter((e) => e.group === 'partido');
+
+      const status = $('#graph-status');
+      const count = (group) => nodes.filter((n) => n.group === group).length;
+      const summary = `${count('partido')} partidos · ${count('categoria')} ${count('categoria') === 1 ? 'categoria' : 'categorias'} · ${count('ideia')} propostas`;
+      if (status) status.textContent = summary;
+
+      const options = {
+        layout: { improvedLayout: false }, // o layout inicial "melhorado" é muito lento com centenas de nós
+        edges: {
+          smooth: { type: 'cubicBezier', forceDirection: 'horizontal', roundness: 0.4 },
+          // Ao passar o rato (ou selecionar) as linhas ficam mais espessas e opacas.
+          hoverWidth: (w) => w + 1.5,
+          selectionWidth: (w) => w + 1.5,
+        },
+        physics: {
+          enabled: true,
+          solver: 'forceAtlas2Based',
+          forceAtlas2Based: { gravitationalConstant: -150, centralGravity: 0.008, springLength: 70, springConstant: 0.05, damping: 0.5, avoidOverlap: 0.2 },
+          minVelocity: 1,
+          stabilization: { enabled: true, iterations: 1000, updateInterval: 25 },
+        },
+        interaction: { hover: true, tooltipDelay: 120, dragNodes: true, dragView: true, zoomView: true },
+      };
+
+      network = new vis.Network(container, { nodes: nodeSet, edges: edgeSet }, options);
+
+      // Indicador enquanto a física organiza centenas de nós (depois do Network, que limpa o container).
+      const loading = document.createElement('div');
+      loading.className = 'graph-loading';
+      loading.setAttribute('role', 'status');
+      loading.innerHTML = '<span>A organizar o mapa…</span><progress max="100" value="0"></progress>';
+      container.appendChild(loading);
+
+      network.on('stabilizationProgress', ({ iterations, total }) => {
+        loading.querySelector('progress').value = Math.round((iterations / total) * 100);
+      });
+
+      // Partidos e categorias mantêm um rótulo legível mesmo com o mapa todo à vista.
+      const narrow = container.clientWidth < 600;
+      // O logótipo de um partido também cresce com o mapa afastado, como a caixa com a sigla.
+      const logoSize = narrow ? 15 : 20;
+      const fixedLabels = nodes.filter((n) => n.group !== 'ideia')
+        .map((n) => ({ node: n, px: n.group === 'partido' ? (narrow ? 15 : 20) : (narrow ? 10 : 14) }));
+      const keepLabelsReadable = () => {
+        const scale = network.getScale();
+        nodeSet.update(fixedLabels.map(({ node, px }) => ({
+          id: node.id,
+          font: { size: Math.max(px, px / scale) },
+          ...(node.logo && { size: Math.max(logoSize, logoSize / scale) }),
+        })));
+      };
+      network.on('zoom', keepLabelsReadable);
+      network.on('animationFinished', keepLabelsReadable);
+
+      // Logótipos: cada partido troca a caixa com a sigla pela imagem assim que ela carrega.
+      const graphNetwork = network;
+      for (const n of nodes.filter((node) => node.group === 'partido')) {
+        resolveLogo(n.id.slice(2)).then((src) => {
+          if (!src || network !== graphNetwork) return;
+          n.logo = src;
+          nodeSet.update(styleNode(n, theme));
+          keepLabelsReadable();
+        });
+      }
+
+      // Pesquisa: procura no rótulo e no texto completo; Enter salta para o resultado seguinte.
+      const searchable = nodes
+        .map((n) => ({ id: n.id, group: n.group, text: normalize(`${n.label} ${n.title}`) }))
+        .sort((a, b) => GROUP_ORDER[a.group] - GROUP_ORDER[b.group]);
+      let ready = false;
+      let matches = [];
+      let current = -1;
+      let lastQuery = '';
+      graphSearch = (query, next = false) => {
+        const q = normalize(query.trim());
+        if (!ready) { lastQuery = query; return; }
+        if (!q) {
+          matches = [];
+          network.unselectAll();
+          if (status) status.textContent = summary;
+          return;
+        }
+        if (!next || q !== lastQuery) {
+          matches = searchable.filter((n) => n.text.includes(q)).map((n) => n.id);
+          current = -1;
+        }
+        lastQuery = q;
+        if (!matches.length) {
+          network.unselectAll();
+          if (status) status.textContent = `Sem resultados para "${query.trim()}".`;
+          return;
+        }
+        current = (current + 1) % matches.length;
+        const id = matches[current];
+        network.selectNodes([id]);
+        network.focus(id, { scale: id.startsWith('i:') ? 1.4 : 0.9, animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+        if (status) {
+          status.textContent = `${current + 1} de ${matches.length} ${matches.length === 1 ? 'resultado' : 'resultados'}`
+            + (matches.length > 1 ? ' · Enter para o seguinte' : '');
+        }
+      };
+
+      network.once('stabilizationIterationsDone', () => {
+        // Com 500+ nós a física nunca acalma por completo: desliga-se para parar o tremor.
+        // Os nós ficam fixos, mas continuam a poder ser arrastados (dragNodes).
+        network.setOptions({ physics: { enabled: false } });
+        // Os rótulos crescem depois do primeiro enquadramento, por isso enquadra-se duas vezes.
+        for (let i = 0; i < 2; i++) {
+          network.fit();
+          keepLabelsReadable();
+        }
+        loading.remove();
+        ready = true;
+        const pending = $('#graph-search')?.value || lastQuery;
+        if (pending) graphSearch(pending);
+      });
+
+      // Foco num partido: as suas linhas engrossam e as dos outros partidos quase desaparecem.
+      const focusParty = (partyNodeId) => {
+        edgeSet.update(partyEdges.map((e) => styleEdge(e, theme, !partyNodeId ? '' : e.from === partyNodeId ? 'on' : 'off')));
+      };
+
+      network.on('hoverNode', ({ node }) => {
+        container.style.cursor = node.startsWith('p:') ? 'pointer' : '';
+        if (node.startsWith('p:')) focusParty(node);
+        // O rótulo da ideia cresce o suficiente para se ler a qualquer zoom.
+        if (node.startsWith('i:')) nodeSet.update({ id: node, font: { size: Math.max(IDEA_FONT, 13 / network.getScale()) } });
+      });
+      network.on('blurNode', ({ node }) => {
+        container.style.cursor = '';
+        if (node.startsWith('p:')) focusParty(null);
+        if (node.startsWith('i:')) nodeSet.update({ id: node, font: { size: IDEA_FONT } });
+      });
+
+      // Troca de tema sem reconstruir o mapa: só mudam as cores (as posições e o zoom ficam).
+      graphRetheme = () => {
+        theme = graphTheme();
+        nodeSet.update(nodes.filter((n) => n.group !== 'partido' || n.logo).map((n) => {
+          const { color, font } = styleNode(n, theme);
+          return { id: n.id, color, font: { color: font.color, strokeColor: font.strokeColor } };
+        }));
+        edgeSet.update(edges.filter((e) => e.group !== 'partido').map((e) => ({ id: e.id, color: styleEdge(e, theme).color })));
+      };
+
+      // Clicar num partido abre o seu programa; numa ideia partilhada abre o explorador de ideias.
+      const nodeById = new Map(nodes.map((n) => [n.id, n]));
+      network.on('click', ({ nodes: [nodeId] }) => {
+        if (nodeId?.startsWith('i:') && nodeById.get(nodeId)?.shared) {
+          openIdeaModal(nodeById.get(nodeId));
+          return;
+        }
+        if (!nodeId?.startsWith('p:')) return;
+        state.category = 'todas';
+        navigate(`#/partido/${nodeId.slice(2)}/programa`);
+      });
+    }
+
+    /* ---------- Duelo (comparador de dois partidos) ---------- */
+
+    /**
+     * Compara dois partidos numa categoria: ideias em comum e propostas que não coincidem.
+     * @returns {{ shared: Array<{ideia, a, b}>, onlyA: Array<string>, onlyB: Array<string>, emptyA: boolean, emptyB: boolean }}
+     */
+    function compareCategory(partyA, partyB, categoryId) {
+      const topicsA = partyA.programa[categoryId] || [];
+      const topicsB = partyB.programa[categoryId] || [];
+      const byIdeaB = new Map(topicsB.filter((t) => t.ideia).map((t) => [t.ideia, t]));
+      const shared = [];
+      const matchedB = new Set();
+      const onlyA = [];
+      for (const t of topicsA) {
+        const match = t.ideia && byIdeaB.get(t.ideia);
+        if (match && !matchedB.has(match)) {
+          shared.push({ ideia: t.ideia, a: t.texto, b: match.texto });
+          matchedB.add(match);
+        } else {
+          onlyA.push(t.texto);
+        }
+      }
+      const onlyB = topicsB.filter((t) => !matchedB.has(t)).map((t) => t.texto);
+      return { shared, onlyA, onlyB, emptyA: !topicsA.length, emptyB: !topicsB.length };
+    }
+
+    function renderDuelView() {
+      const a = getParty(state.duelA);
+      const b = getParty(state.duelB);
+      const select = (side, current, other) => `
+        <label class="duel-select">
+          <span>Partido ${side}</span>
+          <select id="duel-${side.toLowerCase()}" data-duel="${side}">
+            ${PARTIES.map((p) => `
+              <option value="${p.id}" ${p.id === current ? 'selected' : ''} ${p.id === other ? 'disabled' : ''}>${escapeHtml(p.sigla)} · ${escapeHtml(p.nome)}</option>`).join('')}
+          </select>
+        </label>`;
+      const chip = (p) => `<span class="duel-chip" style="--party-color:${p.cor};--badge-text:${textOn(p.cor)}">${escapeHtml(p.sigla)}</span>`;
+      const list = (items, empty) => (items.length
+        ? `<ul>${items.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`
+        : `<p class="placeholder">${empty}</p>`);
+
+      const results = CATEGORIES.map((c) => ({ category: c, ...compareCategory(a, b, c.id) }));
+      const sharedTotal = results.reduce((n, r) => n + r.shared.length, 0);
+      const sharedCategories = results.filter((r) => r.shared.length).length;
+
+      const sections = results.map(({ category, shared, onlyA, onlyB, emptyA, emptyB }) => {
+        const agree = shared.map((s) => `
+          <article class="duel-card is-agree">
+            <h4>🤝 Concordam</h4>
+            <div class="duel-sides">
+              <div>${chip(a)}<p>${escapeHtml(s.a)}</p></div>
+              <div>${chip(b)}<p>${escapeHtml(s.b)}</p></div>
+            </div>
+          </article>`).join('');
+        const diverge = onlyA.length || onlyB.length ? `
+          <article class="duel-card is-diverge">
+            <h4>⚔ Divergem</h4>
+            <div class="duel-sides">
+              <div>${chip(a)}${list(onlyA, emptyA ? `${UNAVAILABLE}.` : 'Sem outras propostas nesta categoria.')}</div>
+              <div>${chip(b)}${list(onlyB, emptyB ? `${UNAVAILABLE}.` : 'Sem outras propostas nesta categoria.')}</div>
+            </div>
+          </article>` : '';
+        const body = agree + diverge || `<p class="placeholder">${UNAVAILABLE} para nenhum dos dois partidos.</p>`;
+        return `
+          <section class="duel-category">
+            <h3>${escapeHtml(category.nome)}${shared.length ? `<span class="duel-score">${shared.length} em comum</span>` : ''}</h3>
+            ${body}
+          </section>`;
+      }).join('');
+
+      return `
+        <section class="duel-view">
+          <div class="view-head">
+            <h2>Duelo</h2>
+            ${shareButton()}
+          </div>
+          <p>Compara dois partidos categoria a categoria. «Concordam» quando defendem a mesma ideia; «Divergem» junta as propostas que não coincidem, o que não quer dizer que se oponham.</p>
+          <div class="duel-pickers">
+            ${select('A', a.id, b.id)}
+            <span class="duel-vs" aria-hidden="true">vs</span>
+            ${select('B', b.id, a.id)}
+          </div>
+          <p class="duel-summary">${chip(a)} e ${chip(b)} concordam em <strong>${sharedTotal} ${sharedTotal === 1 ? 'ideia' : 'ideias'}</strong>, distribuídas por <strong>${sharedCategories} de ${CATEGORIES.length} categorias</strong>.</p>
+          <div class="duel-list">${sections}</div>
+        </section>`;
+    }
+
+    /* ---------- Modal ---------- */
+    let modalReturnFocus = null;
+
+    function openModal(html, labelId) {
+      closeModal();
+      modalReturnFocus = document.activeElement;
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      backdrop.innerHTML = `
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="${labelId}">
+          <button class="icon-btn modal-close" type="button" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+          ${html}
+        </div>`;
+      // Fecha ao clicar no fundo ou no X (cliques dentro do cartão não fecham).
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop || e.target.closest('.modal-close')) closeModal();
+      });
+      document.body.appendChild(backdrop);
+      $('.modal-close', backdrop).focus({ preventScroll: true });
+    }
+
+    function closeModal() {
+      const backdrop = $('.modal-backdrop');
+      if (!backdrop) return;
+      backdrop.remove();
+      modalReturnFocus?.focus?.({ preventScroll: true });
+      modalReturnFocus = null;
+    }
+
+    /** Modal com o texto completo de cada partido que partilha a ideia `node`. */
+    function openIdeaModal(node) {
+      const [categoryId, ideia] = node.id.slice(2).split('|');
+      const items = node.parties.map(({ party, texto }) => `
+        <li class="modal-party" style="--party-color:${party.cor}">
+          ${partyLogo(party)}
+          <div>
+            <strong>${escapeHtml(party.nome)}</strong>
+            <p>${escapeHtml(texto)}</p>
+            <button class="modal-link" type="button" data-party="${party.id}" data-goto-category="${categoryId}"
+                    data-goto-ideia="${escapeHtml(ideia)}">Ver no programa</button>
+          </div>
+        </li>`).join('');
+      openModal(`
+        <p class="modal-kicker">${escapeHtml(node.categoria)}</p>
+        <h2 id="modal-title">Ideia partilhada por ${node.parties.length} partidos</h2>
+        <ul class="modal-parties">${items}</ul>`, 'modal-title');
+    }
+
+    /* ---------- Logótipos dos partidos ---------- */
+    // Ficheiros soltos na pasta logos/, ao lado deste ficheiro, com o id do partido
+    // (logos/chega.png, logos/cdu.jpg…). Tenta-se primeiro .png e depois .jpg.
+    const LOGO_EXTENSIONS = ['png', 'jpg'];
+    const logoSrc = new Map(); // id → caminho que carregou, ou null se nenhum existe (não se volta a pedir)
+    const logoProbes = new Map(); // id → Promise do caminho, para o grafo
+
+    const logoCandidates = (partyId) => LOGO_EXTENSIONS.map((ext) => `logos/${partyId}.${ext}`);
+
+    /** Logótipo do partido; se o .png e o .jpg falharem, fica a sigla que está por baixo. */
+    function partyLogo(party) {
+      const src = logoSrc.has(party.id) ? logoSrc.get(party.id) : logoCandidates(party.id)[0];
+      const img = !src ? '' : `
+        <img class="party-logo-img" src="${src}" alt="${escapeHtml(party.sigla)}"
+             onload="logoLoaded(this, '${party.id}')" onerror="logoFailed(this, '${party.id}')">`;
+      return `<span class="party-logo" style="--party-color:${party.cor}" aria-hidden="true">${img}<span class="party-logo-text">${escapeHtml(party.sigla)}</span></span>`;
+    }
+
+    function logoLoaded(img, partyId) {
+      logoSrc.set(partyId, img.getAttribute('src'));
+      img.classList.add('is-loaded');
+    }
+
+    /** Falhou uma extensão: passa à seguinte; sem mais nenhuma, esconde a imagem. */
+    function logoFailed(img, partyId) {
+      const candidates = logoCandidates(partyId);
+      const next = candidates[candidates.indexOf(img.getAttribute('src')) + 1];
+      if (next) {
+        img.src = next;
+        return;
+      }
+      logoSrc.set(partyId, null);
+      img.hidden = true;
+    }
+
+    /** Caminho do logótipo que carrega (ou null), testado fora do DOM; usado pelo grafo. */
+    function resolveLogo(partyId) {
+      if (logoSrc.has(partyId)) return Promise.resolve(logoSrc.get(partyId));
+      if (!logoProbes.has(partyId)) {
+        logoProbes.set(partyId, new Promise((resolve) => {
+          const attempt = ([src, ...rest]) => {
+            if (!src) {
+              logoSrc.set(partyId, null);
+              resolve(null);
+              return;
+            }
+            const probe = new Image();
+            probe.onload = () => { logoSrc.set(partyId, src); resolve(src); };
+            probe.onerror = () => attempt(rest);
+            probe.src = src;
+          };
+          attempt(logoCandidates(partyId));
+        }));
+      }
+      return logoProbes.get(partyId);
+    }
+
+    /* ---------- Pesquisa global (cabeçalho) ---------- */
+    const SEARCH_LIMITS = { partido: 5, dirigente: 5, proposta: 8 };
+    let searchIndex = null;
+    let searchActive = -1;
+
+    /** Índice com partidos, dirigentes e propostas (criado na primeira pesquisa). */
+    function buildSearchIndex() {
+      const entries = [];
+      for (const party of PARTIES) {
+        entries.push({ type: 'partido', party, text: `${party.sigla} · ${party.nome}`, meta: 'Partido' });
+        for (const d of party.dirigentes) {
+          entries.push({ type: 'dirigente', party, text: d.nome, meta: `${party.sigla} · ${d.funcao || UNAVAILABLE}` });
+        }
+        for (const category of CATEGORIES) {
+          for (const topic of party.programa[category.id] || []) {
+            entries.push({ type: 'proposta', party, category, topic, text: topic.texto, meta: `${party.sigla} · ${category.nome}` });
+          }
+        }
+      }
+      return entries.map((e) => ({ ...e, norm: normalize(e.text) }));
+    }
+
+    /** Destaca o termo no texto, ignorando acentos (só quando o texto normalizado mantém o comprimento). */
+    function highlightMatch(text, q) {
+      const norm = normalize(text);
+      const i = norm.indexOf(q);
+      if (i < 0 || norm.length !== text.length) return escapeHtml(text);
+      return `${escapeHtml(text.slice(0, i))}<mark>${escapeHtml(text.slice(i, i + q.length))}</mark>${escapeHtml(text.slice(i + q.length))}`;
+    }
+
+    function renderSearchResults(query) {
+      const panel = $('#global-search-results');
+      const input = $('#global-search-input');
+      const q = normalize(query.trim());
+      searchActive = -1;
+      input.removeAttribute('aria-activedescendant');
+      if (q.length < 2) { closeSearch(false); return; }
+
+      searchIndex ??= buildSearchIndex();
+      const groups = { partido: [], dirigente: [], proposta: [] };
+      for (const e of searchIndex) if (e.norm.includes(q)) groups[e.type].push(e);
+
+      const labels = { partido: 'Partidos', dirigente: 'Dirigentes', proposta: 'Propostas' };
+      let n = 0;
+      const item = (e) => {
+        const attrs = e.type === 'proposta'
+          ? `data-party="${e.party.id}" data-goto-category="${e.category.id}" data-goto-ideia="${escapeHtml(e.topic.ideia)}"`
+          : `data-party="${e.party.id}"${e.type === 'dirigente' ? ' data-goto-tab="quem"' : ''}`;
+        return `
+          <button class="search-item" type="button" role="option" id="search-opt-${n++}" ${attrs}>
+            ${partyLogo(e.party)}
+            <span class="search-item-body">
+              <span class="search-item-text">${highlightMatch(e.text, q)}</span>
+              <span class="search-item-meta">${escapeHtml(e.meta)}</span>
+            </span>
+          </button>`;
+      };
+      const html = Object.entries(groups).filter(([, list]) => list.length).map(([type, list]) => `
+        <div class="search-group" role="group" aria-label="${labels[type]}">
+          <p class="search-group-title">${labels[type]} <span>${list.length}</span></p>
+          ${list.slice(0, SEARCH_LIMITS[type]).map(item).join('')}
+          ${list.length > SEARCH_LIMITS[type] ? `<p class="search-more">e mais ${list.length - SEARCH_LIMITS[type]}. Escreve mais para afinar.</p>` : ''}
+        </div>`).join('');
+
+      panel.innerHTML = html || `<p class="search-empty">Sem resultados para «${escapeHtml(query.trim())}».</p>`;
+      panel.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeSearch(clear = true) {
+      const panel = $('#global-search-results');
+      const input = $('#global-search-input');
+      panel.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      if (clear) input.value = '';
+    }
+
+    /** Setas para cima/baixo percorrem os resultados. */
+    function moveSearchActive(step) {
+      const items = $$('#global-search-results .search-item');
+      if (!items.length) return;
+      items[searchActive]?.classList.remove('is-active');
+      searchActive = (searchActive + step + items.length) % items.length;
+      const el = items[searchActive];
+      el.classList.add('is-active');
+      el.scrollIntoView({ block: 'nearest' });
+      $('#global-search-input').setAttribute('aria-activedescendant', el.id);
+    }
+
+    /* ---------- Bússola política (questionário) ---------- */
+
+    /**
+     * Banco de perguntas. Cada opção aponta para uma `ideia` real dos programas (na categoria
+     * da pergunta, ou em `categoria` quando a ideia está noutra). Os partidos de cada opção são
+     * calculados a partir dos dados, nunca escritos à mão. Cada ronda mostra QUIZ_SIZE perguntas.
+     */
+    const QUIZ_SIZE = 8;
+    const QUIZ = [
+      // Habitação
+      { id: 'habitacao', categoria: 'habitacao', pergunta: 'Qual deve ser a prioridade para a Habitação?', opcoes: [
+        { ideia: 'reforcar-habitacao-publica', texto: 'Construir mais habitação pública a preços acessíveis' },
+        { ideia: 'tetos-rendas', texto: 'Pôr tetos máximos às rendas' },
+        { ideia: 'fim-controlo-rendas', texto: 'Acabar com o controlo das rendas e liberalizar o arrendamento' },
+      ] },
+      { id: 'habitacao-oferta', categoria: 'habitacao', pergunta: 'Como aumentar a oferta de casas?', opcoes: [
+        { ideia: 'simplificar-licenciamento-urbanistico', texto: 'Simplificar e acelerar o licenciamento da construção' },
+        { ideia: 'mobilizar-imoveis-publicos', texto: 'Pôr no mercado os imóveis e terrenos vazios do Estado' },
+        { ideia: 'regular-alojamento-local', texto: 'Limitar o Alojamento Local nas zonas com mais pressão' },
+      ] },
+      { id: 'habitacao-acessivel', categoria: 'habitacao', pergunta: 'Que medida torna as casas mais acessíveis?', opcoes: [
+        { ideia: 'iva-6-construcao', texto: 'Baixar o IVA da construção de habitação para 6%' },
+        { ideia: 'zonamento-inclusivo', texto: 'Reservar parte da nova construção para habitação acessível' },
+        { ideia: 'ppp-habitacao-acessivel', texto: 'Parcerias público-privadas para construir casas com rendas acessíveis' },
+      ] },
+      // Impostos e Fiscalidade
+      { id: 'impostos', categoria: 'impostos', pergunta: 'Que mudança nos impostos é mais urgente?', opcoes: [
+        { ideia: 'reduzir-irc', texto: 'Baixar o IRC das empresas' },
+        { ideia: 'iva-zero-cabaz', texto: 'IVA zero num cabaz de bens alimentares essenciais' },
+        { ideia: 'taxar-lucros-extraordinarios', texto: 'Taxar os lucros extraordinários da banca, da energia e da distribuição' },
+      ] },
+      { id: 'impostos-irs', categoria: 'impostos', pergunta: 'Como deve mudar o IRS?', opcoes: [
+        { ideia: 'irs-duas-taxas', texto: 'Um IRS com apenas duas taxas' },
+        { ideia: 'englobamento-rendimentos-irs', texto: 'Somar todos os rendimentos no IRS, incluindo os de capital' },
+        { ideia: 'irs-jovem', categoria: 'juventude', texto: 'Manter ou alargar o IRS Jovem' },
+      ] },
+      { id: 'impostos-outros', categoria: 'impostos', pergunta: 'Que outra medida fiscal preferes?', opcoes: [
+        { ideia: 'imposto-grandes-herancas', texto: 'Criar um imposto sobre as grandes heranças' },
+        { ideia: 'contribuicao-banca', texto: 'Aumentar a contribuição paga pelo setor bancário' },
+        { ideia: 'reduzir-iuc', texto: 'Baixar o imposto de circulação (IUC) dos carros' },
+      ] },
+      // Saúde
+      { id: 'saude', categoria: 'saude', pergunta: 'Como deve o SNS responder à falta de resposta?', opcoes: [
+        { ideia: 'ppp-saude', texto: 'Mais parcerias com o setor privado (PPP e convenções)' },
+        { ideia: 'fim-ppp-saude', texto: 'Gestão pública, sem novas PPP' },
+        { ideia: 'dedicacao-exclusiva-sns', texto: 'Dedicação exclusiva dos profissionais ao SNS, com melhor salário' },
+      ] },
+      { id: 'saude-cuidados', categoria: 'saude', pergunta: 'Que cuidado de saúde deve chegar a todos primeiro?', opcoes: [
+        { ideia: 'medico-de-familia-para-todos', texto: 'Médico e equipa de família para toda a gente' },
+        { ideia: 'saude-oral-sns', texto: 'Dentista no Serviço Nacional de Saúde' },
+        { ideia: 'reforcar-saude-mental', texto: 'Psicólogos e saúde mental nos centros de saúde' },
+      ] },
+      { id: 'saude-esperas', categoria: 'saude', pergunta: 'Como reduzir as listas de espera?', opcoes: [
+        { ideia: 'privado-quando-sns-falha', texto: 'Encaminhar para o privado quando o SNS ultrapassa o tempo máximo' },
+        { ideia: 'fixacao-medicos-zonas-carenciadas', texto: 'Incentivos para fixar médicos nas zonas com falta deles' },
+        { ideia: 'transparencia-listas-espera', texto: 'Tornar as listas de espera públicas e consultáveis por cada doente' },
+      ] },
+      // Educação
+      { id: 'educacao', categoria: 'educacao', pergunta: 'Onde investir primeiro na Educação?', opcoes: [
+        { ideia: 'pre-escolar-universal', texto: 'Creche e pré-escolar para todas as crianças' },
+        { ideia: 'eliminar-propinas', texto: 'Acabar com as propinas no ensino superior' },
+        { ideia: 'reforcar-ensino-profissional', texto: 'Reforçar o ensino técnico e profissional' },
+      ] },
+      { id: 'educacao-escola', categoria: 'educacao', pergunta: 'O que mudar na escola e para os professores?', opcoes: [
+        { ideia: 'recuperar-tempo-servico-professores', texto: 'Recuperar todo o tempo de serviço dos professores' },
+        { ideia: 'apoio-deslocacao-professores', texto: 'Apoiar os professores colocados longe de casa' },
+        { ideia: 'eliminar-exames-nacionais', texto: 'Acabar com os exames nacionais' },
+      ] },
+      // Juventude
+      { id: 'juventude', categoria: 'juventude', pergunta: 'Qual a melhor ajuda para os jovens?', opcoes: [
+        { ideia: 'passe-gratuito-jovens', texto: 'Transportes públicos gratuitos para os jovens' },
+        { ideia: 'isencao-imt-jovens', texto: 'Isentar de impostos a compra da primeira casa' },
+        { ideia: 'porta-65-reforcado', texto: 'Reforçar o apoio à renda dos jovens (Porta 65)' },
+      ] },
+      { id: 'juventude-futuro', categoria: 'juventude', pergunta: 'Qual destas medidas para os jovens é mais importante?', opcoes: [
+        { ideia: 'voto-aos-16', texto: 'Direito de voto a partir dos 16 anos' },
+        { ideia: 'regresso-jovens-emigrados', texto: 'Programas para os jovens emigrados regressarem' },
+        { ideia: 'combate-precariedade-jovens', texto: 'Combater a precariedade laboral dos jovens' },
+      ] },
+      // Imigração e Integração
+      { id: 'imigracao', categoria: 'imigracao', pergunta: 'O que é mais importante na Imigração?', opcoes: [
+        { ideia: 'nacionalidade-mais-exigente', texto: 'Tornar mais exigentes as regras para obter a nacionalidade' },
+        { ideia: 'reforcar-aima', texto: 'Dar mais meios à AIMA para tratar dos processos' },
+        { ideia: 'imigracao-regulada-na-origem', texto: 'Abrir vias de imigração regulares e seguras a partir dos países de origem' },
+      ] },
+      { id: 'imigracao-entradas', categoria: 'imigracao', pergunta: 'Como gerir as entradas de imigrantes?', opcoes: [
+        { ideia: 'limitar-fluxos-migratorios', texto: 'Limitar as entradas segundo as necessidades do país' },
+        { ideia: 'policia-de-fronteiras', texto: 'Criar uma polícia dedicada às fronteiras' },
+        { ideia: 'resolver-processos-pendentes-aima', texto: 'Regularizar rapidamente os processos pendentes' },
+      ] },
+      // Segurança e Justiça
+      { id: 'seguranca', categoria: 'seguranca', pergunta: 'Qual deve ser a prioridade na Segurança?', opcoes: [
+        { ideia: 'videovigilancia', texto: 'Mais videovigilância nas zonas sensíveis' },
+        { ideia: 'suplemento-risco-policias', texto: 'Subir o suplemento de risco da PSP e da GNR' },
+        { ideia: 'reforma-sistema-prisional', texto: 'Reformar as prisões e apostar em penas alternativas' },
+      ] },
+      { id: 'justica', categoria: 'seguranca', pergunta: 'O que é mais urgente mudar na Justiça?', opcoes: [
+        { ideia: 'reduzir-custas-judiciais', texto: 'Baixar as custas judiciais' },
+        { ideia: 'acabar-megaprocessos', texto: 'Acabar com os megaprocessos' },
+        { ideia: 'violacao-crime-publico', texto: 'Tornar a violação crime público' },
+      ] },
+      // Trabalho e Emprego
+      { id: 'trabalho', categoria: 'trabalho', pergunta: 'Qual deve ser a prioridade no Trabalho?', opcoes: [
+        { ideia: 'salario-medio-2000', texto: 'Criar condições para um salário médio de 2.000€ em 2029' },
+        { ideia: 'reduzir-horario-semanal', texto: 'Reduzir o horário semanal de trabalho' },
+        { ideia: 'incentivos-contratacao-jovens', texto: 'Incentivar as empresas a contratar jovens' },
+      ] },
+      { id: 'trabalho-direitos', categoria: 'trabalho', pergunta: 'Que mudança laboral preferes?', opcoes: [
+        { ideia: 'fim-caducidade-contratacao-coletiva', texto: 'Acabar com a caducidade dos contratos coletivos' },
+        { ideia: 'semana-4-dias', texto: 'Alargar a semana de 4 dias' },
+        { ideia: 'profissoes-desgaste-rapido', texto: 'Definir na lei as profissões de desgaste rápido' },
+      ] },
+      // Estado Social e Pensões
+      { id: 'pensoes', categoria: 'estado-social', pergunta: 'Qual a prioridade para os reformados?', opcoes: [
+        { ideia: 'pensao-minima-digna', texto: 'Subir as pensões mais baixas' },
+        { ideia: 'reforma-sem-penalizacao-carreiras-longas', texto: 'Reforma sem penalizações para carreiras contributivas longas' },
+        { ideia: 'envelhecimento-ativo', texto: 'Facilitar trabalhar depois da idade da reforma' },
+      ] },
+      { id: 'familias', categoria: 'estado-social', pergunta: 'Como apoiar melhor as famílias?', opcoes: [
+        { ideia: 'reforcar-abono-familia', texto: 'Aumentar ou universalizar o abono de família' },
+        { ideia: 'licenca-parental-alargada', texto: 'Licença parental mais longa e paga' },
+        { ideia: 'reforcar-rsi', texto: 'Reforçar o Rendimento Social de Inserção' },
+      ] },
+      { id: 'seguranca-social', categoria: 'estado-social', pergunta: 'O que é mais importante na Segurança Social?', opcoes: [
+        { ideia: 'pensoes-publicas', texto: 'Manter o sistema de pensões público, sem privatização' },
+        { ideia: 'valorizar-pensoes', texto: 'Aumentar as pensões todos os anos' },
+        { ideia: 'combate-sem-abrigo', texto: 'Uma estratégia nacional para as pessoas sem-abrigo' },
+      ] },
+      // Ambiente e Energia
+      { id: 'energia', categoria: 'ambiente', pergunta: 'Qual deve ser a aposta no Ambiente e na Energia?', opcoes: [
+        { ideia: 'energia-nuclear', texto: 'Estudar ou avançar com energia nuclear' },
+        { ideia: 'areas-marinhas-protegidas', texto: 'Proteger pelo menos 30% do mar' },
+        { ideia: 'iva-eletricidade-6', categoria: 'impostos', texto: 'Baixar o IVA da eletricidade para 6%' },
+      ] },
+      { id: 'energia-fatura', categoria: 'ambiente', pergunta: 'Como baixar a fatura da energia das famílias?', opcoes: [
+        { ideia: 'apoio-gas-engarrafado', texto: 'Baixar ou fixar o preço do gás de botija' },
+        { ideia: 'autoconsumo-comunidades-energia', texto: 'Produzir a própria energia (autoconsumo e comunidades de energia)' },
+        { ideia: 'eficiencia-energetica-edificios', texto: 'Apoiar obras de eficiência energética nas casas' },
+      ] },
+      { id: 'mobilidade', categoria: 'ambiente', pergunta: 'Onde investir na mobilidade?', opcoes: [
+        { ideia: 'passes-transportes-baratos', texto: 'Passes de transportes públicos mais baratos' },
+        { ideia: 'alta-velocidade-ferroviaria', categoria: 'coesao', texto: 'Comboio de alta velocidade' },
+        { ideia: 'abolir-portagens-ex-scut', categoria: 'coesao', texto: 'Acabar com as portagens nas ex-SCUT' },
+      ] },
+      // Cultura
+      { id: 'cultura', categoria: 'cultura', pergunta: 'Como apoiar a Cultura?', opcoes: [
+        { ideia: 'reforcar-orcamento-cultura', texto: 'Aumentar o orçamento da Cultura' },
+        { ideia: 'lei-mecenato-cultural', texto: 'Mais incentivos fiscais ao mecenato' },
+        { ideia: 'estatuto-profissionais-cultura', texto: 'Combater a precariedade dos profissionais da cultura' },
+      ] },
+      // Agricultura e Pescas
+      { id: 'agricultura', categoria: 'agricultura', pergunta: 'Qual a prioridade para a Agricultura?', opcoes: [
+        { ideia: 'agricultura-biologica', texto: 'Apostar na agricultura biológica' },
+        { ideia: 'emparcelamento', texto: 'Juntar terrenos pequenos para reduzir a fragmentação' },
+        { ideia: 'rendimentos-justos-agricultores', texto: 'Garantir rendimentos justos aos pequenos agricultores' },
+      ] },
+      { id: 'agua-mar', categoria: 'agricultura', pergunta: 'Que medida preferes para a água e o mar?', opcoes: [
+        { ideia: 'regadio-transferencias-agua', texto: 'Levar água do Norte para o Sul e expandir o regadio' },
+        { ideia: 'pesca-sustentavel', texto: 'Pesca mais sustentável, com quotas mais baixas' },
+        { ideia: 'modernizar-frota-pesqueira', texto: 'Modernizar a frota de pesca' },
+      ] },
+      // Coesão Territorial e Autonomias
+      { id: 'interior', categoria: 'coesao', pergunta: 'Como desenvolver o interior?', opcoes: [
+        { ideia: 'incentivos-fiscais-interior', texto: 'Benefícios fiscais para quem vive ou investe no interior' },
+        { ideia: 'servicos-publicos-interior', texto: 'Reabrir serviços públicos no interior' },
+        { ideia: 'deslocalizar-servicos-estado', texto: 'Instalar serviços do Estado fora de Lisboa' },
+      ] },
+      { id: 'territorio', categoria: 'coesao', pergunta: 'Como organizar o território?', opcoes: [
+        { ideia: 'regionalizacao', texto: 'Avançar com a regionalização' },
+        { ideia: 'descentralizacao-municipios', texto: 'Dar mais competências aos municípios' },
+        { ideia: 'lei-financas-regionais', texto: 'Rever a lei de finanças das regiões autónomas' },
+      ] },
+      // Transparência e Combate à Corrupção
+      { id: 'corrupcao', categoria: 'transparencia', pergunta: 'Qual a melhor arma contra a corrupção?', opcoes: [
+        { ideia: 'regulamentar-lobbying', texto: 'Regulamentar o lóbi, com registo público' },
+        { ideia: 'enriquecimento-ilicito', texto: 'Criminalizar o enriquecimento ilícito' },
+        { ideia: 'periodo-nojo', texto: 'Um período de espera maior antes de ex-governantes irem para empresas' },
+      ] },
+      { id: 'transparencia', categoria: 'transparencia', pergunta: 'Que medida de transparência é mais urgente?', opcoes: [
+        { ideia: 'reforcar-entidades-anticorrupcao', texto: 'Reforçar as entidades anticorrupção' },
+        { ideia: 'controlo-offshores', texto: 'Apertar o controlo das operações em offshores' },
+        { ideia: 'perda-alargada-bens', texto: 'Facilitar a perda de bens de origem criminosa' },
+      ] },
+      // Economia e Finanças
+      { id: 'economia', categoria: 'economia', pergunta: 'Qual deve ser o papel do Estado na Economia?', opcoes: [
+        { ideia: 'contas-publicas-equilibradas', texto: 'Contas públicas equilibradas e menos dívida' },
+        { ideia: 'privatizar-empresas-publicas', texto: 'Abrir ou privatizar empresas públicas' },
+        { ideia: 'controlo-publico-setores-estrategicos', texto: 'Controlo público de setores estratégicos, como a banca e a energia' },
+      ] },
+      { id: 'economia-estado', categoria: 'economia', pergunta: 'O que fazer com a despesa do Estado?', opcoes: [
+        { ideia: 'reduzir-despesa-estado', texto: 'Reduzir a despesa pública' },
+        { ideia: 'investimento-publico-5-pib', texto: 'Investir pelo menos 5% do PIB por ano em obra pública' },
+        { ideia: 'desburocratizar-estado', texto: 'Cortar burocracia e simplificar licenciamentos' },
+      ] },
+    ];
+
+    /** Partidos que defendem a `ideia` da opção na sua categoria. */
+    function partiesForOption(question, option) {
+      const categoryId = option.categoria || question.categoria;
+      return PARTIES.filter((p) => (p.programa[categoryId] || []).some((t) => t.ideia === option.ideia));
+    }
+
+    /** Baralha uma cópia do array (Fisher–Yates). */
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    /** Nova ronda: QUIZ_SIZE perguntas ao acaso, de categorias diferentes sempre que possível. */
+    function newQuizRound() {
+      const picked = [];
+      const categories = new Set();
+      const pool = shuffle(QUIZ);
+      for (const q of pool) {
+        if (picked.length < QUIZ_SIZE && !categories.has(q.categoria)) { picked.push(q); categories.add(q.categoria); }
+      }
+      for (const q of pool) if (picked.length < QUIZ_SIZE && !picked.includes(q)) picked.push(q);
+      state.quizIds = picked.map((q) => q.id);
+      state.quiz = {};
+      state.quizShown = false;
+    }
+
+    const currentQuiz = () => state.quizIds.map((id) => QUIZ.find((q) => q.id === id));
+
+    /** Ranking: percentagem das respostas dadas que coincidem com ideias de cada partido. */
+    function quizResults(answers) {
+      const answered = currentQuiz().filter((q) => answers[q.id] != null);
+      const rows = PARTIES.map((party, order) => {
+        const matched = answered.filter((q) => partiesForOption(q, q.opcoes[answers[q.id]]).includes(party));
+        return { party, order, matched, pct: answered.length ? Math.round((matched.length / answered.length) * 100) : 0 };
+      }).sort((a, b) => b.pct - a.pct || a.order - b.order);
+      // Empates partilham a posição (1.º, 1.º, 3.º…).
+      rows.forEach((r, i) => { r.rank = i && r.pct === rows[i - 1].pct ? rows[i - 1].rank : i + 1; });
+      return { rows, answered: answered.length };
+    }
+
+    function renderQuizResults() {
+      const { rows, answered } = quizResults(state.quiz);
+      const category = (id) => CATEGORIES.find((c) => c.id === id)?.nome || id;
+      return `
+        <div class="view-head">
+          <h3>Resultados</h3>
+          <button class="action-btn" type="button" data-action="quiz-reset">Recomeçar</button>
+        </div>
+        <p class="quiz-note">Com base em ${answered} de ${state.quizIds.length} respostas. Mede quantas das tuas escolhas coincidem com ideias registadas nos programas; alguns programas só estão registados em parte, por isso não é uma recomendação de voto.</p>
+        <ol class="quiz-ranking">
+          ${rows.map(({ party, matched, pct, rank }) => `
+            <li class="quiz-row" style="--party-color:${party.cor}">
+              <span class="quiz-rank">${rank}.º</span>
+              ${partyLogo(party)}
+              <div class="quiz-row-body">
+                <div class="quiz-row-head">
+                  <strong>${escapeHtml(party.nome)}</strong>
+                  <span class="quiz-pct">${pct}%</span>
+                </div>
+                <div class="quiz-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"
+                     aria-label="Afinidade com ${escapeHtml(party.sigla)}"><span style="width:${pct}%"></span></div>
+                <p class="quiz-matches">${matched.length
+                  ? `Coincide em: ${[...new Set(matched.map((q) => category(q.categoria)))].map(escapeHtml).join(', ')}`
+                  : 'Nenhuma resposta coincide.'}</p>
+              </div>
+            </li>`).join('')}
+        </ol>`;
+    }
+
+    const REFRESH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg>';
+
+    function renderQuizView() {
+      const quiz = currentQuiz();
+      const answered = quiz.filter((q) => state.quiz[q.id] != null).length;
+      const questions = quiz.map((q, i) => `
+        <fieldset class="quiz-question">
+          <legend><span class="quiz-step">${i + 1}/${quiz.length}</span>${escapeHtml(q.pergunta)}</legend>
+          <div class="quiz-options">
+            ${q.opcoes.map((o, j) => `
+              <label class="quiz-option">
+                <input type="radio" name="quiz-${q.id}" value="${j}" data-quiz="${q.id}" ${state.quiz[q.id] === j ? 'checked' : ''}>
+                <span>${escapeHtml(o.texto)}</span>
+              </label>`).join('')}
+          </div>
+        </fieldset>`).join('');
+
+      return `
+        <section class="quiz-view">
+          <div class="view-head">
+            <h2>Bússola Política</h2>
+            <button class="icon-btn quiz-refresh" type="button" data-action="quiz-reset"
+                    aria-label="Novas perguntas" title="Novas perguntas">${REFRESH_ICON}</button>
+          </div>
+          <p>Responde a ${quiz.length} perguntas, escolhidas ao acaso entre ${QUIZ.length}, e descobre que partidos defendem as mesmas ideias que tu. Cada opção corresponde a uma proposta que aparece em programas eleitorais.</p>
+          <form class="quiz-form" id="quiz-form">
+            ${questions}
+            <div class="quiz-actions">
+              <span class="quiz-progress" id="quiz-progress">${answered} de ${quiz.length} respondidas</span>
+              <button class="action-btn is-primary" type="submit" id="quiz-submit" ${answered ? '' : 'disabled'}>Ver Resultados</button>
+            </div>
+          </form>
+          <section class="quiz-results" id="quiz-results" aria-live="polite" ${state.quizShown ? '' : 'hidden'}>
+            ${state.quizShown ? renderQuizResults() : ''}
+          </section>
+        </section>`;
+    }
+
+    /* ---------- Partilha e aviso (toast) ---------- */
+    let toastTimer;
+
+    function toast(message) {
+      let el = $('.toast');
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'toast';
+        el.setAttribute('role', 'status');
+        document.body.appendChild(el);
+      }
+      el.textContent = message;
+      // Força o reflow para a animação recomeçar quando há dois avisos seguidos.
+      el.classList.remove('is-visible');
+      void el.offsetWidth;
+      el.classList.add('is-visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('is-visible'), 2600);
+    }
+
+    /** Copia o link da vista atual; sem acesso à API Clipboard, tenta o método antigo. */
+    async function shareLink() {
+      const url = window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        const area = document.createElement('textarea');
+        area.value = url;
+        area.setAttribute('readonly', '');
+        area.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(area);
+        area.select();
+        const ok = document.execCommand('copy');
+        area.remove();
+        if (!ok) { toast('Não foi possível copiar o link.'); return; }
+      }
+      toast('Link copiado para a área de transferência!');
+    }
+
+    const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
+    const PRINT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>';
+    const shareButton = () => `<button class="action-btn" type="button" data-action="share">${SHARE_ICON}<span>Partilhar</span></button>`;
+
+    /* ---------- Impressão / PDF ---------- */
+    // Abre todas as categorias para imprimir e repõe o estado a seguir (também com Ctrl+P).
+    let printClosed = [];
+    window.addEventListener('beforeprint', () => {
+      printClosed = $$('details.category:not([open])');
+      printClosed.forEach((d) => { d.open = true; });
+    });
+    window.addEventListener('afterprint', () => {
+      printClosed.forEach((d) => { d.open = false; });
+      printClosed = [];
+    });
+
+    function printProgram() {
+      // Imprime o programa completo, mesmo que haja um filtro de categoria ativo.
+      if (state.tab === 'programa' && state.category !== 'todas') {
+        state.category = 'todas';
+        render();
+      }
+      window.print();
     }
 
     /* =========================================================
        5. RENDERIZAÇÃO
        ========================================================= */
     let lastRoute = null;
+    let lastView = null;
     // O render corre no hashchange (assíncrono): o que depende do novo DOM espera por ele aqui.
     const afterRender = [];
 
     function render() {
       // Na vista do grafo mantém-se o último partido, para o botão "Partidos" lá voltar.
       Object.assign(state, parseHash());
+      // Na página inicial o painel lateral desaparece e os cartões ocupam o espaço todo.
+      $('.app').classList.toggle('is-home', state.view === 'partidos' && !state.partyId);
+      // Ao entrar na Bússola baralham-se novas perguntas.
+      if (state.view === 'bussola' && (lastView !== 'bussola' || !state.quizIds.length)) newQuizRound();
+      lastView = state.view;
+      closeModal();
       renderViewSwitch();
       renderPartyList();
 
       const view = $('#view');
       if (state.view === 'grafo') view.innerHTML = renderGraphView();
+      else if (state.view === 'duelo') view.innerHTML = renderDuelView();
+      else if (state.view === 'bussola') view.innerHTML = renderQuizView();
       else if (state.partyId) view.innerHTML = renderPartyView(getParty(state.partyId));
-      else view.innerHTML = renderWelcome();
+      else view.innerHTML = renderHome();
 
       if (state.view === 'grafo') initGraph($('#graph'));
+      else destroyGraph();
 
       const route = location.hash;
       if (route !== lastRoute) $('#main').scrollTop = 0;
@@ -2010,7 +3790,7 @@
           <li>
             <button class="party-item" type="button" data-party="${p.id}"
                     aria-current="${state.view === 'partidos' && p.id === state.partyId}" style="--party-color:${p.cor}">
-              <span class="party-logo" aria-hidden="true">${escapeHtml(p.sigla)}</span>
+              ${partyLogo(p)}
               <span class="party-meta">
                 <strong>${escapeHtml(p.sigla)}</strong>
                 <span>${escapeHtml(p.nome)}</span>
@@ -2020,11 +3800,33 @@
         : '<li class="placeholder">Nenhum partido encontrado.</li>';
     }
 
-    function renderWelcome() {
+    /** Página inicial: um cartão por partido, com o número de propostas registadas. */
+    function renderHome() {
+      const cards = PARTIES.map((p) => {
+        const topics = CATEGORIES.reduce((n, c) => n + (p.programa[c.id]?.length || 0), 0);
+        const categories = CATEGORIES.filter((c) => p.programa[c.id]?.length).length;
+        return `
+          <li>
+            <button class="party-card" type="button" data-party="${p.id}" style="--party-color:${p.cor}">
+              ${partyLogo(p)}
+              <span class="party-card-sigla">${escapeHtml(p.sigla)}</span>
+              <span class="party-card-nome">${escapeHtml(p.nome)}</span>
+              <span class="party-card-meta">${topics} ${topics === 1 ? 'proposta' : 'propostas'} · ${categories} de ${CATEGORIES.length} categorias</span>
+              <span class="party-card-cta" aria-hidden="true">Ver programa →</span>
+            </button>
+          </li>`;
+      }).join('');
       return `
-        <section class="empty-state">
-          <h2>Bem-vindo ao Mapa Político de Portugal</h2>
-          <p>Escolhe um partido no painel para explorar o programa eleitoral por categoria e conhecer os seus dirigentes, ou abre o grafo para ver as afinidades entre partidos.</p>
+        <section class="home">
+          <div class="home-hero">
+            <h2>Escolhe um partido</h2>
+            <p>Explora os programas eleitorais dos partidos, categoria a categoria, com base nos documentos oficiais, ou compara-os no grafo e no duelo.</p>
+            <div class="home-actions">
+              <button class="home-action" type="button" data-view="grafo">Abrir o grafo de afinidades</button>
+              <button class="home-action" type="button" data-view="duelo">Comparar dois partidos</button>
+            </div>
+          </div>
+          <ul class="party-grid" aria-label="Partidos">${cards}</ul>
         </section>`;
     }
 
@@ -2036,11 +3838,12 @@
 
       return `
         <header class="party-header" style="--party-color:${party.cor}">
-          <span class="party-logo" aria-hidden="true">${escapeHtml(party.sigla)}</span>
+          ${partyLogo(party)}
           <div>
             <h2>${escapeHtml(party.sigla)}</h2>
             <p>${escapeHtml(party.nome)}</p>
           </div>
+          <button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>
         </header>
 
         <div class="tabs" role="tablist" aria-label="Secções do partido">
@@ -2126,19 +3929,75 @@
     }
 
     function renderGraphView() {
+      const { nodes } = buildAffinityGraph();
+      const count = (fn) => nodes.filter(fn).length;
+      const ideas = count((n) => n.group === 'ideia');
+      const shared = count((n) => n.shared);
+      const item = (cls, text) => `<span class="legend-item"><i class="legend-mark ${cls}"></i>${text}</span>`;
+      const options = CATEGORIES.map((c) => `
+            <option value="${c.id}" ${c.id === state.graphCategory ? 'selected' : ''}>${escapeHtml(c.nome)}</option>`).join('');
+
       return `
         <section class="graph-view">
-          <h2>Grafo de afinidades</h2>
-          <p>Cada nó é um partido. Uma ligação indica ideias partilhadas em pelo menos 3 categorias.</p>
-          <div class="graph-canvas" id="graph">
-            <div class="empty-state"><p>O grafo será construído na Fase 4.</p></div>
+          <div class="view-head">
+            <h2>Mapa de afinidades</h2>
+            ${shareButton()}
           </div>
+          <p>Um mapa complexo, ao estilo Obsidian, que liga os ${count((n) => n.group === 'partido')} partidos, as ${count((n) => n.group === 'categoria')} categorias e as ${ideas} propostas dos programas. Cada partido liga-se às suas propostas e cada proposta à sua categoria. Quando dois ou mais partidos defendem a mesma ideia, ficam ligados através dela (${shared} ideias partilhadas).</p>
+          <p>Pesquisa um partido, uma categoria ou uma proposta, filtra por categoria para limpar o mapa, passa o rato por um partido para destacar as suas ligações e clica nele para abrir o programa.</p>
+          <div class="graph-toolbar">
+            <label class="graph-search">
+              <span class="visually-hidden">Pesquisar no mapa</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input id="graph-search" type="search" placeholder="Pesquisar partido, categoria ou proposta…" autocomplete="off">
+            </label>
+            <label class="graph-filter">
+              <span class="visually-hidden">Filtrar por categoria</span>
+              <select id="graph-category">
+                <option value="">Todas as categorias</option>${options}
+              </select>
+            </label>
+            <span class="graph-status" id="graph-status" aria-live="polite"></span>
+          </div>
+          <div class="graph-legend">
+            ${item('is-party', 'Partido')}
+            ${item('is-category', 'Categoria')}
+            ${item('is-idea', 'Proposta de um partido')}
+            ${item('is-shared', 'Ideia partilhada (maior com mais partidos)')}
+          </div>
+          <div class="graph-canvas" id="graph"></div>
         </section>`;
     }
 
     /* =========================================================
        6. EVENTOS
        ========================================================= */
+    /* ---------- Tema claro/escuro ---------- */
+    const THEME_KEY = 'mapa-politico:tema';
+
+    /** Tema em uso: o forçado pelo utilizador ou, se nenhum, o do sistema. */
+    function currentTheme() {
+      return document.documentElement.dataset.theme
+        || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+
+    function renderThemeButton() {
+      const dark = currentTheme() === 'dark';
+      const btn = $('.theme-btn');
+      btn.setAttribute('aria-label', dark ? 'Mudar para o tema claro' : 'Mudar para o tema escuro');
+      btn.title = btn.getAttribute('aria-label');
+      $('[data-icon="sun"]', btn).hidden = !dark;
+      $('[data-icon="moon"]', btn).hidden = dark;
+    }
+
+    function toggleTheme() {
+      const next = currentTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem(THEME_KEY, next); } catch { /* sem armazenamento: vale só nesta visita */ }
+      renderThemeButton();
+      graphRetheme?.();
+    }
+
     function setSidebar(open) {
       $('#sidebar').classList.toggle('is-open', open);
       $('.backdrop').classList.toggle('is-visible', open);
@@ -2157,6 +4016,8 @@
           const { gotoCategory, gotoIdeia } = el.dataset;
           state.category = gotoCategory || 'todas';
           setSidebar(false);
+          closeModal();
+          closeSearch();
           afterRender.push(() => {
             $('.chip[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
             if (!gotoIdeia) return;
@@ -2165,7 +4026,7 @@
             target?.scrollIntoView({ block: 'center' });
             target?.querySelector('.badge')?.focus({ preventScroll: true });
           });
-          navigate(`#/partido/${party}/programa`);
+          navigate(`#/partido/${party}/${el.dataset.gotoTab === 'quem' ? 'quem' : 'programa'}`);
         } else if (tab) {
           afterRender.push(() => $(`#tab-${tab}`)?.focus());
           navigate(`#/partido/${state.partyId}/${tab}`);
@@ -2174,7 +4035,22 @@
           render();
           $(`[data-category="${category}"]`)?.scrollIntoView({ block: 'nearest', inline: 'center' });
         } else if (view) {
-          navigate(view === 'grafo' ? '#/grafo' : (state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/'));
+          if (view === 'grafo') navigate(state.graphCategory ? `#/grafo/${state.graphCategory}` : '#/grafo');
+          else if (view === 'bussola') navigate('#/bussola');
+          else if (view === 'duelo') navigate(`#/duelo/${state.duelA}/${state.duelB}`);
+          else navigate(state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/');
+        } else if (action === 'share') {
+          shareLink();
+        } else if (action === 'print') {
+          printProgram();
+        } else if (action === 'quiz-reset') {
+          newQuizRound();
+          render();
+          $('#main').scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (action === 'home') {
+          navigate('#/');
+        } else if (action === 'toggle-theme') {
+          toggleTheme();
         } else if (action === 'open-sidebar') {
           setSidebar(true);
         } else if (action === 'close-sidebar') {
@@ -2184,7 +4060,7 @@
 
       // Navegação das abas com as setas (padrão WAI-ARIA)
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') setSidebar(false);
+        if (e.key === 'Escape') { setSidebar(false); closeModal(); }
         const tab = e.target.closest('[role="tab"]');
         if (!tab || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
         const tabs = $$('[role="tab"]');
@@ -2197,6 +4073,78 @@
         renderPartyList();
       });
 
+      // Pesquisa e filtro do grafo (delegados: a vista é recriada a cada render).
+      let searchTimer;
+      document.addEventListener('input', (e) => {
+        if (e.target.id !== 'graph-search') return;
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => graphSearch?.(e.target.value), 200);
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.target.id !== 'graph-search' || e.key !== 'Enter') return;
+        e.preventDefault();
+        clearTimeout(searchTimer);
+        graphSearch?.(e.target.value, true);
+      });
+      document.addEventListener('change', (e) => {
+        const side = e.target.dataset.duel;
+        if (side) {
+          const [a, b] = side === 'A' ? [e.target.value, state.duelB] : [state.duelA, e.target.value];
+          navigate(`#/duelo/${a}/${b}`);
+          return;
+        }
+        if (e.target.dataset.quiz) {
+          state.quiz[e.target.dataset.quiz] = Number(e.target.value);
+          const answered = currentQuiz().filter((q) => state.quiz[q.id] != null).length;
+          $('#quiz-progress').textContent = `${answered} de ${state.quizIds.length} respondidas`;
+          $('#quiz-submit').disabled = !answered;
+          if (state.quizShown) $('#quiz-results').innerHTML = renderQuizResults();
+          return;
+        }
+        if (e.target.id !== 'graph-category') return;
+        // O filtro fica no endereço, para o link partilhado abrir o mesmo mapa.
+        navigate(e.target.value ? `#/grafo/${e.target.value}` : '#/grafo');
+      });
+
+      document.addEventListener('submit', (e) => {
+        if (e.target.id !== 'quiz-form') return;
+        e.preventDefault();
+        state.quizShown = true;
+        const results = $('#quiz-results');
+        results.innerHTML = renderQuizResults();
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      // Pesquisa global: resultados ao escrever, setas para navegar, Enter para abrir.
+      const globalInput = $('#global-search-input');
+      globalInput.addEventListener('input', () => renderSearchResults(globalInput.value));
+      globalInput.addEventListener('focus', () => { if (globalInput.value) renderSearchResults(globalInput.value); });
+      globalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          moveSearchActive(e.key === 'ArrowDown' ? 1 : -1);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          ($$('#global-search-results .search-item')[Math.max(searchActive, 0)])?.click();
+        } else if (e.key === 'Escape') {
+          closeSearch();
+          globalInput.blur();
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        const typing = e.target.closest('input, textarea, select');
+        if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing)) {
+          if (getComputedStyle($('#global-search')).display === 'none') return;
+          e.preventDefault();
+          globalInput.focus();
+          globalInput.select();
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#global-search')) closeSearch(false);
+      });
+
       window.addEventListener('hashchange', render);
     }
 
@@ -2204,6 +4152,7 @@
        7. ARRANQUE
        ========================================================= */
     bindEvents();
+    renderThemeButton();
     render();
   </script>
 </body>
