@@ -6,6 +6,43 @@
   <meta name="description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
   <title>Mapa Político de Portugal</title>
 
+  <!-- Fase 0: ícone, cores do browser e pré-visualização ao partilhar -->
+  <!-- Ícone «MP» embutido (SVG e PNG 32×32), para o ficheiro continuar a funcionar sozinho -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='27' font-weight='700' fill='%23fff' letter-spacing='-1'%3EMP%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACp0lEQVR4nOyXTWgTQRiG39lsNkmr/dG20qJVsFW0Ki0qrQqCVmwVPXpQRGMMCHrRsx68eBFE8CAeShX0VkQURA+aIkVsrZgmWvGnoRVBMFqb/oQ02WTHb9bmj5KQhjR76XPIfrs7k/ed75udYWSksM4+USGbopfAeRvdNjPGalAAOOd+ugyBsf5oTL45dq8yEH/H4sF6h/+QBNZFT+qwmHD81MCdvu6aZwkDDWfGO5ikPUcR0Tg/LEyw+hOBSotNHaZntSgmlIkQU7bKilU9XXRxAZXayiOnZAraYBSkLdPFOAOkLdMsXAuDENoyDGbJQFYDTVSh2hWSHvd6IohpyXetG81YXsIQCnO8H1Gxp0lJ6zsZ5PCOqgiryN+A46ANR1stenzu1hR6vRE9tpFW18VyWMzAjz8a7DcCuH2hbF5/IX7fFcL1nmB+BuJMhzgOtCgJA+0tFl1cjDIV/6SGqw9m9Hh1lQnOThucHTYMflETffMy4B2NYu+WZIr3bVPw3R8jEyytnRjxC3dSqL7ahJP7rdi5wZzRgIQcePdNxapKCTsazbSjArs3Kej/rEI2sYx9Sq0Ma6r///3faS1ju6wZ4HMZ7vsYwfkjJejcrsBKiVhZxvRJ2d5sSWtfUy6h53KFHjfUmVBqYRif4nj4ejY/A2xugGKmD9CId21WwCSm1/7Vh0i2rhj8quLNJxVPBmYxMcPzM5CKyxPGlePLYKW69w2nf5JxxCQ8di2AhZDTHBA8fRvWSyLq6vJEUChyNiDS6PapCFI5XrrDKBSs8exvDgNZ2owMNyBx8F8wCKEt0e8QjIK0xWdonAHSlqKa+Q4tMAtbvgqA0BTaEh0UxziYA8WGM7vQ1ldCX3fVI3FWE8clLDbicEpaI3erHovbtA3diOP5PwAAAP//rZm2lQAAAAZJREFUAwDC9AUJ3EDaDgAAAABJRU5ErkJggg==">
+  <!-- Cor da barra do browser no telemóvel, igual ao fundo de cada tema do sistema -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafafa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090b">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- Open Graph e Twitter: título e descrição para as pré-visualizações de links -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Mapa Político de Portugal">
+  <meta property="og:title" content="Mapa Político de Portugal">
+  <meta property="og:description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
+  <meta property="og:locale" content="pt_PT">
+  <meta property="og:url" content="">
+  <!-- TODO: gerar imagem 1200×630 em logos/og.png -->
+  <meta property="og:image" content="logos/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mapa Político de Portugal">
+  <meta name="twitter:description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
+  <link rel="canonical" href="">
+  <script>
+    // O site é estático e não tem um endereço fixo: o URL canónico é o da página atual sem
+    // pesquisa nem #rota (equivale a location.origin + location.pathname, mas também funciona
+    // em file://, onde location.origin é "null"). A imagem OG precisa de um endereço absoluto.
+    // Nota: as redes sociais leem o HTML sem correr JS; quando houver domínio, escreve aqui
+    // os endereços fixos. TODO: substituir pelo domínio final.
+    (() => {
+      const base = location.href.split(/[?#]/)[0];
+      document.querySelector('link[rel="canonical"]').href = base;
+      document.querySelector('meta[property="og:url"]').content = base;
+      const image = document.querySelector('meta[property="og:image"]');
+      image.content = new URL(image.getAttribute('content'), base).href;
+    })();
+  </script>
+
   <!-- Fonte Inter (Google Fonts) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1973,6 +2010,80 @@
     .jogo-result-items li { display: flex; align-items: flex-start; gap: 10px; overflow-wrap: anywhere; }
     .jogo-result-items .jogo-mark { width: 20px; height: 20px; margin-left: 0; }
     .jogo-result-detail { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--text-muted); }
+
+    /* =========================================================
+       FASE 0: COMPATIBILIDADE E PREFERÊNCIAS DO SISTEMA
+       ========================================================= */
+    /* ---------- Browsers sem color-mix() ----------
+       Sem suporte, as declarações com color-mix() são ignoradas: os cartões ficam sem fundo e,
+       pior, sem borda (`border: 1px solid color-mix(…)` cai inteira). Aqui só se repõe um
+       aspeto neutro e legível; a cor do partido fica de fora de propósito. Na matriz os números
+       continuam visíveis, só se perde a intensidade do azul. */
+    @supports not (color: color-mix(in srgb, red, blue)) {
+      .party-card,
+      .duel-card,
+      .wordcloud,
+      .quiz-row,
+      .matrix-cell {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
+      .party-card:hover,
+      .party-card:focus-visible,
+      .duel-card:hover,
+      .wordcloud[open],
+      .quiz-row:nth-child(-n + 3),
+      .chip:hover { border-color: var(--text-muted); }
+      .chip[aria-pressed="true"] { border-color: var(--accent); }
+      /* O texto das nuvens e os títulos dos cartões do duelo herdam a cor normal do texto. */
+    }
+
+    /* ---------- Menos transparência ----------
+       Quem pede menos transparência no sistema vê painéis opacos em vez do vidro fosco.
+       Inclui também os outros elementos com vidro fosco (botões de ação, barra da Bússola,
+       matriz e fundo dos modais), para o efeito ser coerente em todo o site. Sem suporte
+       para esta media query, a regra é ignorada. */
+    @media (prefers-reduced-transparency: reduce) {
+      .app-header,
+      .sidebar,
+      .modal,
+      .toast,
+      .jargon-tip,
+      .onboarding-card,
+      .duel-pickers,
+      .coalition-picker,
+      .myprog-summary,
+      .search-panel,
+      .action-btn,
+      .quiz-actions,
+      .matrix-wrap {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--surface);
+      }
+      .modal-backdrop {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+    }
+
+    /* ---------- Impressão do «Quem é Quem» ----------
+       Com a aba Quem é Quem aberta, imprime-se o cabeçalho do partido e os dirigentes numa
+       só coluna, com um traço entre cartões (o mesmo papel de um <hr>). */
+    @media print {
+      .party-header-actions { display: none !important; }
+      #panel-quem:not([hidden]) .people-grid { display: block; }
+      #panel-quem:not([hidden]) .person-card {
+        padding: 8pt 0;
+        border: 0 !important;
+        border-radius: 0;
+        break-inside: avoid;
+      }
+      #panel-quem:not([hidden]) .person-card + .person-card { border-top: 1pt solid #000 !important; }
+      #panel-quem:not([hidden]) .person-card h3 { font-size: 13pt; }
+      #panel-quem:not([hidden]) .person-fields { grid-template-columns: max-content 1fr; gap: 3pt 10pt; }
+      #panel-quem:not([hidden]) .person-fields > div { display: contents; }
+    }
 
   </style>
 </head>
