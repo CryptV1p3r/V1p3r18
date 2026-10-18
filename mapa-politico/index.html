@@ -226,7 +226,8 @@
     .sidebar-search { padding: 12px 16px; }
     .sidebar-search input,
     .graph-search input,
-    .graph-filter select {
+    .graph-filter select,
+    .duel-select select {
       width: 100%;
       padding: 9px 12px;
       font: inherit;
@@ -239,7 +240,8 @@
     }
     .sidebar-search input:focus,
     .graph-search input:focus,
-    .graph-filter select:focus {
+    .graph-filter select:focus,
+    .duel-select select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-soft);
       outline: none;
@@ -558,7 +560,8 @@
     }
     .graph-search input { padding-left: 36px; }
     .graph-filter { flex: 1 1 200px; }
-    .graph-filter select { cursor: pointer; }
+    .graph-filter select,
+    .duel-select select { cursor: pointer; }
     .graph-status {
       flex-basis: 100%;
       font-size: var(--fs-xs);
@@ -626,6 +629,150 @@
       box-shadow: var(--shadow);
     }
 
+    /* ---------- Duelo ---------- */
+    .duel-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .duel-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+    .duel-pickers {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      align-items: end;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .duel-select { display: grid; gap: 6px; }
+    .duel-select span {
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+    }
+    .duel-vs {
+      justify-self: center;
+      font-size: var(--fs-sm);
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .duel-summary {
+      line-height: 1.9;
+      margin-bottom: 20px !important;
+      color: var(--text) !important;
+    }
+    .duel-chip {
+      display: inline-block;
+      padding: 1px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 18px;
+      color: var(--badge-text, #fff);
+      background: var(--party-color);
+      border-radius: 5px;
+      box-shadow: 0 0 12px -3px var(--party-color);
+    }
+    .duel-list { display: grid; gap: 22px; }
+    .duel-category { display: grid; gap: 10px; }
+    .duel-category h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: var(--fs-md);
+    }
+    .duel-score {
+      padding: 1px 8px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      letter-spacing: 0;
+      color: #16a34a;
+      background: rgba(34, 197, 94, .12);
+      border-radius: 999px;
+    }
+    .duel-card {
+      --tone: #ef4444;
+      padding: 14px 16px;
+      background: color-mix(in srgb, var(--tone) 7%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--tone) 35%, var(--border));
+      border-radius: var(--radius);
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .duel-card:hover { box-shadow: 0 0 22px -10px var(--tone); border-color: color-mix(in srgb, var(--tone) 60%, var(--border)); }
+    .duel-card.is-agree { --tone: #22c55e; }
+    .duel-card h4 {
+      margin: 0 0 10px;
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: color-mix(in srgb, var(--tone) 75%, var(--text));
+    }
+    .duel-sides { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .duel-sides > div { display: grid; align-content: start; gap: 6px; font-size: var(--fs-sm); }
+    .duel-sides .duel-chip { justify-self: start; }
+    .duel-sides ul { display: grid; gap: 6px; padding-left: 16px; list-style: disc; }
+    .duel-sides .placeholder { padding: 0; }
+
+    /* ---------- Modal (explorador de ideias) ---------- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(9, 9, 11, .6);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      animation: fade-in .2s var(--ease);
+    }
+    .modal {
+      position: relative;
+      width: min(100%, 560px);
+      max-height: min(80vh, 720px);
+      overflow-y: auto;
+      padding: 24px;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .45);
+      animation: modal-in .25s var(--ease);
+    }
+    .modal-close { position: absolute; top: 12px; right: 12px; color: var(--text-muted); }
+    .modal-close:hover { color: var(--text); }
+    .modal-kicker {
+      margin-bottom: 4px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #2fb488;
+    }
+    .modal h2 { font-size: var(--fs-lg); margin-right: 36px; }
+    .modal-parties { display: grid; gap: 10px; margin-top: 18px; }
+    .modal-party {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--party-color);
+      border-radius: var(--radius);
+    }
+    .modal-party .party-logo { width: 36px; height: 36px; box-shadow: 0 0 16px -4px var(--party-color); }
+    .modal-party strong { display: block; font-size: var(--fs-sm); }
+    .modal-party p { margin: 4px 0 6px; font-size: var(--fs-sm); }
+    .modal-link { font-size: var(--fs-xs); font-weight: 600; color: var(--accent); }
+    .modal-link:hover { text-decoration: underline; }
+    @keyframes fade-in { from { opacity: 0; } }
+    @keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+
     /* =========================================================
        4. BREAKPOINTS
        ========================================================= */
@@ -637,6 +784,9 @@
 
     @media (min-width: 560px) {
       .people-grid { grid-template-columns: repeat(2, 1fr); }
+      .duel-pickers { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+      .duel-vs { padding-bottom: 10px; }
+      .duel-sides { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (min-width: 768px) {
@@ -686,6 +836,7 @@
       <nav class="view-switch" aria-label="Vista">
         <button type="button" data-view="partidos" aria-pressed="true">Partidos</button>
         <button type="button" data-view="grafo" aria-pressed="false">Grafo</button>
+        <button type="button" data-view="duelo" aria-pressed="false">Duelo</button>
       </nav>
     </header>
 
@@ -2021,19 +2172,27 @@
          #/partido/<id>/programa    → aba Programa
          #/partido/<id>/quem        → aba Quem é Quem
          #/grafo                    → grafo de afinidades
+         #/duelo/<idA>/<idB>        → duelo entre dois partidos (por defeito AD e PS)
        ========================================================= */
     const state = {
-      view: 'partidos',      // 'partidos' | 'grafo'
+      view: 'partidos',      // 'partidos' | 'grafo' | 'duelo'
       partyId: null,
       tab: 'programa',       // 'programa' | 'quem'
       category: 'todas',     // filtro de categoria na aba Programa
       search: '',
       graphCategory: '',     // filtro de categoria no grafo ('' = todas)
+      duelA: 'ad',           // partidos do duelo
+      duelB: 'ps',
     };
 
     function parseHash() {
       const [, section, id, tab] = location.hash.replace(/^#/, '').split('/');
       if (section === 'grafo') return { view: 'grafo' };
+      if (section === 'duelo') {
+        const duelA = getParty(id) ? id : 'ad';
+        const duelB = getParty(tab) && tab !== duelA ? tab : (duelA === 'ps' ? 'ad' : 'ps');
+        return { view: 'duelo', duelA, duelB };
+      }
       if (section === 'partido' && getParty(id)) {
         return { view: 'partidos', partyId: id, tab: tab === 'quem' ? 'quem' : 'programa' };
       }
@@ -2384,12 +2543,152 @@
         if (node.startsWith('i:')) nodeSet.update({ id: node, font: { size: IDEA_FONT } });
       });
 
-      // Clicar num partido abre o seu programa.
+      // Clicar num partido abre o seu programa; numa ideia partilhada abre o explorador de ideias.
+      const nodeById = new Map(nodes.map((n) => [n.id, n]));
       network.on('click', ({ nodes: [nodeId] }) => {
+        if (nodeId?.startsWith('i:') && nodeById.get(nodeId)?.shared) {
+          openIdeaModal(nodeById.get(nodeId));
+          return;
+        }
         if (!nodeId?.startsWith('p:')) return;
         state.category = 'todas';
         navigate(`#/partido/${nodeId.slice(2)}/programa`);
       });
+    }
+
+    /* ---------- Duelo (comparador de dois partidos) ---------- */
+
+    /**
+     * Compara dois partidos numa categoria: ideias em comum e propostas que não coincidem.
+     * @returns {{ shared: Array<{ideia, a, b}>, onlyA: Array<string>, onlyB: Array<string>, emptyA: boolean, emptyB: boolean }}
+     */
+    function compareCategory(partyA, partyB, categoryId) {
+      const topicsA = partyA.programa[categoryId] || [];
+      const topicsB = partyB.programa[categoryId] || [];
+      const byIdeaB = new Map(topicsB.filter((t) => t.ideia).map((t) => [t.ideia, t]));
+      const shared = [];
+      const matchedB = new Set();
+      const onlyA = [];
+      for (const t of topicsA) {
+        const match = t.ideia && byIdeaB.get(t.ideia);
+        if (match && !matchedB.has(match)) {
+          shared.push({ ideia: t.ideia, a: t.texto, b: match.texto });
+          matchedB.add(match);
+        } else {
+          onlyA.push(t.texto);
+        }
+      }
+      const onlyB = topicsB.filter((t) => !matchedB.has(t)).map((t) => t.texto);
+      return { shared, onlyA, onlyB, emptyA: !topicsA.length, emptyB: !topicsB.length };
+    }
+
+    function renderDuelView() {
+      const a = getParty(state.duelA);
+      const b = getParty(state.duelB);
+      const select = (side, current, other) => `
+        <label class="duel-select">
+          <span>Partido ${side}</span>
+          <select id="duel-${side.toLowerCase()}" data-duel="${side}">
+            ${PARTIES.map((p) => `
+              <option value="${p.id}" ${p.id === current ? 'selected' : ''} ${p.id === other ? 'disabled' : ''}>${escapeHtml(p.sigla)} · ${escapeHtml(p.nome)}</option>`).join('')}
+          </select>
+        </label>`;
+      const chip = (p) => `<span class="duel-chip" style="--party-color:${p.cor};--badge-text:${textOn(p.cor)}">${escapeHtml(p.sigla)}</span>`;
+      const list = (items, empty) => (items.length
+        ? `<ul>${items.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`
+        : `<p class="placeholder">${empty}</p>`);
+
+      const results = CATEGORIES.map((c) => ({ category: c, ...compareCategory(a, b, c.id) }));
+      const sharedTotal = results.reduce((n, r) => n + r.shared.length, 0);
+      const sharedCategories = results.filter((r) => r.shared.length).length;
+
+      const sections = results.map(({ category, shared, onlyA, onlyB, emptyA, emptyB }) => {
+        const agree = shared.map((s) => `
+          <article class="duel-card is-agree">
+            <h4>🤝 Concordam</h4>
+            <div class="duel-sides">
+              <div>${chip(a)}<p>${escapeHtml(s.a)}</p></div>
+              <div>${chip(b)}<p>${escapeHtml(s.b)}</p></div>
+            </div>
+          </article>`).join('');
+        const diverge = onlyA.length || onlyB.length ? `
+          <article class="duel-card is-diverge">
+            <h4>⚔ Divergem</h4>
+            <div class="duel-sides">
+              <div>${chip(a)}${list(onlyA, emptyA ? `${UNAVAILABLE}.` : 'Sem outras propostas nesta categoria.')}</div>
+              <div>${chip(b)}${list(onlyB, emptyB ? `${UNAVAILABLE}.` : 'Sem outras propostas nesta categoria.')}</div>
+            </div>
+          </article>` : '';
+        const body = agree + diverge || `<p class="placeholder">${UNAVAILABLE} para nenhum dos dois partidos.</p>`;
+        return `
+          <section class="duel-category">
+            <h3>${escapeHtml(category.nome)}${shared.length ? `<span class="duel-score">${shared.length} em comum</span>` : ''}</h3>
+            ${body}
+          </section>`;
+      }).join('');
+
+      return `
+        <section class="duel-view">
+          <h2>Duelo</h2>
+          <p>Compara dois partidos categoria a categoria. «Concordam» quando defendem a mesma ideia; «Divergem» junta as propostas que não coincidem, o que não quer dizer que se oponham.</p>
+          <div class="duel-pickers">
+            ${select('A', a.id, b.id)}
+            <span class="duel-vs" aria-hidden="true">vs</span>
+            ${select('B', b.id, a.id)}
+          </div>
+          <p class="duel-summary">${chip(a)} e ${chip(b)} concordam em <strong>${sharedTotal} ${sharedTotal === 1 ? 'ideia' : 'ideias'}</strong>, distribuídas por <strong>${sharedCategories} de ${CATEGORIES.length} categorias</strong>.</p>
+          <div class="duel-list">${sections}</div>
+        </section>`;
+    }
+
+    /* ---------- Modal ---------- */
+    let modalReturnFocus = null;
+
+    function openModal(html, labelId) {
+      closeModal();
+      modalReturnFocus = document.activeElement;
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      backdrop.innerHTML = `
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="${labelId}">
+          <button class="icon-btn modal-close" type="button" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+          ${html}
+        </div>`;
+      // Fecha ao clicar no fundo ou no X (cliques dentro do cartão não fecham).
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop || e.target.closest('.modal-close')) closeModal();
+      });
+      document.body.appendChild(backdrop);
+      $('.modal-close', backdrop).focus({ preventScroll: true });
+    }
+
+    function closeModal() {
+      const backdrop = $('.modal-backdrop');
+      if (!backdrop) return;
+      backdrop.remove();
+      modalReturnFocus?.focus?.({ preventScroll: true });
+      modalReturnFocus = null;
+    }
+
+    /** Modal com o texto completo de cada partido que partilha a ideia `node`. */
+    function openIdeaModal(node) {
+      const [categoryId, ideia] = node.id.slice(2).split('|');
+      const items = node.parties.map(({ party, texto }) => `
+        <li class="modal-party" style="--party-color:${party.cor}">
+          <span class="party-logo" aria-hidden="true">${escapeHtml(party.sigla)}</span>
+          <div>
+            <strong>${escapeHtml(party.nome)}</strong>
+            <p>${escapeHtml(texto)}</p>
+            <button class="modal-link" type="button" data-party="${party.id}" data-goto-category="${categoryId}"
+                    data-goto-ideia="${escapeHtml(ideia)}">Ver no programa</button>
+          </div>
+        </li>`).join('');
+      openModal(`
+        <p class="modal-kicker">${escapeHtml(node.categoria)}</p>
+        <h2 id="modal-title">Ideia partilhada por ${node.parties.length} partidos</h2>
+        <ul class="modal-parties">${items}</ul>`, 'modal-title');
     }
 
     /* =========================================================
@@ -2402,11 +2701,13 @@
     function render() {
       // Na vista do grafo mantém-se o último partido, para o botão "Partidos" lá voltar.
       Object.assign(state, parseHash());
+      closeModal();
       renderViewSwitch();
       renderPartyList();
 
       const view = $('#view');
       if (state.view === 'grafo') view.innerHTML = renderGraphView();
+      else if (state.view === 'duelo') view.innerHTML = renderDuelView();
       else if (state.partyId) view.innerHTML = renderPartyView(getParty(state.partyId));
       else view.innerHTML = renderWelcome();
 
@@ -2609,6 +2910,7 @@
           const { gotoCategory, gotoIdeia } = el.dataset;
           state.category = gotoCategory || 'todas';
           setSidebar(false);
+          closeModal();
           afterRender.push(() => {
             $('.chip[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
             if (!gotoIdeia) return;
@@ -2626,7 +2928,9 @@
           render();
           $(`[data-category="${category}"]`)?.scrollIntoView({ block: 'nearest', inline: 'center' });
         } else if (view) {
-          navigate(view === 'grafo' ? '#/grafo' : (state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/'));
+          if (view === 'grafo') navigate('#/grafo');
+          else if (view === 'duelo') navigate(`#/duelo/${state.duelA}/${state.duelB}`);
+          else navigate(state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/');
         } else if (action === 'open-sidebar') {
           setSidebar(true);
         } else if (action === 'close-sidebar') {
@@ -2636,7 +2940,7 @@
 
       // Navegação das abas com as setas (padrão WAI-ARIA)
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') setSidebar(false);
+        if (e.key === 'Escape') { setSidebar(false); closeModal(); }
         const tab = e.target.closest('[role="tab"]');
         if (!tab || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
         const tabs = $$('[role="tab"]');
@@ -2663,6 +2967,12 @@
         graphSearch?.(e.target.value, true);
       });
       document.addEventListener('change', (e) => {
+        const side = e.target.dataset.duel;
+        if (side) {
+          const [a, b] = side === 'A' ? [e.target.value, state.duelB] : [state.duelA, e.target.value];
+          navigate(`#/duelo/${a}/${b}`);
+          return;
+        }
         if (e.target.id !== 'graph-category') return;
         state.graphCategory = e.target.value;
         initGraph($('#graph'));
