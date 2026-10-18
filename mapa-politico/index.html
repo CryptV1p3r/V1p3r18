@@ -40,6 +40,8 @@
       --fs-xl: 1.625rem;
 
       --ease: cubic-bezier(.2, .7, .2, 1);
+
+      --graph-bg: #ffffff;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -54,6 +56,7 @@
         --accent-soft: #222c4a;
         --focus: #7c9cff;
         --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 12px rgba(0, 0, 0, .3);
+        --graph-bg: #1a2029;
       }
     }
 
@@ -468,7 +471,7 @@
       position: relative;
       height: min(70vh, 640px);
       min-height: 360px;
-      background: var(--surface);
+      background: var(--graph-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
@@ -486,9 +489,12 @@
     .legend-item { display: inline-flex; align-items: center; gap: 6px; }
     .legend-mark { display: inline-block; flex: none; }
     .legend-mark.is-party { width: 22px; height: 14px; border-radius: 4px; background: linear-gradient(90deg, #f68a1e, #e5197e, #7ab51d, #00a3e0); }
-    .legend-mark.is-category { width: 20px; height: 13px; border-radius: 50%; background: #e9ecf0; border: 1.5px solid #9aa3af; }
-    .legend-mark.is-idea { width: 9px; height: 9px; border-radius: 50%; background: #5b8def; }
-    .legend-mark.is-shared { width: 12px; height: 12px; border-radius: 50%; background: #23a077; }
+    .legend-mark.is-category { width: 20px; height: 13px; border-radius: 50%; background: #eef1f5; border: 1px solid #a3abb7; }
+    .legend-mark.is-idea { width: 8px; height: 8px; border-radius: 50%; background: #6b98f0; border: 0.5px solid #4a7bd8; }
+    @media (prefers-color-scheme: dark) {
+      .legend-mark.is-category { background: #2a323e; border-color: #4b5563; }
+    }
+    .legend-mark.is-shared { width: 12px; height: 12px; border-radius: 50%; background: #2fb488; border: 0.5px solid #1c8a66; }
     .graph-loading {
       position: absolute;
       inset: 0;
@@ -2069,14 +2075,26 @@
 
     const GRAPH_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
     const IDEA_FONT = 12;
+    const NODE_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.2)', size: 10, x: 0, y: 3 };
+
+    /** Cores do mapa que dependem do tema claro/escuro. */
+    function graphTheme() {
+      const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+      return dark
+        ? { categoryBg: '#2a323e', categoryBorder: '#4b5563', categoryHover: '#343e4c', categoryText: '#d5dae1',
+            labelText: '#e7eaee', labelStroke: '#1a2029', neutral: '160, 170, 185' }
+        : { categoryBg: '#eef1f5', categoryBorder: '#a3abb7', categoryHover: '#e2e6ec', categoryText: '#3b4450',
+            labelText: '#3b4450', labelStroke: '#ffffff', neutral: '120, 130, 145' };
+    }
 
     /** Estilo Vis.js de cada tipo de nó. */
-    function styleNode({ group, cor, shared, parties, categoria, ...n }) {
+    function styleNode({ group, cor, shared, parties, categoria, ...n }, theme) {
       if (group === 'partido') {
         return {
           ...n,
           shape: 'box',
           mass: 3,
+          shadow: NODE_SHADOW,
           margin: { top: 16, right: 22, bottom: 16, left: 22 },
           borderWidth: 2,
           shapeProperties: { borderRadius: 10 },
@@ -2089,28 +2107,35 @@
           ...n,
           shape: 'ellipse',
           mass: 2,
-          borderWidth: 1.5,
-          color: { background: '#e9ecf0', border: '#9aa3af', highlight: { background: '#dde1e7', border: '#5b6573' }, hover: { background: '#dde1e7', border: '#5b6573' } },
-          font: { color: '#3b4450', size: 14, face: GRAPH_FONT },
+          shadow: NODE_SHADOW,
+          borderWidth: 1,
+          color: {
+            background: theme.categoryBg,
+            border: theme.categoryBorder,
+            highlight: { background: theme.categoryHover, border: theme.categoryText },
+            hover: { background: theme.categoryHover, border: theme.categoryText },
+          },
+          font: { color: theme.categoryText, size: 14, face: GRAPH_FONT },
         };
       }
-      const fill = shared ? '#23a077' : '#5b8def';
+      const [fill, border] = shared ? ['#2fb488', '#1c8a66'] : ['#6b98f0', '#4a7bd8'];
       return {
         ...n,
         shape: 'dot',
-        size: shared ? 6 + 2 * parties.length : 5,
-        borderWidth: 1,
-        color: { background: fill, border: fill, highlight: { background: fill, border: '#1b1f24' }, hover: { background: fill, border: '#1b1f24' } },
+        size: shared ? 4 + 1.5 * parties.length : 4,
+        borderWidth: 0.5,
+        borderWidthSelected: 1.5,
+        color: { background: fill, border, highlight: { background: fill, border: theme.labelText }, hover: { background: fill, border: theme.labelText } },
         // Rótulo só desenhado quando o texto no ecrã tiver pelo menos 10px, ou seja, com zoom.
-        font: { color: '#3b4450', size: IDEA_FONT, face: GRAPH_FONT, strokeWidth: 3, strokeColor: '#ffffff' },
+        font: { color: theme.labelText, size: IDEA_FONT, face: GRAPH_FONT, strokeWidth: 3, strokeColor: theme.labelStroke },
         scaling: { label: { drawThreshold: 10 } },
       };
     }
 
-    function styleEdge({ group, cor, ...e }) {
+    function styleEdge({ group, cor, ...e }, theme) {
       return group === 'partido'
-        ? { ...e, width: 1, color: { color: withAlpha(cor, 0.4), hover: cor, highlight: cor } }
-        : { ...e, width: 0.8, color: { color: 'rgba(140, 150, 165, 0.35)', hover: '#8a94a3', highlight: '#5b6573' } };
+        ? { ...e, width: 1, color: { color: withAlpha(cor, 0.3), hover: withAlpha(cor, 0.95), highlight: cor } }
+        : { ...e, width: 0.5, color: { color: `rgba(${theme.neutral}, 0.15)`, hover: `rgba(${theme.neutral}, 0.8)`, highlight: `rgba(${theme.neutral}, 0.9)` } };
     }
 
     /** Inicializa o mapa Vis.js dentro de `container`. */
@@ -2123,18 +2148,20 @@
       }
 
       const { nodes, edges } = buildAffinityGraph();
-      const nodeSet = new vis.DataSet(nodes.map(styleNode));
-      const edgeSet = new vis.DataSet(edges.map(styleEdge));
+      const theme = graphTheme();
+      const nodeSet = new vis.DataSet(nodes.map((n) => styleNode(n, theme)));
+      const edgeSet = new vis.DataSet(edges.map((e) => styleEdge(e, theme)));
 
       const options = {
         layout: { improvedLayout: false }, // o layout inicial "melhorado" é muito lento com centenas de nós
-        edges: { smooth: { type: 'continuous' }, hoverWidth: 0.5, selectionWidth: 1 },
+        // Ao passar o rato (ou selecionar) as linhas ficam mais espessas e opacas.
+        edges: { smooth: { type: 'continuous' }, hoverWidth: (w) => w + 1.5, selectionWidth: (w) => w + 1.5 },
         physics: {
           enabled: true,
           solver: 'forceAtlas2Based',
           forceAtlas2Based: { gravitationalConstant: -150, centralGravity: 0.008, springLength: 70, springConstant: 0.05, damping: 0.5, avoidOverlap: 0.2 },
           minVelocity: 1,
-          stabilization: { iterations: 500, updateInterval: 25 },
+          stabilization: { enabled: true, iterations: 1000, updateInterval: 25 },
         },
         interaction: { hover: true, tooltipDelay: 120, dragNodes: true, dragView: true, zoomView: true },
       };
@@ -2162,6 +2189,9 @@
       };
       network.on('zoom', keepLabelsReadable);
       network.once('stabilizationIterationsDone', () => {
+        // Com 500+ nós a física nunca acalma por completo: desliga-se para parar o tremor.
+        // Os nós ficam fixos, mas continuam a poder ser arrastados (dragNodes).
+        network.setOptions({ physics: { enabled: false } });
         // Os rótulos crescem depois do primeiro enquadramento, por isso enquadra-se duas vezes.
         for (let i = 0; i < 2; i++) {
           network.fit();
