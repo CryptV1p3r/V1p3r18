@@ -911,7 +911,7 @@
     .action-btn.is-primary { color: #fff; background: var(--accent); border-color: var(--accent); }
     .action-btn:disabled { opacity: .45; cursor: not-allowed; }
     .party-header { flex-wrap: wrap; }
-    .party-header .action-btn { margin-left: auto; }
+    .party-header > .action-btn { margin-left: auto; }
 
     /* ---------- Aviso (toast) ---------- */
     .toast {
@@ -1037,6 +1037,104 @@
     }
     .quiz-matches { font-size: var(--fs-xs); color: var(--text-muted); }
     @keyframes bar-grow { from { transform: scaleX(0); } }
+
+    /* ---------- Matriz de consenso (heatmap) ---------- */
+    .matrix-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .matrix-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+    .matrix-wrap {
+      overflow-x: auto;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .matrix {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: separate;
+      border-spacing: 4px;
+      padding: 6px;
+      font-size: var(--fs-sm);
+    }
+    .matrix th { font-weight: 600; }
+    .matrix thead th { padding: 6px 2px 8px; vertical-align: bottom; }
+    .matrix-party { display: grid; justify-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; }
+    .matrix-party .party-logo { width: 28px; height: 28px; font-size: 9px; border-radius: 8px; box-shadow: 0 0 14px -4px var(--party-color); }
+    /* Primeira coluna fixa ao deslizar a tabela no telemóvel */
+    .matrix tbody th,
+    .matrix tfoot th,
+    .matrix thead th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--surface);
+    }
+    .matrix tbody th {
+      width: 130px;
+      min-width: 120px;
+      padding: 0 10px;
+      text-align: left;
+      font-size: var(--fs-xs);
+      border-radius: var(--radius-sm);
+    }
+    .matrix td { padding: 0; }
+    @media (min-width: 768px) { .matrix tbody th { width: 210px; } }
+    .matrix-cell {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-width: 44px;
+      height: 38px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--cell-text, var(--text));
+      /* --a: 0 a 1, proporcional ao número de propostas */
+      background: color-mix(in srgb, var(--accent) calc(var(--a) * 100%), var(--surface-2));
+      border: 1px solid color-mix(in srgb, var(--accent) calc(var(--a) * 60%), var(--border));
+      border-radius: var(--radius-sm);
+      transition: transform .15s var(--ease), box-shadow .15s var(--ease);
+    }
+    .matrix-cell:hover:not(:disabled),
+    .matrix-cell:focus-visible { position: relative; z-index: 2; transform: scale(1.08); box-shadow: 0 0 18px -4px var(--accent); }
+    .matrix-cell:disabled { color: var(--text-muted); font-weight: 500; cursor: default; opacity: .7; }
+    .matrix-total { text-align: center; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .matrix tfoot th { padding: 6px 10px; text-align: left; font-size: var(--fs-xs); color: var(--text-muted); }
+    .matrix-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      margin: 12px 0 0;
+      font-size: var(--fs-xs);
+      color: var(--text-muted);
+    }
+    .matrix-scale {
+      width: 160px;
+      height: 10px;
+      background: linear-gradient(90deg, var(--surface-2), var(--accent));
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+    .modal-topics { display: grid; gap: 8px; margin: 16px 0 0; padding-left: 18px; list-style: disc; font-size: var(--fs-sm); }
+    .modal-head { display: flex; align-items: center; gap: 12px; margin-right: 36px; }
+    .modal-head .party-logo { width: 40px; height: 40px; box-shadow: 0 0 16px -4px var(--party-color); }
+    .modal-head h2 { margin: 0; }
+    .modal .modal-link { display: inline-block; margin-top: 14px; }
+
+    /* ---------- Perfil visual (radar) ---------- */
+    .modal.is-wide { width: min(100%, 680px); }
+    .radar-canvas { position: relative; height: min(62vh, 520px); margin-top: 12px; }
+    /* No telemóvel o radar é limitado pela largura: menos altura e até às margens do modal. */
+    @media (max-width: 599px) { .radar-canvas { height: 360px; margin-inline: -14px; } }
+    .radar-canvas .placeholder { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+    .radar-note { margin-top: 8px; font-size: var(--fs-xs); color: var(--text-muted); }
+    .radar-values { margin-top: 10px; font-size: var(--fs-sm); }
+    .radar-values summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: var(--fs-xs); }
+    .radar-values ul { display: grid; gap: 4px; margin-top: 8px; }
+    .radar-values li { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+    .radar-values b { font-variant-numeric: tabular-nums; }
+    .party-header-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 
     /* ---------- Construtor de coligações ---------- */
     .coalition-view h2,
@@ -1289,6 +1387,25 @@
       .topic-list { padding: 0 0 0 14pt; list-style: disc; }
       .topic { display: list-item; padding: 2pt 0; break-inside: avoid; }
       .tab-panel[hidden] { display: none !important; }
+
+      /* O Meu Programa: só o resumo, a barra de composição e as propostas, com as cores dos partidos */
+      .myprog-view > p, .myprog-actions { display: none !important; }
+      .myprog-view h2 { font-size: 18pt; margin-bottom: 8pt; }
+      .myprog-summary { padding: 0 0 10pt; margin-bottom: 10pt; border: 0 !important; }
+      .myprog-bar, .myprog-bar span, .myprog-legend i, .myprog-category .badge {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .myprog-bar { border: 1pt solid #000 !important; }
+      .myprog-bar span, .myprog-legend i { background: var(--party-color) !important; }
+      .myprog-bar span + span { border-left: 1pt solid #fff !important; }
+      .myprog-category .badge {
+        display: inline-block !important;
+        margin-right: 6pt;
+        color: var(--badge-text, #fff) !important;
+        background: var(--party-color) !important;
+      }
+      .myprog-category .topic { display: flex; list-style: none; padding-right: 0 !important; }
     }
 
     /* ---------- Logótipos (imagem sobre a sigla, que fica como alternativa) ---------- */
@@ -1486,9 +1603,12 @@
       .view-switch { margin-left: 0; }
     }
 
-    /* Seis vistas e a pesquisa no mesmo cabeçalho: entre 1024 e 1279px encurta-se o título e os botões. */
-    @media (min-width: 1024px) and (max-width: 1279px) {
+    /* Sete vistas e a pesquisa no mesmo cabeçalho: abaixo de 1440px encurta-se o título e,
+       abaixo de 1280px, também os botões. */
+    @media (min-width: 1024px) and (max-width: 1439px) {
       .title-extra { display: none; }
+    }
+    @media (min-width: 1024px) and (max-width: 1279px) {
       .view-switch button { padding: 6px 10px; }
     }
 
@@ -1527,6 +1647,7 @@
       <nav class="view-switch" aria-label="Vista">
         <button type="button" data-view="partidos" aria-pressed="true">Partidos</button>
         <button type="button" data-view="grafo" aria-pressed="false">Grafo</button>
+        <button type="button" data-view="matriz" aria-pressed="false">Matriz</button>
         <button type="button" data-view="duelo" aria-pressed="false">Duelo</button>
         <button type="button" data-view="bussola" aria-pressed="false">Bússola</button>
         <button type="button" data-view="coligacao" aria-pressed="false">Coligação</button>
@@ -2877,11 +2998,12 @@
          #/duelo/<idA>/<idB>        → duelo entre dois partidos (por defeito AD e PS)
          #/grafo/<categoria>        → grafo filtrado por uma categoria
          #/bussola                  → bússola política (questionário)
+         #/matriz                   → matriz de consenso (categorias × partidos)
          #/coligacao/<id>,<id>…     → construtor de coligações (partidos escolhidos no link)
          #/meu-programa             → propostas guardadas pelo utilizador
        ========================================================= */
     const state = {
-      view: 'partidos',      // 'partidos' | 'grafo' | 'duelo' | 'bussola' | 'coligacao' | 'meu-programa'
+      view: 'partidos',      // 'partidos' | 'grafo' | 'matriz' | 'duelo' | 'bussola' | 'coligacao' | 'meu-programa'
       partyId: null,
       tab: 'programa',       // 'programa' | 'quem'
       category: 'todas',     // filtro de categoria na aba Programa
@@ -2907,6 +3029,7 @@
         return { view: 'coligacao', coalition: PARTIES.filter((p) => ids.has(p.id)).map((p) => p.id) };
       }
       if (section === 'meu-programa') return { view: 'meu-programa' };
+      if (section === 'matriz') return { view: 'matriz' };
       if (section === 'duelo') {
         const duelA = getParty(id) ? id : 'ad';
         const duelB = getParty(tab) && tab !== duelA ? tab : (duelA === 'ps' ? 'ad' : 'ps');
@@ -3560,6 +3683,7 @@
       const head = `
         <div class="view-head">
           <h2>O Meu Programa</h2>
+          ${items.length ? `<button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>` : ''}
         </div>
         <p>As propostas que marcaste com a estrela, de qualquer partido, juntas num só programa. Ficam guardadas neste browser.</p>`;
 
@@ -3605,7 +3729,7 @@
                   <button class="badge" type="button" data-party="${party.id}" data-goto-category="${category.id}"
                           data-goto-ideia="${escapeHtml(topic.ideia)}"
                           style="--party-color:${party.cor};--badge-text:${textOn(party.cor)}"
-                          title="Ver no programa do ${escapeHtml(party.nome)}">${escapeHtml(party.sigla)}</button>
+                          title="Ver no programa ${ofParty(party)}">${escapeHtml(party.sigla)}</button>
                   <span class="topic-text">${withJargon(topic.texto)}</span>
                   ${favButton(party, category, topic)}
                 </li>`).join('')}
@@ -3755,6 +3879,183 @@
       jargonActive = null;
     }
 
+    /* ---------- Matriz de consenso (heatmap categorias × partidos) ---------- */
+    function renderMatrixView() {
+      const counts = CATEGORIES.map((c) => PARTIES.map((p) => p.programa[c.id]?.length || 0));
+      const max = Math.max(1, ...counts.flat());
+      const head = PARTIES.map((p) => `
+        <th scope="col" title="${escapeHtml(p.nome)}">
+          <span class="matrix-party" style="--party-color:${p.cor}">${partyLogo(p)}${escapeHtml(p.sigla)}</span>
+        </th>`).join('');
+      const rows = CATEGORIES.map((c, i) => {
+        const cells = PARTIES.map((p, j) => {
+          const n = counts[i][j];
+          const a = n ? 0.12 + 0.88 * (n / max) : 0;
+          const label = `${p.sigla}, ${c.nome}: ${n} ${n === 1 ? 'proposta' : 'propostas'}`;
+          return `
+            <td><button class="matrix-cell" type="button" data-matrix="${p.id}|${c.id}" ${n ? '' : 'disabled'}
+                        style="--a:${a.toFixed(3)};${a > 0.55 ? '--cell-text:#fff;' : ''}"
+                        title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">${n}</button></td>`;
+        }).join('');
+        const total = counts[i].reduce((x, y) => x + y, 0);
+        return `<tr><th scope="row">${escapeHtml(c.nome)}</th>${cells}<td class="matrix-total">${total}</td></tr>`;
+      }).join('');
+      const totals = PARTIES.map((p, j) => `<td class="matrix-total">${counts.reduce((n, row) => n + row[j], 0)}</td>`).join('');
+      const all = counts.flat().reduce((x, y) => x + y, 0);
+
+      return `
+        <section class="matrix-view">
+          <div class="view-head">
+            <h2>Matriz de consenso</h2>
+            ${shareButton()}
+          </div>
+          <p>Quantas propostas cada partido apresenta em cada categoria. Quanto mais escura a célula, mais propostas. Clica numa célula para ver as propostas desse partido nessa categoria. Uma célula a 0 quer dizer que não há propostas registadas para essa categoria.</p>
+          <div class="matrix-wrap">
+            <table class="matrix">
+              <thead><tr><th scope="col"><span class="visually-hidden">Categoria</span></th>${head}<th scope="col" class="matrix-total">Total</th></tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot><tr><th scope="row">Total</th>${totals}<td class="matrix-total">${all}</td></tr></tfoot>
+            </table>
+          </div>
+          <div class="matrix-legend">
+            <span>0</span><span class="matrix-scale" aria-hidden="true"></span><span>${max} propostas</span>
+          </div>
+        </section>`;
+    }
+
+    /** Modal com as propostas de um partido numa categoria (célula da matriz). */
+    function openMatrixModal(partyId, categoryId) {
+      const party = getParty(partyId);
+      const category = CATEGORIES.find((c) => c.id === categoryId);
+      const topics = party?.programa[categoryId] || [];
+      if (!category || !topics.length) return;
+      openModal(`
+        <p class="modal-kicker">${escapeHtml(category.nome)}</p>
+        <div class="modal-head" style="--party-color:${party.cor}">
+          ${partyLogo(party)}
+          <h2 id="modal-title">${escapeHtml(party.sigla)} · ${topics.length} ${topics.length === 1 ? 'proposta' : 'propostas'}</h2>
+        </div>
+        <ul class="modal-topics">${topics.map((t) => `<li>${withJargon(t.texto)}</li>`).join('')}</ul>
+        <button class="modal-link" type="button" data-party="${party.id}" data-goto-category="${category.id}">Abrir no programa ${ofParty(party)}</button>`, 'modal-title');
+    }
+
+    /* ---------- Perfil visual do partido (radar com Chart.js) ---------- */
+    // Carregado só quando se abre o radar, para não pesar no arranque.
+    const CHART_JS_SRC = 'https://unpkg.com/chart.js@4.5.1/dist/chart.umd.min.js';
+    let chartJsPromise = null;
+    let radarChart = null;
+
+    function loadChartJs() {
+      if (window.Chart) return Promise.resolve(window.Chart);
+      chartJsPromise ??= new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = CHART_JS_SRC;
+        script.onload = () => (window.Chart ? resolve(window.Chart) : reject(new Error('Chart.js indisponível')));
+        script.onerror = () => {
+          chartJsPromise = null;
+          script.remove();
+          reject(new Error('Chart.js indisponível'));
+        };
+        document.head.appendChild(script);
+      });
+      return chartJsPromise;
+    }
+
+    /** Parte um nome de categoria em linhas curtas para os eixos do radar. */
+    function wrapLabel(text, width = 14) {
+      const lines = [];
+      for (const word of text.split(' ')) {
+        const last = lines.at(-1);
+        if (last && (last + ' ' + word).length <= width) lines[lines.length - 1] = `${last} ${word}`;
+        else lines.push(word);
+      }
+      return lines;
+    }
+
+    function openRadarModal(party) {
+      const counts = CATEGORIES.map((c) => party.programa[c.id]?.length || 0);
+      const total = counts.reduce((a, b) => a + b, 0);
+      const pct = counts.map((n) => (total ? Math.round((n / total) * 1000) / 10 : 0));
+      const fmt = (v) => v.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
+      const values = CATEGORIES.map((c, i) => `
+        <li><span>${escapeHtml(c.nome)}</span><b>${fmt(pct[i])}% (${counts[i]})</b></li>`).join('');
+
+      openModal(`
+        <p class="modal-kicker">Perfil visual</p>
+        <div class="modal-head" style="--party-color:${party.cor}">
+          ${partyLogo(party)}
+          <h2 id="modal-title">${escapeHtml(party.sigla)} · ${escapeHtml(party.nome)}</h2>
+        </div>
+        <p class="radar-note">Peso de cada categoria no programa: percentagem das ${total} propostas registadas do partido.</p>
+        <div class="radar-canvas">
+          <canvas id="radar-chart" role="img" aria-label="Gráfico de radar com a percentagem de propostas do ${escapeHtml(party.sigla)} em cada categoria"></canvas>
+          <p class="placeholder" id="radar-status">A carregar o gráfico…</p>
+        </div>
+        <details class="radar-values">
+          <summary>Ver os valores</summary>
+          <ul>${values}</ul>
+        </details>`, 'modal-title');
+      $('.modal').classList.add('is-wide');
+
+      loadChartJs().then((Chart) => {
+        const canvas = $('#radar-chart');
+        if (!canvas) return; // o modal já foi fechado
+        $('#radar-status')?.remove();
+        const css = getComputedStyle(document.documentElement);
+        const text = css.getPropertyValue('--text').trim();
+        const muted = css.getPropertyValue('--text-muted').trim();
+        const grid = css.getPropertyValue('--border').trim();
+        const small = innerWidth < 600;
+        radarChart?.destroy();
+        radarChart = new Chart(canvas, {
+          type: 'radar',
+          data: {
+            // No telemóvel só a primeira parte do nome («Estado Social e Pensões» → «Estado Social»).
+            labels: CATEGORIES.map((c) => (small ? wrapLabel(c.nome.split(' e ')[0], 10) : wrapLabel(c.nome, 16))),
+            datasets: [{
+              label: party.sigla,
+              data: pct,
+              borderColor: party.cor,
+              backgroundColor: withAlpha(party.cor, 0.25),
+              pointBackgroundColor: party.cor,
+              pointBorderColor: '#fff',
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              borderWidth: 2,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 700 },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => CATEGORIES[items[0].dataIndex].nome,
+                  label: (item) => ` ${fmt(item.raw)}% das propostas (${counts[item.dataIndex]})`,
+                },
+              },
+            },
+            scales: {
+              r: {
+                beginAtZero: true,
+                suggestedMax: Math.ceil(Math.max(...pct) / 5) * 5,
+                angleLines: { color: grid },
+                grid: { color: grid },
+                pointLabels: { color: text, padding: small ? 4 : 8, font: { family: GRAPH_FONT, size: small ? 10 : 11 } },
+                ticks: { color: muted, backdropColor: 'transparent', callback: (v) => `${v}%`, maxTicksLimit: 5, font: { size: 10 } },
+              },
+            },
+          },
+        });
+      }).catch(() => {
+        const status = $('#radar-status');
+        if (status) status.textContent = 'Não foi possível carregar o gráfico (Chart.js). Os valores estão na lista abaixo.';
+        $('.radar-values')?.setAttribute('open', '');
+      });
+    }
+
     /* ---------- Modal ---------- */
     let modalReturnFocus = null;
 
@@ -3781,6 +4082,8 @@
     function closeModal() {
       const backdrop = $('.modal-backdrop');
       if (!backdrop) return;
+      radarChart?.destroy();
+      radarChart = null;
       backdrop.remove();
       modalReturnFocus?.focus?.({ preventScroll: true });
       modalReturnFocus = null;
@@ -4300,6 +4603,7 @@
 
     const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
     const PRINT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>';
+    const RADAR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 21 9l-3.4 10.5H6.4L3 9z"/><path d="M12 7l4.5 3.3-1.7 5.2H9.2l-1.7-5.2z" fill="currentColor" fill-opacity=".25"/></svg>';
     const shareButton = () => `<button class="action-btn" type="button" data-action="share">${SHARE_ICON}<span>Partilhar</span></button>`;
 
     /* ---------- Impressão / PDF ---------- */
@@ -4316,7 +4620,7 @@
 
     function printProgram() {
       // Imprime o programa completo, mesmo que haja um filtro de categoria ativo.
-      if (state.tab === 'programa' && state.category !== 'todas') {
+      if (state.view === 'partidos' && state.tab === 'programa' && state.category !== 'todas') {
         state.category = 'todas';
         render();
       }
@@ -4350,6 +4654,7 @@
       if (state.view === 'grafo') view.innerHTML = renderGraphView();
       else if (state.view === 'duelo') view.innerHTML = renderDuelView();
       else if (state.view === 'bussola') view.innerHTML = renderQuizView();
+      else if (state.view === 'matriz') view.innerHTML = renderMatrixView();
       else if (state.view === 'coligacao') view.innerHTML = renderCoalitionView();
       else if (state.view === 'meu-programa') view.innerHTML = renderMyProgramView();
       else if (state.partyId) view.innerHTML = renderPartyView(getParty(state.partyId));
@@ -4421,6 +4726,7 @@
               <button class="home-action" type="button" data-view="grafo">Abrir o grafo de afinidades</button>
               <button class="home-action" type="button" data-view="duelo">Comparar dois partidos</button>
               <button class="home-action" type="button" data-view="coligacao">Construir uma coligação</button>
+              <button class="home-action" type="button" data-view="matriz">Ver a matriz de consenso</button>
             </div>
           </div>
           <ul class="party-grid" aria-label="Partidos">${cards}</ul>
@@ -4440,7 +4746,10 @@
             <h2>${escapeHtml(party.sigla)}</h2>
             <p>${escapeHtml(party.nome)}</p>
           </div>
-          <button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>
+          <div class="party-header-actions">
+            <button class="action-btn" type="button" data-action="radar">${RADAR_ICON}<span>Perfil visual</span></button>
+            <button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>
+          </div>
         </header>
 
         <div class="tabs" role="tablist" aria-label="Secções do partido">
@@ -4605,9 +4914,9 @@
 
     function bindEvents() {
       document.addEventListener('click', (e) => {
-        const el = e.target.closest('[data-party], [data-tab], [data-category], [data-view], [data-action], [data-coalition]');
+        const el = e.target.closest('[data-party], [data-tab], [data-category], [data-view], [data-action], [data-coalition], [data-matrix]');
         if (!el) return;
-        const { party, tab, category, view, action, coalition } = el.dataset;
+        const { party, tab, category, view, action, coalition, matrix } = el.dataset;
 
         if (party) {
           // Um badge abre o outro partido já filtrado na mesma categoria, com a ideia destacada.
@@ -4628,6 +4937,8 @@
         } else if (tab) {
           afterRender.push(() => $(`#tab-${tab}`)?.focus());
           navigate(`#/partido/${state.partyId}/${tab}`);
+        } else if (matrix) {
+          openMatrixModal(...matrix.split('|'));
         } else if (coalition) {
           const ids = state.coalition.includes(coalition)
             ? state.coalition.filter((id) => id !== coalition)
@@ -4643,6 +4954,7 @@
           else if (view === 'bussola') navigate('#/bussola');
           else if (view === 'duelo') navigate(`#/duelo/${state.duelA}/${state.duelB}`);
           else if (view === 'coligacao') navigate(coalitionHash(state.coalition));
+          else if (view === 'matriz') navigate('#/matriz');
           else if (view === 'meu-programa') navigate('#/meu-programa');
           else navigate(state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/');
         } else if (action === 'fav') {
@@ -4658,6 +4970,8 @@
             void el.offsetWidth;
             el.classList.toggle('is-pop', saved);
           }
+        } else if (action === 'radar') {
+          openRadarModal(getParty(state.partyId));
         } else if (action === 'fav-clear') {
           clearFavorites(el);
         } else if (action === 'coalition-clear') {
