@@ -6,6 +6,9 @@
   <meta name="description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
   <title>Mapa Político de Portugal</title>
 
+  <!-- Fase 4: biblioteca do grafo (Vis.js), com versão fixa para o grafo não mudar sozinho -->
+  <script type="text/javascript" src="https://unpkg.com/vis-network@10.1.2/standalone/umd/vis-network.min.js"></script>
+
   <style>
     /* =========================================================
        1. TOKENS DE DESIGN
@@ -471,6 +474,35 @@
       overflow: hidden;
     }
     .graph-canvas .empty-state { position: absolute; inset: 0; align-content: center; }
+    .graph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 16px;
+      margin-bottom: 12px;
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-line { display: inline-block; width: 32px; background: #9aa3af; border-radius: 3px; }
+    /* Tooltips do Vis.js (mais específico que o CSS que a biblioteca injeta) */
+    .graph-canvas div.vis-tooltip {
+      max-width: 260px;
+      padding: 8px 10px;
+      font-family: var(--font);
+      font-size: var(--fs-sm);
+      line-height: 1.45;
+      color: var(--text);
+      white-space: normal;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+    }
+    .graph-links { margin-top: 16px; font-size: var(--fs-sm); }
+    .graph-links summary { cursor: pointer; font-weight: 600; }
+    .graph-links ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; }
+    .graph-links span { color: var(--text-muted); }
 
     /* =========================================================
        4. BREAKPOINTS
@@ -556,8 +588,6 @@
       <div class="main-inner" id="view"><!-- gerado pelo JS --></div>
     </main>
   </div>
-
-  <!-- Fase 4: a biblioteca do grafo (Vis.js) será carregada aqui. -->
 
   <script>
     'use strict';
@@ -1959,13 +1989,113 @@
      * @returns {{ nodes: Array, edges: Array }}
      */
     function buildAffinityGraph(minCategories = 3) {
-      // TODO Fase 4
-      return { nodes: [], edges: [] };
+      // Para cada par "a|b", as categorias em que partilham pelo menos uma ideia.
+      const shared = new Map();
+      for (const [key, parties] of getIdeaIndex()) {
+        const categoryId = key.split('|')[0];
+        const ids = [...new Set(parties.map((p) => p.id))]; // já vêm pela ordem de PARTIES
+        for (let i = 0; i < ids.length; i++) {
+          for (let j = i + 1; j < ids.length; j++) {
+            const pair = `${ids[i]}|${ids[j]}`;
+            if (!shared.has(pair)) shared.set(pair, new Set());
+            shared.get(pair).add(categoryId);
+          }
+        }
+      }
+
+      const edges = [];
+      for (const [pair, categoryIds] of shared) {
+        const count = categoryIds.size;
+        if (count < minCategories) continue;
+        const [from, to] = pair.split('|');
+        const names = CATEGORIES.filter((c) => categoryIds.has(c.id)).map((c) => c.nome);
+        edges.push({
+          from,
+          to,
+          categories: names,
+          width: count - 1, // 3 categorias = 2, 4 = 3, …
+          title: `${getParty(from).sigla} e ${getParty(to).sigla} concordam em ${count} categorias:\n`
+            + names.map((n) => `• ${n}`).join('\n'),
+        });
+      }
+
+      const degree = (id) => edges.filter((e) => e.from === id || e.to === id).length;
+      const nodes = PARTIES.map((p) => {
+        const n = degree(p.id);
+        return {
+          id: p.id,
+          label: p.sigla,
+          cor: p.cor,
+          title: `${p.nome}\n${n === 1 ? '1 ligação' : `${n} ligações`}. Clica para ver o programa.`,
+        };
+      });
+
+      return { nodes, edges };
+    }
+
+    let network = null;
+
+    function destroyGraph() {
+      network?.destroy();
+      network = null;
     }
 
     /** Inicializa o grafo Vis.js dentro de `container`. */
     function initGraph(container) {
-      // TODO Fase 4
+      destroyGraph();
+      if (!container) return;
+      if (typeof vis === 'undefined') {
+        container.innerHTML = '<div class="empty-state"><p>Não foi possível carregar a biblioteca do grafo (Vis.js). Verifica a ligação à Internet e recarrega a página.</p></div>';
+        return;
+      }
+
+      const { nodes, edges } = buildAffinityGraph();
+      container.innerHTML = '';
+
+      const data = {
+        nodes: new vis.DataSet(nodes.map(({ cor, ...n }) => ({
+          ...n,
+          shape: 'box',
+          margin: { top: 10, right: 14, bottom: 10, left: 14 },
+          borderWidth: 2,
+          shapeProperties: { borderRadius: 8 },
+          color: {
+            background: cor,
+            border: cor,
+            highlight: { background: cor, border: '#1b1f24' },
+            hover: { background: cor, border: '#1b1f24' },
+          },
+          font: { color: textOn(cor), size: 16, face: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif' },
+        }))),
+        edges: new vis.DataSet(edges.map(({ categories, ...e }) => e)),
+      };
+
+      const options = {
+        edges: {
+          smooth: { type: 'continuous' },
+          color: { color: '#c3c9d2', hover: '#8a94a3', highlight: '#2952e3' },
+          hoverWidth: 1,
+          selectionWidth: 1,
+        },
+        physics: {
+          enabled: true,
+          solver: 'forceAtlas2Based',
+          forceAtlas2Based: { gravitationalConstant: -60, springLength: 170, springConstant: 0.06, avoidOverlap: 0.6 },
+          stabilization: { iterations: 250 },
+        },
+        interaction: { hover: true, tooltipDelay: 120, dragNodes: true, dragView: true, zoomView: true },
+      };
+
+      network = new vis.Network(container, data, options);
+
+      // Clicar num nó abre o programa desse partido.
+      network.on('click', ({ nodes: [nodeId] }) => {
+        if (!nodeId) return;
+        state.category = 'todas';
+        navigate(`#/partido/${nodeId}/programa`);
+      });
+      network.on('hoverNode', () => { container.style.cursor = 'pointer'; });
+      network.on('blurNode', () => { container.style.cursor = ''; });
     }
 
     /* =========================================================
@@ -1987,6 +2117,7 @@
       else view.innerHTML = renderWelcome();
 
       if (state.view === 'grafo') initGraph($('#graph'));
+      else destroyGraph();
 
       const route = location.hash;
       if (route !== lastRoute) $('#main').scrollTop = 0;
@@ -2126,13 +2257,31 @@
     }
 
     function renderGraphView() {
+      const { edges } = buildAffinityGraph();
+      const sigla = (id) => escapeHtml(getParty(id).sigla);
+      const links = [...edges].sort((a, b) => b.categories.length - a.categories.length).map((e) => `
+        <li><strong>${sigla(e.from)} e ${sigla(e.to)}</strong> (${e.categories.length}):
+          <span>${e.categories.map(escapeHtml).join(', ')}</span></li>`).join('');
+      // Legenda com o mínimo, o meio e o máximo das ligações reais.
+      const counts = edges.map((e) => e.categories.length);
+      const [min, max] = [Math.min(...counts), Math.max(...counts)];
+      const legend = counts.length ? [...new Set([min, Math.round((min + max) / 2), max])].map((n) => `
+        <span class="legend-item"><i class="legend-line" style="height:${n - 1}px"></i>${n}</span>`).join('') : '';
+
       return `
         <section class="graph-view">
           <h2>Grafo de afinidades</h2>
-          <p>Cada nó é um partido. Uma ligação indica ideias partilhadas em pelo menos 3 categorias.</p>
-          <div class="graph-canvas" id="graph">
-            <div class="empty-state"><p>O grafo será construído na Fase 4.</p></div>
+          <p>Cada nó é um partido. Dois partidos ficam ligados quando partilham ideias em pelo menos 3 categorias. Passa o rato por uma ligação para ver as categorias e clica num partido para abrir o programa.</p>
+          <div class="graph-legend">
+            <span>A espessura da linha representa o número de categorias em que os partidos concordam:</span>
+            ${legend}
           </div>
+          <div class="graph-canvas" id="graph"></div>
+          ${links ? `
+          <details class="graph-links">
+            <summary>Ver as ligações em lista</summary>
+            <ul>${links}</ul>
+          </details>` : ''}
         </section>`;
     }
 
