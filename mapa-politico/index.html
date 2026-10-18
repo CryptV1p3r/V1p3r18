@@ -1088,7 +1088,6 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      padding: 10%;
       object-fit: contain;
       background: #fff;
       border-radius: inherit;
@@ -3190,14 +3189,18 @@
     }
 
     /* ---------- Logótipos dos partidos ---------- */
-    // Pasta com um logo.png por partido (Política/<id>/logo.png), ao lado da pasta mapa-politico.
-    const LOGO_DIR = '../Política';
-    const missingLogos = new Set(); // partidos sem logótipo: não se volta a pedir a imagem
+    // Imagens na pasta logos/, ao lado deste ficheiro (o logótipo da CDU é o do PCP).
+    const LOGOS = {
+      ad: 'logos/ad.jpg', ps: 'logos/ps.jpg', chega: 'logos/chega.png', il: 'logos/il.jpg', livre: 'logos/livre.png',
+      cdu: 'logos/cdu.jpg', be: 'logos/be.png', pan: 'logos/pan.jpg', jpp: 'logos/jpp.jpg',
+    };
+    const missingLogos = new Set(); // partidos cuja imagem falhou: não se volta a pedir
 
     /** Logótipo do partido; se a imagem falhar, fica a sigla que está por baixo. */
     function partyLogo(party) {
-      const img = missingLogos.has(party.id) ? '' : `
-        <img class="party-logo-img" src="${encodeURI(`${LOGO_DIR}/${party.id}/logo.png`)}" alt="${escapeHtml(party.sigla)}"
+      const src = LOGOS[party.id];
+      const img = !src || missingLogos.has(party.id) ? '' : `
+        <img class="party-logo-img" src="${src}" alt="${escapeHtml(party.sigla)}"
              onload="this.classList.add('is-loaded')" onerror="logoFailed(this, '${party.id}')">`;
       return `<span class="party-logo" style="--party-color:${party.cor}" aria-hidden="true">${img}<span class="party-logo-text">${escapeHtml(party.sigla)}</span></span>`;
     }
