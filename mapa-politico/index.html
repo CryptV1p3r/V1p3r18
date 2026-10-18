@@ -916,10 +916,14 @@
     /* ---------- Aviso (toast) ---------- */
     .toast {
       position: fixed;
-      left: 50%;
+      /* Centrado com margens automáticas: com left: 50% a caixa saía do ecrã no telemóvel
+         e alargava a página na horizontal. */
+      left: 16px;
+      right: 16px;
       bottom: 24px;
       z-index: 120;
-      max-width: calc(100% - 32px);
+      width: fit-content;
+      margin-inline: auto;
       padding: 12px 18px;
       font-size: var(--fs-sm);
       font-weight: 600;
@@ -933,10 +937,10 @@
       box-shadow: 0 16px 40px rgba(0, 0, 0, .35);
       opacity: 0;
       pointer-events: none;
-      transform: translate(-50%, 12px);
+      transform: translateY(12px);
       transition: opacity .25s var(--ease), transform .25s var(--ease);
     }
-    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+    .toast.is-visible { opacity: 1; transform: translateY(0); }
 
     /* ---------- Bússola política ---------- */
     .quiz-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
@@ -1034,6 +1038,211 @@
     .quiz-matches { font-size: var(--fs-xs); color: var(--text-muted); }
     @keyframes bar-grow { from { transform: scaleX(0); } }
 
+    /* ---------- Construtor de coligações ---------- */
+    .coalition-view h2,
+    .myprog-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .coalition-view > p,
+    .myprog-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+    .coalition-picker {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+      gap: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .coalition-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      text-align: left;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .coalition-toggle:hover { border-color: color-mix(in srgb, var(--party-color) 55%, var(--border)); }
+    .coalition-toggle .party-logo { width: 30px; height: 30px; font-size: 10px; }
+    .coalition-toggle-name { flex: 1; min-width: 0; font-size: var(--fs-sm); font-weight: 700; }
+    /* Visto: círculo vazio que se preenche com a cor do partido */
+    .coalition-check {
+      display: grid;
+      place-items: center;
+      width: 20px; height: 20px;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      transition: background .2s var(--ease), border-color .2s var(--ease);
+    }
+    .coalition-check svg { width: 12px; height: 12px; opacity: 0; color: var(--badge-text, #fff); }
+    .coalition-toggle[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--party-color) 12%, var(--surface));
+      border-color: var(--party-color);
+      box-shadow: 0 0 20px -8px var(--party-color);
+    }
+    .coalition-toggle[aria-pressed="true"] .coalition-check { background: var(--party-color); border-color: var(--party-color); }
+    .coalition-toggle[aria-pressed="true"] .coalition-check svg { opacity: 1; }
+    .coalition-summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 16px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      font-size: var(--fs-md);
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      border-radius: var(--radius-lg);
+    }
+    .coalition-summary.is-idle { background: var(--surface); border-color: var(--border); color: var(--text-muted); font-size: var(--fs-sm); }
+    .coalition-summary p { margin: 0; }
+    .coalition-summary .action-btn { padding: 6px 12px; font-size: var(--fs-xs); }
+    .coalition-card .duel-sides { gap: 10px; }
+    @media (min-width: 560px) {
+      .coalition-card .duel-sides { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    }
+
+    /* ---------- Dicionário de jargão (tooltips) ---------- */
+    .termo-jargao {
+      text-decoration: underline dotted color-mix(in srgb, var(--accent) 70%, transparent);
+      text-decoration-thickness: 1.5px;
+      text-underline-offset: 3px;
+      cursor: help;
+      border-radius: 3px;
+      transition: background .15s var(--ease), color .15s var(--ease);
+    }
+    .termo-jargao:hover,
+    .termo-jargao.is-active { color: var(--accent); background: var(--accent-soft); }
+    .termo-jargao:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+    .jargon-tip {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 130;
+      width: max-content;
+      max-width: min(300px, calc(100vw - 16px));
+      padding: 10px 12px;
+      font-size: var(--fs-sm);
+      line-height: 1.45;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+      border-radius: var(--radius);
+      box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .45), 0 0 24px -12px var(--accent);
+      pointer-events: none;
+      animation: tip-in .15s var(--ease);
+    }
+    .jargon-tip[hidden] { display: none; }
+    .jargon-tip strong { display: block; margin-bottom: 2px; font-size: var(--fs-xs); letter-spacing: .04em; color: var(--accent); }
+    /* Seta a apontar para a palavra (para baixo; para cima quando o tooltip fica por baixo) */
+    .jargon-tip::after {
+      content: "";
+      position: absolute;
+      left: var(--arrow-x, 50%);
+      top: 100%;
+      width: 10px; height: 10px;
+      background: inherit;
+      border: inherit;
+      border-width: 0 1px 1px 0;
+      transform: translate(-50%, -5px) rotate(45deg);
+    }
+    .jargon-tip.is-below::after { top: auto; bottom: 100%; transform: translate(-50%, 5px) rotate(225deg); }
+    @keyframes tip-in { from { opacity: 0; transform: translateY(4px); } }
+
+    /* ---------- O Meu Programa (favoritos) ---------- */
+    /* A estrela fica sempre no canto direito da proposta, alinhada com a primeira linha,
+       mesmo quando o texto e os badges quebram de linha no telemóvel. */
+    .topic:has(> .fav-btn) { position: relative; padding-right: 34px; }
+    .fav-btn {
+      position: absolute;
+      top: 5px;
+      right: -6px;
+      display: inline-grid;
+      place-items: center;
+      width: 30px; height: 30px;
+      color: var(--text-muted);
+      border-radius: 50%;
+      transition: color .15s var(--ease), background .15s var(--ease), transform .2s var(--ease);
+    }
+    .fav-btn svg { width: 17px; height: 17px; }
+    .fav-btn:hover { color: #f59e0b; background: rgba(245, 158, 11, .12); }
+    .fav-btn[aria-pressed="true"] { color: #f59e0b; }
+    .fav-btn[aria-pressed="true"] svg { fill: currentColor; filter: drop-shadow(0 0 6px rgba(245, 158, 11, .55)); }
+    .fav-btn.is-pop { animation: fav-pop .35s var(--ease); }
+    @keyframes fav-pop { 50% { transform: scale(1.35); } }
+    .nav-count {
+      display: inline-grid;
+      place-items: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      margin-left: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      color: #18181b;
+      background: #f59e0b;
+      border-radius: 999px;
+      vertical-align: 1px;
+    }
+    .nav-count[hidden] { display: none; }
+    .myprog-summary {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .myprog-summary p { margin: 0; }
+    .myprog-bar {
+      display: flex;
+      height: 12px;
+      overflow: hidden;
+      background: var(--surface-2);
+      border-radius: 999px;
+    }
+    .myprog-bar span {
+      flex: var(--share) 0 0;
+      background: var(--party-color);
+      box-shadow: 0 0 12px var(--party-color);
+      animation: bar-grow .8s var(--ease) both;
+      transform-origin: left;
+    }
+    .myprog-bar span + span { border-left: 2px solid var(--surface); }
+    .myprog-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--fs-xs); color: var(--text-muted); }
+    .myprog-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .myprog-legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--party-color); }
+    .myprog-legend b { color: var(--text); font-variant-numeric: tabular-nums; }
+    .myprog-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .action-btn.is-danger { color: #ef4444; border-color: color-mix(in srgb, #ef4444 45%, var(--border)); }
+    .action-btn.is-danger:hover:not(:disabled) { border-color: #ef4444; box-shadow: 0 0 18px -6px #ef4444; }
+    .action-btn.is-danger.is-confirm { color: #fff; background: #ef4444; border-color: #ef4444; }
+    .myprog-category .topic-list { padding: 0 16px 6px; }
+    .myprog-category .duel-chip { flex-shrink: 0; align-self: center; }
+    .myprog-empty {
+      display: grid;
+      justify-items: start;
+      gap: 10px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .myprog-empty p { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+    .myprog-empty .fav-demo { display: inline-flex; vertical-align: -3px; color: #f59e0b; }
+    .myprog-empty .fav-demo svg { width: 16px; height: 16px; }
+
     /* ---------- Impressão / PDF: só o conteúdo do partido, a preto e branco ---------- */
     @media print {
       @page { margin: 16mm 14mm; }
@@ -1055,7 +1264,8 @@
       }
       body { font-size: 11pt; background: #fff !important; }
       .app-header, .sidebar, .backdrop, .tabs, .chips, .badges, .party-grid,
-      .toast, .modal-backdrop, button { display: none !important; }
+      .toast, .modal-backdrop, .jargon-tip, button { display: none !important; }
+      .termo-jargao { text-decoration: none; }
       .main { padding: 0 !important; }
       .main-inner { max-width: none; }
       .party-header { margin-bottom: 8pt; }
@@ -1215,9 +1425,15 @@
       .app-header { flex-wrap: wrap; gap: 8px 4px; padding: 8px 12px; }
       .app-header .icon-btn { width: 36px; height: 36px; }
       .app-title { flex: 1; }
-      .view-switch { order: 1; flex-basis: 100%; margin-left: 0; }
-      .view-switch button { flex: 1; padding: 6px 4px; }
+      /* Seis vistas não cabem a 360px: a barra desliza na horizontal. */
+      .view-switch { order: 1; flex-basis: 100%; margin-left: 0; overflow-x: auto; scrollbar-width: none; }
+      .view-switch::-webkit-scrollbar { display: none; }
+      .view-switch button { flex: 1 0 auto; padding: 6px 10px; white-space: nowrap; }
     }
+    .view-switch button { white-space: nowrap; }
+    /* O texto escondido do contador é absoluto: com a barra posicionada fica preso a ela
+       e não alarga a página quando a barra desliza no telemóvel. */
+    .view-switch { position: relative; }
 
     @media (min-width: 768px) {
       .title-extra { display: inline; }
@@ -1270,6 +1486,12 @@
       .view-switch { margin-left: 0; }
     }
 
+    /* Seis vistas e a pesquisa no mesmo cabeçalho: entre 1024 e 1279px encurta-se o título e os botões. */
+    @media (min-width: 1024px) and (max-width: 1279px) {
+      .title-extra { display: none; }
+      .view-switch button { padding: 6px 10px; }
+    }
+
     @media (min-width: 1100px) {
       .people-grid { grid-template-columns: repeat(3, 1fr); }
     }
@@ -1307,6 +1529,8 @@
         <button type="button" data-view="grafo" aria-pressed="false">Grafo</button>
         <button type="button" data-view="duelo" aria-pressed="false">Duelo</button>
         <button type="button" data-view="bussola" aria-pressed="false">Bússola</button>
+        <button type="button" data-view="coligacao" aria-pressed="false">Coligação</button>
+        <button type="button" data-view="meu-programa" aria-pressed="false">Meu Programa<span class="nav-count" id="fav-count" hidden></span></button>
       </nav>
       <button class="icon-btn theme-btn" type="button" aria-label="Mudar para o tema escuro" data-action="toggle-theme">
         <!-- sol: mostrado no tema escuro (passa a claro); lua: no tema claro -->
@@ -1336,6 +1560,9 @@
       <div class="main-inner" id="view"><!-- gerado pelo JS --></div>
     </main>
   </div>
+
+  <!-- Tooltip do dicionário de jargão (um só, posicionado por cima do termo ativo) -->
+  <div class="jargon-tip" id="jargon-tip" role="tooltip" hidden></div>
 
   <script>
     'use strict';
@@ -2650,9 +2877,11 @@
          #/duelo/<idA>/<idB>        → duelo entre dois partidos (por defeito AD e PS)
          #/grafo/<categoria>        → grafo filtrado por uma categoria
          #/bussola                  → bússola política (questionário)
+         #/coligacao/<id>,<id>…     → construtor de coligações (partidos escolhidos no link)
+         #/meu-programa             → propostas guardadas pelo utilizador
        ========================================================= */
     const state = {
-      view: 'partidos',      // 'partidos' | 'grafo' | 'duelo' | 'bussola'
+      view: 'partidos',      // 'partidos' | 'grafo' | 'duelo' | 'bussola' | 'coligacao' | 'meu-programa'
       partyId: null,
       tab: 'programa',       // 'programa' | 'quem'
       category: 'todas',     // filtro de categoria na aba Programa
@@ -2663,6 +2892,7 @@
       quiz: {},              // respostas da bússola: { idPergunta: índiceOpção }
       quizShown: false,      // resultados da bússola visíveis
       quizIds: [],           // perguntas da ronda atual (escolhidas ao acaso)
+      coalition: [],         // partidos escolhidos no construtor de coligações
     };
 
     function parseHash() {
@@ -2671,6 +2901,12 @@
         return { view: 'grafo', graphCategory: CATEGORIES.some((c) => c.id === id) ? id : '' };
       }
       if (section === 'bussola') return { view: 'bussola' };
+      if (section === 'coligacao') {
+        // Ordem de PARTIES, sem repetidos nem ids desconhecidos.
+        const ids = new Set((id || '').split(','));
+        return { view: 'coligacao', coalition: PARTIES.filter((p) => ids.has(p.id)).map((p) => p.id) };
+      }
+      if (section === 'meu-programa') return { view: 'meu-programa' };
       if (section === 'duelo') {
         const duelA = getParty(id) ? id : 'ad';
         const duelB = getParty(tab) && tab !== duelA ? tab : (duelA === 'ps' ? 'ad' : 'ps');
@@ -3121,7 +3357,7 @@
         </label>`;
       const chip = (p) => `<span class="duel-chip" style="--party-color:${p.cor};--badge-text:${textOn(p.cor)}">${escapeHtml(p.sigla)}</span>`;
       const list = (items, empty) => (items.length
-        ? `<ul>${items.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`
+        ? `<ul>${items.map((t) => `<li>${withJargon(t)}</li>`).join('')}</ul>`
         : `<p class="placeholder">${empty}</p>`);
 
       const results = CATEGORIES.map((c) => ({ category: c, ...compareCategory(a, b, c.id) }));
@@ -3133,8 +3369,8 @@
           <article class="duel-card is-agree">
             <h4>🤝 Concordam</h4>
             <div class="duel-sides">
-              <div>${chip(a)}<p>${escapeHtml(s.a)}</p></div>
-              <div>${chip(b)}<p>${escapeHtml(s.b)}</p></div>
+              <div>${chip(a)}<p>${withJargon(s.a)}</p></div>
+              <div>${chip(b)}<p>${withJargon(s.b)}</p></div>
             </div>
           </article>`).join('');
         const diverge = onlyA.length || onlyB.length ? `
@@ -3168,6 +3404,355 @@
           <p class="duel-summary">${chip(a)} e ${chip(b)} concordam em <strong>${sharedTotal} ${sharedTotal === 1 ? 'ideia' : 'ideias'}</strong>, distribuídas por <strong>${sharedCategories} de ${CATEGORIES.length} categorias</strong>.</p>
           <div class="duel-list">${sections}</div>
         </section>`;
+    }
+
+    /* ---------- Construtor de coligações ---------- */
+    // Artigo de cada partido, para frases como «A AD, a IL e o Chega concordam…» ou «40% da AD».
+    const PARTY_ARTICLE = { ad: 'a', il: 'a', cdu: 'a' };
+    const PARTY_SHORT = { chega: 'Chega', livre: 'Livre' };
+    const partyShort = (p) => PARTY_SHORT[p.id] || p.sigla;
+    const withArticle = (p) => `${PARTY_ARTICLE[p.id] || 'o'} ${partyShort(p)}`;
+    const ofParty = (p) => `${PARTY_ARTICLE[p.id] === 'a' ? 'da' : 'do'} ${partyShort(p)}`;
+    const listJoin = (items) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} e ${items.at(-1)}`);
+    const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+    /**
+     * Propostas em que todos os partidos escolhidos concordam: a mesma `ideia` na mesma categoria.
+     * @returns {Array<{ category, items: Array<{ ideia, textos: Array<{ party, texto }> }> }>} só as categorias com propostas comuns
+     */
+    function coalitionAgreements(parties) {
+      return CATEGORIES.map((category) => {
+        const maps = parties.map((p) => new Map((p.programa[category.id] || []).map((t) => [t.ideia, t.texto])));
+        const items = [...maps[0].keys()]
+          .filter((ideia) => maps.every((m) => m.has(ideia)))
+          .map((ideia) => ({ ideia, textos: parties.map((party, i) => ({ party, texto: maps[i].get(ideia) })) }));
+        return { category, items };
+      }).filter((c) => c.items.length);
+    }
+
+    const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    const coalitionHash = (ids) => (ids.length ? `#/coligacao/${ids.join(',')}` : '#/coligacao');
+
+    function renderCoalitionView() {
+      const selected = state.coalition.map(getParty);
+      const chip = (p) => `<span class="duel-chip" style="--party-color:${p.cor};--badge-text:${textOn(p.cor)}">${escapeHtml(p.sigla)}</span>`;
+      const toggles = PARTIES.map((p) => `
+        <button class="coalition-toggle" type="button" data-coalition="${p.id}" aria-pressed="${state.coalition.includes(p.id)}"
+                style="--party-color:${p.cor};--badge-text:${textOn(p.cor)}" title="${escapeHtml(p.nome)}">
+          ${partyLogo(p)}
+          <span class="coalition-toggle-name">${escapeHtml(p.sigla)}</span>
+          <span class="coalition-check">${CHECK_ICON}</span>
+        </button>`).join('');
+
+      let summary;
+      let sections = '';
+      if (selected.length < 2) {
+        summary = `
+          <div class="coalition-summary is-idle" aria-live="polite">
+            <p>${selected.length ? `Escolheste ${withArticle(selected[0])}. Junta pelo menos mais um partido.` : 'Escolhe pelo menos dois partidos para ver em que propostas concordam.'}</p>
+          </div>`;
+      } else {
+        const groups = coalitionAgreements(selected);
+        const total = groups.reduce((n, g) => n + g.items.length, 0);
+        const who = capitalize(listJoin(selected.map(withArticle)));
+        const sentence = total
+          ? `${who} concordam em <strong>${total} ${total === 1 ? 'proposta' : 'propostas'}</strong>, em ${groups.length} de ${CATEGORIES.length} categorias.`
+          : `${who} não concordam em nenhuma proposta da mesma categoria.`;
+        summary = `
+          <div class="coalition-summary" aria-live="polite">
+            <p>${sentence}</p>
+            <button class="action-btn" type="button" data-action="coalition-clear">Limpar escolha</button>
+          </div>`;
+        sections = groups.map(({ category, items }) => `
+          <section class="duel-category">
+            <h3>${escapeHtml(category.nome)}<span class="duel-score">${items.length} em comum</span></h3>
+            ${items.map(({ textos }) => `
+              <article class="duel-card is-agree coalition-card">
+                <div class="duel-sides">
+                  ${textos.map(({ party, texto }) => `<div>${chip(party)}<p>${withJargon(texto)}</p></div>`).join('')}
+                </div>
+              </article>`).join('')}
+          </section>`).join('');
+      }
+
+      return `
+        <section class="coalition-view">
+          <div class="view-head">
+            <h2>Construtor de coligações</h2>
+            ${shareButton()}
+          </div>
+          <p>Escolhe os partidos de uma coligação hipotética para ver as propostas em que todos concordam, ou seja, as que defendem a mesma ideia na mesma categoria. O texto de cada partido pode diferir no pormenor.</p>
+          <div class="coalition-picker" role="group" aria-label="Partidos da coligação">${toggles}</div>
+          ${summary}
+          <div class="duel-list">${sections}</div>
+        </section>`;
+    }
+
+    /* ---------- O Meu Programa (favoritos guardados no browser) ---------- */
+    const FAV_KEY = 'mapa-politico:favoritos';
+    const STAR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.8L12 16.9l-5.25 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg>';
+
+    /** Lê os favoritos: [{ partido, categoria, ideia }]. Sem armazenamento, começa vazio. */
+    function loadFavorites() {
+      try {
+        const data = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+        return Array.isArray(data)
+          ? data.filter((f) => ['partido', 'categoria', 'ideia'].every((k) => typeof f?.[k] === 'string'))
+          : [];
+      } catch {
+        return [];
+      }
+    }
+    let favorites = loadFavorites();
+
+    function saveFavorites() {
+      try { localStorage.setItem(FAV_KEY, JSON.stringify(favorites)); } catch { /* sem armazenamento: vale só nesta visita */ }
+      renderFavCount();
+    }
+
+    const favIndex = (partido, categoria, ideia) => favorites.findIndex((f) => f.partido === partido && f.categoria === categoria && f.ideia === ideia);
+
+    /** Guarda ou retira uma proposta. @returns {boolean} true se ficou guardada */
+    function toggleFavorite(partido, categoria, ideia) {
+      const i = favIndex(partido, categoria, ideia);
+      if (i >= 0) favorites.splice(i, 1);
+      else favorites.push({ partido, categoria, ideia });
+      saveFavorites();
+      return i < 0;
+    }
+
+    /** Favoritos que ainda existem nos dados (uma proposta pode ter sido revista), com partido, categoria e texto. */
+    function resolvedFavorites() {
+      return favorites.map((f) => {
+        const party = getParty(f.partido);
+        const category = CATEGORIES.find((c) => c.id === f.categoria);
+        const topic = party?.programa[f.categoria]?.find((t) => t.ideia === f.ideia);
+        return party && category && topic ? { party, category, topic } : null;
+      }).filter(Boolean);
+    }
+
+    function renderFavCount() {
+      const n = resolvedFavorites().length;
+      const el = $('#fav-count');
+      el.hidden = !n;
+      el.innerHTML = `${n}<span class="visually-hidden"> ${n === 1 ? 'proposta guardada' : 'propostas guardadas'}</span>`;
+    }
+
+    function favButton(party, category, topic) {
+      const on = favIndex(party.id, category.id, topic.ideia) >= 0;
+      return `
+        <button class="fav-btn" type="button" data-action="fav" aria-pressed="${on}"
+                data-fav-party="${party.id}" data-fav-category="${category.id}" data-fav-ideia="${escapeHtml(topic.ideia)}"
+                aria-label="Guardar em O Meu Programa" title="${on ? 'Retirar de O Meu Programa' : 'Guardar em O Meu Programa'}">${STAR_ICON}</button>`;
+    }
+
+    /** Percentagens inteiras que somam 100 (método dos maiores restos). */
+    function percentages(counts, total) {
+      const raw = counts.map((n) => (n * 100) / total);
+      const pct = raw.map(Math.floor);
+      let rest = 100 - pct.reduce((a, b) => a + b, 0);
+      raw.map((r, i) => [r - pct[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rest-- > 0) pct[i] += 1; });
+      return pct;
+    }
+
+    function renderMyProgramView() {
+      const items = resolvedFavorites();
+      const head = `
+        <div class="view-head">
+          <h2>O Meu Programa</h2>
+        </div>
+        <p>As propostas que marcaste com a estrela, de qualquer partido, juntas num só programa. Ficam guardadas neste browser.</p>`;
+
+      if (!items.length) {
+        return `
+          <section class="myprog-view">
+            ${head}
+            <div class="myprog-empty">
+              <p>Ainda não guardaste nenhuma proposta. Abre o programa de um partido e toca na estrela <span class="fav-demo">${STAR_ICON}</span> ao lado de uma proposta para a juntares aqui.</p>
+              <button class="action-btn is-primary" type="button" data-view="partidos">Explorar os partidos</button>
+            </div>
+          </section>`;
+      }
+
+      const byParty = PARTIES.map((party) => ({ party, n: items.filter((f) => f.party === party).length }))
+        .filter((s) => s.n)
+        .sort((a, b) => b.n - a.n);
+      percentages(byParty.map((s) => s.n), items.length).forEach((pct, i) => { byParty[i].pct = pct; });
+
+      const total = `<strong>${items.length} ${items.length === 1 ? 'proposta' : 'propostas'}</strong>`;
+      let sentence;
+      if (items.length === 1) sentence = `O teu programa tem ${total}, ${ofParty(byParty[0].party)}.`;
+      else if (byParty.length === 1) sentence = `O teu programa tem ${total}, todas ${ofParty(byParty[0].party)}.`;
+      else sentence = `O teu programa tem ${total}, sendo ${listJoin(byParty.map((s) => `${s.pct}% ${ofParty(s.party)}`))}.`;
+
+      const bar = byParty.map((s) => `<span style="--party-color:${s.party.cor};--share:${s.n}" title="${escapeHtml(s.party.sigla)}: ${s.pct}%"></span>`).join('');
+      const legend = byParty.map((s) => `
+        <span style="--party-color:${s.party.cor}"><i></i>${escapeHtml(s.party.sigla)} <b>${s.pct}%</b> (${s.n})</span>`).join('');
+
+      const order = (f) => PARTIES.indexOf(f.party) * 1000 + f.party.programa[f.category.id].indexOf(f.topic);
+      const sections = CATEGORIES.map((category) => {
+        const list = items.filter((f) => f.category === category).sort((a, b) => order(a) - order(b));
+        if (!list.length) return '';
+        return `
+          <details class="category myprog-category" open>
+            <summary>
+              <span>${escapeHtml(category.nome)}</span>
+              <span class="category-count">${list.length}</span>
+            </summary>
+            <ul class="topic-list">
+              ${list.map(({ party, topic }) => `
+                <li class="topic">
+                  <button class="badge" type="button" data-party="${party.id}" data-goto-category="${category.id}"
+                          data-goto-ideia="${escapeHtml(topic.ideia)}"
+                          style="--party-color:${party.cor};--badge-text:${textOn(party.cor)}"
+                          title="Ver no programa do ${escapeHtml(party.nome)}">${escapeHtml(party.sigla)}</button>
+                  <span class="topic-text">${withJargon(topic.texto)}</span>
+                  ${favButton(party, category, topic)}
+                </li>`).join('')}
+            </ul>
+          </details>`;
+      }).join('');
+
+      return `
+        <section class="myprog-view">
+          ${head}
+          <div class="myprog-summary">
+            <p>${sentence}</p>
+            <div class="myprog-bar" role="img" aria-label="${escapeHtml(byParty.map((s) => `${s.party.sigla} ${s.pct}%`).join(', '))}">${bar}</div>
+            <div class="myprog-legend">${legend}</div>
+            <div class="myprog-actions">
+              <button class="action-btn is-danger" type="button" data-action="fav-clear">Limpar tudo</button>
+            </div>
+          </div>
+          <div class="category-list">${sections}</div>
+        </section>`;
+    }
+
+    // «Limpar tudo» pede um segundo clique (confirm() não funciona em todas as pré-visualizações).
+    let favClearTimer = null;
+    function clearFavorites(btn) {
+      if (!btn.classList.contains('is-confirm')) {
+        btn.classList.add('is-confirm');
+        btn.textContent = 'Tocar de novo para apagar tudo';
+        clearTimeout(favClearTimer);
+        favClearTimer = setTimeout(() => {
+          btn.classList.remove('is-confirm');
+          btn.textContent = 'Limpar tudo';
+        }, 4000);
+        return;
+      }
+      clearTimeout(favClearTimer);
+      favorites = [];
+      saveFavorites();
+      render();
+      toast('O teu programa foi apagado.');
+    }
+
+    /* ---------- Dicionário de jargão ---------- */
+    // Definições curtas dos termos técnicos que aparecem nas propostas.
+    const DICIONARIO = {
+      'IRS': 'Imposto sobre o Rendimento das Pessoas Singulares: imposto anual sobre os rendimentos das pessoas, como salários, pensões e rendas.',
+      'IRS Jovem': 'Regime que reduz ou isenta de IRS os rendimentos do trabalho dos jovens nos primeiros anos de carreira.',
+      'IRC': 'Imposto sobre o Rendimento das Pessoas Coletivas: imposto sobre os lucros das empresas.',
+      'Derrama Estadual': 'Taxa adicional de IRC sobre a parte dos lucros das empresas acima de 1,5 milhões de euros.',
+      'IVA': 'Imposto sobre o Valor Acrescentado: imposto sobre o consumo, incluído no preço de bens e serviços. No continente as taxas são de 6%, 13% e 23%.',
+      'IMI': 'Imposto Municipal sobre Imóveis: imposto anual pago pelos proprietários de casas e terrenos, que reverte para os municípios.',
+      'IMT': 'Imposto Municipal sobre as Transmissões Onerosas de Imóveis: imposto pago por quem compra uma casa ou um terreno.',
+      'Imposto do Selo': 'Imposto sobre certos atos e contratos, como a compra de casa, os créditos, os seguros e as heranças.',
+      'IUC': 'Imposto Único de Circulação: imposto anual pago pelos proprietários de veículos.',
+      'TSU': 'Taxa Social Única: contribuição para a Segurança Social calculada sobre os salários, paga em parte pelo trabalhador e em parte pela entidade patronal.',
+      'Residentes não habituais': 'Regime fiscal que dava taxas reduzidas de IRS, durante dez anos, a quem passasse a viver em Portugal. Foi fechado a novas adesões em 2024.',
+      'PPP': 'Parceria Público-Privada: contrato de longo prazo em que um privado constrói, financia ou gere uma infraestrutura ou um serviço público, como um hospital, em troca de pagamentos ou receitas.',
+      'PEPAC': 'Plano Estratégico da Política Agrícola Comum: define como Portugal aplica os fundos europeus da PAC na agricultura e no desenvolvimento rural (2023-2027).',
+      'PRR': 'Plano de Recuperação e Resiliência: programa de investimentos financiado pela União Europeia depois da pandemia, a executar até 2026.',
+      'RSI': 'Rendimento Social de Inserção: apoio da Segurança Social a pessoas e famílias em pobreza extrema, ligado a um contrato de inserção (emprego, formação, saúde).',
+      'CSI': 'Complemento Solidário para Idosos: apoio mensal da Segurança Social a pensionistas com rendimentos baixos.',
+      'Complemento Solidário para Idosos': 'Apoio mensal da Segurança Social (CSI) a pensionistas com rendimentos baixos.',
+      'IAS': 'Indexante dos Apoios Sociais: valor de referência, atualizado todos os anos, usado para calcular pensões, subsídios e outros apoios sociais.',
+      'Taxa de Esforço': 'Parte do rendimento de uma família gasta com a habitação, seja a renda ou a prestação do crédito à habitação.',
+      'Porta 65': 'Programa público de apoio ao pagamento da renda, sobretudo para jovens (Porta 65 Jovem).',
+      'Défice': 'Diferença negativa entre as receitas e as despesas do Estado num ano: o Estado gasta mais do que recebe.',
+      'Excedente orçamental': 'Saldo positivo das contas públicas num ano: o Estado recebe mais do que gasta.',
+      'Dívida pública': 'Total do dinheiro que o Estado deve, acumulado ao longo dos anos. Costuma medir-se em percentagem do PIB.',
+      'PIB': 'Produto Interno Bruto: valor de todos os bens e serviços produzidos no país num ano. Mede o tamanho da economia.',
+      'PME': 'Pequenas e Médias Empresas: empresas com menos de 250 trabalhadores e um volume de negócios até 50 milhões de euros.',
+      'SNS': 'Serviço Nacional de Saúde: rede pública de hospitais e centros de saúde, financiada pelos impostos.',
+      'USF': 'Unidade de Saúde Familiar: equipa autónoma de médicos de família, enfermeiros e secretários clínicos nos centros de saúde. Há modelos A, B e C, com graus diferentes de autonomia e incentivos.',
+      'IPSS': 'Instituições Particulares de Solidariedade Social: entidades sem fins lucrativos, como associações e misericórdias, que prestam apoio social, muitas vezes com acordos com o Estado.',
+      'IEFP': 'Instituto do Emprego e Formação Profissional: serviço público de emprego, com centros de emprego e de formação.',
+      'AIMA': 'Agência para a Integração, Migrações e Asilo: organismo público que trata das autorizações de residência e do acolhimento de imigrantes. Herdou estas funções do SEF em 2023.',
+      'SEF': 'Serviço de Estrangeiros e Fronteiras: antigo serviço de fronteiras e imigração, extinto em 2023. As funções passaram para a AIMA, a PSP, a GNR e a PJ.',
+      'PSP': 'Polícia de Segurança Pública: força policial civil, sobretudo nas cidades.',
+      'GNR': 'Guarda Nacional Republicana: força de segurança de natureza militar, sobretudo nas zonas rurais e nas estradas.',
+      'PJ': 'Polícia Judiciária: polícia de investigação da criminalidade mais grave e complexa.',
+      'Enriquecimento ilícito': 'Património ou rendimentos de um titular de cargo público muito acima do que declarou, sem origem justificada. Leis anteriores para o tornar crime foram travadas pelo Tribunal Constitucional.',
+      'Lóbi': 'Representação de interesses de empresas ou grupos junto de decisores políticos, para influenciar leis e decisões.',
+      'CCDR': 'Comissões de Coordenação e Desenvolvimento Regional: organismos que coordenam o planeamento e os fundos europeus em cada uma das cinco regiões do continente.',
+      'ZEE': 'Zona Económica Exclusiva: área de mar, até 200 milhas da costa, onde Portugal tem direitos exclusivos sobre os recursos.',
+      'CPLP': 'Comunidade dos Países de Língua Portuguesa: organização dos nove países com o português como língua oficial.',
+    };
+
+    const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Termos mais longos primeiro, para «IRS Jovem» ganhar a «IRS». Aceita o plural («PPPs»).
+    const JARGON_KEYS = Object.keys(DICIONARIO).sort((a, b) => b.length - a.length);
+    const JARGON_RE = new RegExp(`(?<![\\p{L}\\p{N}])(?:${JARGON_KEYS.map(escapeRegExp).join('|')})s?(?![\\p{L}\\p{N}])`, 'giu');
+    const jargonLookup = new Map(JARGON_KEYS.map((k) => [k.toLocaleLowerCase('pt-PT'), k]));
+
+    /** Chave do dicionário para o texto encontrado. As siglas só contam em maiúsculas («IVA», não «iva»). */
+    function jargonKey(match) {
+      for (const word of [match, match.replace(/s$/i, '')]) {
+        const key = jargonLookup.get(word.toLocaleLowerCase('pt-PT'));
+        if (key && (key !== key.toUpperCase() || word === key)) return key;
+      }
+      return null;
+    }
+
+    /** Escapa `text` e envolve os termos do dicionário em <span class="termo-jargao">. */
+    function withJargon(text) {
+      let html = '';
+      let last = 0;
+      for (const m of String(text ?? '').matchAll(JARGON_RE)) {
+        const key = jargonKey(m[0]);
+        if (!key) continue;
+        html += `${escapeHtml(text.slice(last, m.index))}<span class="termo-jargao" data-termo="${escapeHtml(key)}" tabindex="0">${escapeHtml(m[0])}</span>`;
+        last = m.index + m[0].length;
+      }
+      return html + escapeHtml(String(text ?? '').slice(last));
+    }
+
+    let jargonActive = null;
+
+    function showJargon(term) {
+      const definition = DICIONARIO[term.dataset.termo];
+      if (!definition) return;
+      if (jargonActive !== term) hideJargon();
+      jargonActive = term;
+      term.classList.add('is-active');
+      term.setAttribute('aria-describedby', 'jargon-tip');
+      const tip = $('#jargon-tip');
+      tip.innerHTML = `<strong>${escapeHtml(term.dataset.termo)}</strong>${escapeHtml(definition)}`;
+      tip.hidden = false;
+
+      // Por cima da palavra, centrado e dentro do ecrã; por baixo se não houver espaço em cima.
+      const rect = term.getClientRects()[0] || term.getBoundingClientRect();
+      const margin = 8;
+      const gap = 10;
+      const { offsetWidth: w, offsetHeight: h } = tip;
+      const center = rect.left + rect.width / 2;
+      const left = Math.min(Math.max(center - w / 2, margin), document.documentElement.clientWidth - w - margin);
+      const below = rect.top - h - gap < margin;
+      tip.classList.toggle('is-below', below);
+      tip.style.left = `${Math.round(left)}px`;
+      tip.style.top = `${Math.round(below ? rect.bottom + gap : rect.top - h - gap)}px`;
+      tip.style.setProperty('--arrow-x', `${Math.round(Math.min(Math.max(center - left, 14), w - 14))}px`);
+    }
+
+    function hideJargon() {
+      $('#jargon-tip').hidden = true;
+      if (!jargonActive) return;
+      jargonActive.classList.remove('is-active');
+      jargonActive.removeAttribute('aria-describedby');
+      jargonActive = null;
     }
 
     /* ---------- Modal ---------- */
@@ -3209,7 +3794,7 @@
           ${partyLogo(party)}
           <div>
             <strong>${escapeHtml(party.nome)}</strong>
-            <p>${escapeHtml(texto)}</p>
+            <p>${withJargon(texto)}</p>
             <button class="modal-link" type="button" data-party="${party.id}" data-goto-category="${categoryId}"
                     data-goto-ideia="${escapeHtml(ideia)}">Ver no programa</button>
           </div>
@@ -3753,8 +4338,11 @@
       $('.app').classList.toggle('is-home', state.view === 'partidos' && !state.partyId);
       // Ao entrar na Bússola baralham-se novas perguntas.
       if (state.view === 'bussola' && (lastView !== 'bussola' || !state.quizIds.length)) newQuizRound();
+      // Escolher partidos na coligação muda o endereço, mas não deve saltar para o topo.
+      const keepScroll = state.view === 'coligacao' && lastView === 'coligacao';
       lastView = state.view;
       closeModal();
+      hideJargon();
       renderViewSwitch();
       renderPartyList();
 
@@ -3762,6 +4350,8 @@
       if (state.view === 'grafo') view.innerHTML = renderGraphView();
       else if (state.view === 'duelo') view.innerHTML = renderDuelView();
       else if (state.view === 'bussola') view.innerHTML = renderQuizView();
+      else if (state.view === 'coligacao') view.innerHTML = renderCoalitionView();
+      else if (state.view === 'meu-programa') view.innerHTML = renderMyProgramView();
       else if (state.partyId) view.innerHTML = renderPartyView(getParty(state.partyId));
       else view.innerHTML = renderHome();
 
@@ -3769,7 +4359,7 @@
       else destroyGraph();
 
       const route = location.hash;
-      if (route !== lastRoute) $('#main').scrollTop = 0;
+      if (route !== lastRoute && !keepScroll) $('#main').scrollTop = 0;
       lastRoute = route;
 
       afterRender.splice(0).forEach((fn) => fn());
@@ -3779,6 +4369,12 @@
       $$('.view-switch [data-view]').forEach((btn) => {
         btn.setAttribute('aria-pressed', String(btn.dataset.view === state.view));
       });
+      // No telemóvel a barra desliza: centra o botão da vista atual («Meu Programa» fica fora do ecrã).
+      const nav = $('.view-switch');
+      const active = $('[aria-pressed="true"]', nav);
+      if (active && nav.scrollWidth > nav.clientWidth) {
+        nav.scrollLeft = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2;
+      }
     }
 
     function renderPartyList() {
@@ -3824,6 +4420,7 @@
             <div class="home-actions">
               <button class="home-action" type="button" data-view="grafo">Abrir o grafo de afinidades</button>
               <button class="home-action" type="button" data-view="duelo">Comparar dois partidos</button>
+              <button class="home-action" type="button" data-view="coligacao">Construir uma coligação</button>
             </div>
           </div>
           <ul class="party-grid" aria-label="Partidos">${cards}</ul>
@@ -3902,8 +4499,9 @@
 
       return `
         <li class="topic" data-ideia="${escapeHtml(topic.ideia || '')}">
-          <span class="topic-text">${escapeHtml(topic.texto)}</span>
+          <span class="topic-text">${withJargon(topic.texto)}</span>
           ${badges ? `<span class="badges" aria-label="Partidos com ideia semelhante">${badges}</span>` : ''}
+          ${favButton(party, category, topic)}
         </li>`;
     }
 
@@ -4007,9 +4605,9 @@
 
     function bindEvents() {
       document.addEventListener('click', (e) => {
-        const el = e.target.closest('[data-party], [data-tab], [data-category], [data-view], [data-action]');
+        const el = e.target.closest('[data-party], [data-tab], [data-category], [data-view], [data-action], [data-coalition]');
         if (!el) return;
-        const { party, tab, category, view, action } = el.dataset;
+        const { party, tab, category, view, action, coalition } = el.dataset;
 
         if (party) {
           // Um badge abre o outro partido já filtrado na mesma categoria, com a ideia destacada.
@@ -4030,6 +4628,12 @@
         } else if (tab) {
           afterRender.push(() => $(`#tab-${tab}`)?.focus());
           navigate(`#/partido/${state.partyId}/${tab}`);
+        } else if (coalition) {
+          const ids = state.coalition.includes(coalition)
+            ? state.coalition.filter((id) => id !== coalition)
+            : [...state.coalition, coalition];
+          afterRender.push(() => $(`[data-coalition="${coalition}"]`)?.focus({ preventScroll: true }));
+          navigate(coalitionHash(PARTIES.filter((p) => ids.includes(p.id)).map((p) => p.id)));
         } else if (category) {
           state.category = category;
           render();
@@ -4038,7 +4642,26 @@
           if (view === 'grafo') navigate(state.graphCategory ? `#/grafo/${state.graphCategory}` : '#/grafo');
           else if (view === 'bussola') navigate('#/bussola');
           else if (view === 'duelo') navigate(`#/duelo/${state.duelA}/${state.duelB}`);
+          else if (view === 'coligacao') navigate(coalitionHash(state.coalition));
+          else if (view === 'meu-programa') navigate('#/meu-programa');
           else navigate(state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/');
+        } else if (action === 'fav') {
+          const { favParty, favCategory, favIdeia } = el.dataset;
+          const saved = toggleFavorite(favParty, favCategory, favIdeia);
+          toast(saved ? 'Guardada em O Meu Programa.' : 'Retirada de O Meu Programa.');
+          if (state.view === 'meu-programa') {
+            render();
+          } else {
+            el.setAttribute('aria-pressed', String(saved));
+            el.title = saved ? 'Retirar de O Meu Programa' : 'Guardar em O Meu Programa';
+            el.classList.remove('is-pop');
+            void el.offsetWidth;
+            el.classList.toggle('is-pop', saved);
+          }
+        } else if (action === 'fav-clear') {
+          clearFavorites(el);
+        } else if (action === 'coalition-clear') {
+          navigate('#/coligacao');
         } else if (action === 'share') {
           shareLink();
         } else if (action === 'print') {
@@ -4060,7 +4683,7 @@
 
       // Navegação das abas com as setas (padrão WAI-ARIA)
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') { setSidebar(false); closeModal(); }
+        if (e.key === 'Escape') { setSidebar(false); closeModal(); hideJargon(); }
         const tab = e.target.closest('[role="tab"]');
         if (!tab || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
         const tabs = $$('[role="tab"]');
@@ -4145,6 +4768,36 @@
         if (!e.target.closest('#global-search')) closeSearch(false);
       });
 
+      // Dicionário de jargão: o rato por cima, o foco (teclado ou toque) ou um clique mostram a definição.
+      document.addEventListener('pointerover', (e) => {
+        const term = e.pointerType === 'mouse' && e.target.closest('.termo-jargao');
+        if (term) showJargon(term);
+      });
+      document.addEventListener('pointerout', (e) => {
+        const term = e.pointerType === 'mouse' && e.target.closest('.termo-jargao');
+        if (term && !term.contains(e.relatedTarget)) hideJargon();
+      });
+      document.addEventListener('focusin', (e) => {
+        const term = e.target.closest('.termo-jargao');
+        if (term) showJargon(term);
+        else hideJargon();
+      });
+      document.addEventListener('click', (e) => {
+        const term = e.target.closest('.termo-jargao');
+        if (term) showJargon(term);
+        else if (jargonActive) hideJargon();
+      });
+      document.addEventListener('scroll', hideJargon, { passive: true, capture: true });
+      window.addEventListener('resize', hideJargon);
+
+      // Favoritos alterados noutro separador.
+      window.addEventListener('storage', (e) => {
+        if (e.key !== FAV_KEY) return;
+        favorites = loadFavorites();
+        renderFavCount();
+        if (state.view === 'meu-programa') render();
+      });
+
       window.addEventListener('hashchange', render);
     }
 
@@ -4153,6 +4806,7 @@
        ========================================================= */
     bindEvents();
     renderThemeButton();
+    renderFavCount();
     render();
   </script>
 </body>
