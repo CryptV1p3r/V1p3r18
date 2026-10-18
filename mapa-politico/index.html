@@ -874,6 +874,81 @@
       color: color-mix(in srgb, var(--party-color) 70%, var(--text));
     }
 
+    /* ---------- Nuvem de palavras (página inicial) ---------- */
+    .wordcloud-section { display: grid; gap: 10px; }
+    .wordcloud-section h3 { font-size: var(--fs-lg); letter-spacing: -.02em; }
+    .wordcloud-section > p { max-width: 64ch; font-size: var(--fs-sm); color: var(--text-muted); }
+    .wordcloud-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+      align-items: start;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .wordcloud {
+      background: color-mix(in srgb, var(--party-color) 5%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--party-color) 24%, var(--border));
+      border-radius: var(--radius);
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .wordcloud[open] {
+      border-color: color-mix(in srgb, var(--party-color) 55%, var(--border));
+      box-shadow: 0 10px 28px -16px var(--party-color);
+    }
+    .wordcloud summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      list-style: none;
+      border-radius: var(--radius);
+    }
+    .wordcloud summary::-webkit-details-marker { display: none; }
+    .wordcloud summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .wordcloud summary .party-logo {
+      width: 34px; height: 34px;
+      font-size: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 14px -4px var(--party-color);
+    }
+    .wordcloud-name { display: grid; min-width: 0; line-height: 1.25; }
+    .wordcloud-name strong { font-size: var(--fs-sm); }
+    .wordcloud-name span { overflow: hidden; font-size: var(--fs-xs); color: var(--text-muted); text-overflow: ellipsis; white-space: nowrap; }
+    /* Seta que roda quando o painel abre */
+    .wordcloud-chevron {
+      flex: none;
+      width: 16px; height: 16px;
+      margin-left: auto;
+      color: var(--text-muted);
+      transition: transform .2s var(--ease);
+    }
+    .wordcloud[open] .wordcloud-chevron { transform: rotate(180deg); }
+    /* A nuvem: o tamanho, o peso e a opacidade de cada palavra seguem a frequência (--w, de 0 a 1).
+       A cor do partido é misturada com a do texto para se ler nos dois temas (ex.: o azul-escuro do Chega). */
+    .wordcloud-words {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px 12px;
+      margin: 0;
+      padding: 6px 16px 18px;
+      list-style: none;
+    }
+    .wordcloud-words li {
+      font-size: calc(var(--fs-xs) + var(--w) * 1.1rem);
+      font-weight: calc(500 + var(--w) * 300);
+      line-height: 1.2;
+      letter-spacing: -.01em;
+      color: color-mix(in srgb, var(--party-color) 62%, var(--text));
+      opacity: calc(.62 + var(--w) * .38);
+    }
+    .wordcloud-empty { padding: 0 16px 16px; font-size: var(--fs-sm); color: var(--text-muted); }
+    @media (prefers-reduced-motion: reduce) {
+      .wordcloud, .wordcloud-chevron { transition: none; }
+    }
+
     /* Página inicial: sem painel lateral, os cartões ocupam a largura toda. */
     .app.is-home .sidebar,
     .app.is-home .backdrop,
@@ -5030,6 +5105,90 @@
         : '<li class="placeholder">Nenhum partido encontrado.</li>';
     }
 
+    /* ---------- Nuvem de palavras (página inicial) ---------- */
+    const WORDCLOUD_SIZE = 20;
+    const WORDCLOUD_MIN_LENGTH = 3; // ignora «m», «n.º» e restos de abreviaturas
+    // Palavras comuns que não dizem nada sobre o programa: artigos, preposições e contrações,
+    // pronomes, conjunções, advérbios genéricos, formas dos verbos auxiliares, numerais e
+    // unidades («35 anos», «mil euros»), que só acompanham um número.
+    const STOPWORDS = new Set(`
+      a à às ao aos o os as um uma uns umas de do da dos das em no na nos nas num numa
+      por pelo pela pelos pelas para pra com sem sob sobre entre até após ante contra desde perante
+      e ou mas nem que se como quando onde porque pois porém também já ainda só apenas mesmo
+      não sim mais menos muito muitos muita muitas pouco poucos pouca poucas tão tanto tanta
+      bem mal assim aqui ali lá sempre nunca cada todo toda todos todas outro outra outros outras
+      qual quais quem cujo cuja este esta estes estas esse essa esses essas aquele aquela aqueles aquelas
+      isto isso aquilo eu tu ele ela nós vós eles elas me te lhe lhes nos vos seu sua seus suas
+      nosso nossa nossos nossas meu minha teu tua dele dela deles delas
+      ser é são era foi foram será serão seja sejam sendo sido
+      ter tem têm tinha teve terá terão tenha tenham tendo tido
+      estar está estão esteja estejam haver há houver
+      fazer faz feito feita poder pode podem dever deve devem
+      partir através incluindo nomeadamente designadamente etc
+      dois duas três quatro cinco seis sete oito nove dez cem mil milhão milhões
+      ano anos mês meses dia dias hora horas euro euros
+    `.trim().split(/\s+/));
+
+    /**
+     * Conta as palavras de todas as propostas (`texto`) do partido e devolve as mais frequentes.
+     * As formas com e sem maiúsculas juntam-se; siglas (IRS, SNS…) mantêm as maiúsculas.
+     * Empates resolvem-se por ordem alfabética, para a nuvem ser sempre a mesma.
+     */
+    function topWords(party, limit = WORDCLOUD_SIZE) {
+      const counts = new Map(); // chave em minúsculas → { n, siglas }
+      for (const category of CATEGORIES) {
+        for (const topic of party.programa[category.id] || []) {
+          for (const word of topic.texto.match(/\p{L}+(?:-\p{L}+)*/gu) || []) {
+            const key = word.toLowerCase();
+            if (key.length < WORDCLOUD_MIN_LENGTH || STOPWORDS.has(key)) continue;
+            const entry = counts.get(key) || { n: 0, siglas: 0 };
+            entry.n += 1;
+            if (word === word.toUpperCase()) entry.siglas += 1;
+            counts.set(key, entry);
+          }
+        }
+      }
+      return [...counts]
+        .sort(([a, x], [b, y]) => y.n - x.n || a.localeCompare(b, 'pt'))
+        .slice(0, limit)
+        .map(([key, { n, siglas }]) => ({ word: siglas * 2 > n ? key.toUpperCase() : key, n }));
+    }
+
+    // As palavras só dependem dos dados, por isso calculam-se uma vez por partido.
+    const wordCache = new Map();
+    const cachedTopWords = (party) => {
+      if (!wordCache.has(party.id)) wordCache.set(party.id, topWords(party));
+      return wordCache.get(party.id);
+    };
+
+    /** Um <details> por partido; a nuvem põe as palavras maiores ao centro. */
+    function renderWordcloud(party) {
+      const words = cachedTopWords(party);
+      const max = words[0]?.n || 1;
+      const min = words.at(-1)?.n || 1;
+      // Alterna as palavras (por ordem de frequência) entre o fim e o início da lista.
+      const arranged = [];
+      words.forEach((w, i) => (i % 2 ? arranged.unshift(w) : arranged.push(w)));
+      const cloud = words.length
+        ? `<ul class="wordcloud-words" aria-label="Palavras mais frequentes ${escapeHtml(ofParty(party))}">
+            ${arranged.map(({ word, n }) => {
+              const weight = max === min ? 1 : (n - min) / (max - min);
+              const label = `${n} ${n === 1 ? 'vez' : 'vezes'}`;
+              return `<li style="--w:${weight.toFixed(2)}" title="${label}">${escapeHtml(word)}<span class="visually-hidden"> (${label})</span></li>`;
+            }).join('')}
+          </ul>`
+        : '<p class="wordcloud-empty">Informação não disponível.</p>';
+      return `
+        <details class="wordcloud" style="--party-color:${party.cor}">
+          <summary>
+            ${partyLogo(party)}
+            <span class="wordcloud-name"><strong>${escapeHtml(party.sigla)}</strong><span>${escapeHtml(party.nome)}</span></span>
+            <svg class="wordcloud-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          ${cloud}
+        </details>`;
+    }
+
     /** Página inicial: um cartão por partido, com o número de propostas registadas. */
     function renderHome() {
       const cards = PARTIES.map((p) => {
@@ -5059,6 +5218,11 @@
             </div>
           </div>
           <ul class="party-grid" aria-label="Partidos">${cards}</ul>
+          <section class="wordcloud-section" aria-labelledby="wordcloud-title">
+            <h3 id="wordcloud-title">Palavras mais frequentes</h3>
+            <p>As ${WORDCLOUD_SIZE} palavras que cada partido mais repete nos programas (excluindo palavras comuns como «de», «a», «para»). Abre um partido para ver a nuvem.</p>
+            <div class="wordcloud-list">${PARTIES.map(renderWordcloud).join('')}</div>
+          </section>
         </section>`;
     }
 
