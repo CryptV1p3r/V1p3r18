@@ -6,6 +6,43 @@
   <meta name="description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
   <title>Mapa Político de Portugal</title>
 
+  <!-- Fase 0: ícone, cores do browser e pré-visualização ao partilhar -->
+  <!-- Ícone «MP» embutido (SVG e PNG 32×32), para o ficheiro continuar a funcionar sozinho -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='27' font-weight='700' fill='%23fff' letter-spacing='-1'%3EMP%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACp0lEQVR4nOyXTWgTQRiG39lsNkmr/dG20qJVsFW0Ki0qrQqCVmwVPXpQRGMMCHrRsx68eBFE8CAeShX0VkQURA+aIkVsrZgmWvGnoRVBMFqb/oQ02WTHb9bmj5KQhjR76XPIfrs7k/ed75udYWSksM4+USGbopfAeRvdNjPGalAAOOd+ugyBsf5oTL45dq8yEH/H4sF6h/+QBNZFT+qwmHD81MCdvu6aZwkDDWfGO5ikPUcR0Tg/LEyw+hOBSotNHaZntSgmlIkQU7bKilU9XXRxAZXayiOnZAraYBSkLdPFOAOkLdMsXAuDENoyDGbJQFYDTVSh2hWSHvd6IohpyXetG81YXsIQCnO8H1Gxp0lJ6zsZ5PCOqgiryN+A46ANR1stenzu1hR6vRE9tpFW18VyWMzAjz8a7DcCuH2hbF5/IX7fFcL1nmB+BuJMhzgOtCgJA+0tFl1cjDIV/6SGqw9m9Hh1lQnOThucHTYMflETffMy4B2NYu+WZIr3bVPw3R8jEyytnRjxC3dSqL7ahJP7rdi5wZzRgIQcePdNxapKCTsazbSjArs3Kej/rEI2sYx9Sq0Ma6r///3faS1ju6wZ4HMZ7vsYwfkjJejcrsBKiVhZxvRJ2d5sSWtfUy6h53KFHjfUmVBqYRif4nj4ejY/A2xugGKmD9CId21WwCSm1/7Vh0i2rhj8quLNJxVPBmYxMcPzM5CKyxPGlePLYKW69w2nf5JxxCQ8di2AhZDTHBA8fRvWSyLq6vJEUChyNiDS6PapCFI5XrrDKBSs8exvDgNZ2owMNyBx8F8wCKEt0e8QjIK0xWdonAHSlqKa+Q4tMAtbvgqA0BTaEh0UxziYA8WGM7vQ1ldCX3fVI3FWE8clLDbicEpaI3erHovbtA3diOP5PwAAAP//rZm2lQAAAAZJREFUAwDC9AUJ3EDaDgAAAABJRU5ErkJggg==">
+  <!-- Cor da barra do browser no telemóvel, igual ao fundo de cada tema do sistema -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafafa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090b">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- Open Graph e Twitter: título e descrição para as pré-visualizações de links -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Mapa Político de Portugal">
+  <meta property="og:title" content="Mapa Político de Portugal">
+  <meta property="og:description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
+  <meta property="og:locale" content="pt_PT">
+  <meta property="og:url" content="">
+  <!-- TODO: gerar imagem 1200×630 em logos/og.png -->
+  <meta property="og:image" content="logos/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mapa Político de Portugal">
+  <meta name="twitter:description" content="Mapa Político de Portugal: programas eleitorais, dirigentes e afinidades entre os partidos com assento parlamentar.">
+  <link rel="canonical" href="">
+  <script>
+    // O site é estático e não tem um endereço fixo: o URL canónico é o da página atual sem
+    // pesquisa nem #rota (equivale a location.origin + location.pathname, mas também funciona
+    // em file://, onde location.origin é "null"). A imagem OG precisa de um endereço absoluto.
+    // Nota: as redes sociais leem o HTML sem correr JS; quando houver domínio, escreve aqui
+    // os endereços fixos. TODO: substituir pelo domínio final.
+    (() => {
+      const base = location.href.split(/[?#]/)[0];
+      document.querySelector('link[rel="canonical"]').href = base;
+      document.querySelector('meta[property="og:url"]').content = base;
+      const image = document.querySelector('meta[property="og:image"]');
+      image.content = new URL(image.getAttribute('content'), base).href;
+    })();
+  </script>
+
   <!-- Fonte Inter (Google Fonts) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -874,6 +911,81 @@
       color: color-mix(in srgb, var(--party-color) 70%, var(--text));
     }
 
+    /* ---------- Nuvem de palavras (página inicial) ---------- */
+    .wordcloud-section { display: grid; gap: 10px; }
+    .wordcloud-section h3 { font-size: var(--fs-lg); letter-spacing: -.02em; }
+    .wordcloud-section > p { max-width: 64ch; font-size: var(--fs-sm); color: var(--text-muted); }
+    .wordcloud-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+      align-items: start;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .wordcloud {
+      background: color-mix(in srgb, var(--party-color) 5%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--party-color) 24%, var(--border));
+      border-radius: var(--radius);
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .wordcloud[open] {
+      border-color: color-mix(in srgb, var(--party-color) 55%, var(--border));
+      box-shadow: 0 10px 28px -16px var(--party-color);
+    }
+    .wordcloud summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      list-style: none;
+      border-radius: var(--radius);
+    }
+    .wordcloud summary::-webkit-details-marker { display: none; }
+    .wordcloud summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .wordcloud summary .party-logo {
+      width: 34px; height: 34px;
+      font-size: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 14px -4px var(--party-color);
+    }
+    .wordcloud-name { display: grid; min-width: 0; line-height: 1.25; }
+    .wordcloud-name strong { font-size: var(--fs-sm); }
+    .wordcloud-name span { overflow: hidden; font-size: var(--fs-xs); color: var(--text-muted); text-overflow: ellipsis; white-space: nowrap; }
+    /* Seta que roda quando o painel abre */
+    .wordcloud-chevron {
+      flex: none;
+      width: 16px; height: 16px;
+      margin-left: auto;
+      color: var(--text-muted);
+      transition: transform .2s var(--ease);
+    }
+    .wordcloud[open] .wordcloud-chevron { transform: rotate(180deg); }
+    /* A nuvem: o tamanho, o peso e a opacidade de cada palavra seguem a frequência (--w, de 0 a 1).
+       A cor do partido é misturada com a do texto para se ler nos dois temas (ex.: o azul-escuro do Chega). */
+    .wordcloud-words {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px 12px;
+      margin: 0;
+      padding: 6px 16px 18px;
+      list-style: none;
+    }
+    .wordcloud-words li {
+      font-size: calc(var(--fs-xs) + var(--w) * 1.1rem);
+      font-weight: calc(500 + var(--w) * 300);
+      line-height: 1.2;
+      letter-spacing: -.01em;
+      color: color-mix(in srgb, var(--party-color) 62%, var(--text));
+      opacity: calc(.62 + var(--w) * .38);
+    }
+    .wordcloud-empty { padding: 0 16px 16px; font-size: var(--fs-sm); color: var(--text-muted); }
+    @media (prefers-reduced-motion: reduce) {
+      .wordcloud, .wordcloud-chevron { transition: none; }
+    }
+
     /* Página inicial: sem painel lateral, os cartões ocupam a largura toda. */
     .app.is-home .sidebar,
     .app.is-home .backdrop,
@@ -911,15 +1023,19 @@
     .action-btn.is-primary { color: #fff; background: var(--accent); border-color: var(--accent); }
     .action-btn:disabled { opacity: .45; cursor: not-allowed; }
     .party-header { flex-wrap: wrap; }
-    .party-header .action-btn { margin-left: auto; }
+    .party-header > .action-btn { margin-left: auto; }
 
     /* ---------- Aviso (toast) ---------- */
     .toast {
       position: fixed;
-      left: 50%;
+      /* Centrado com margens automáticas: com left: 50% a caixa saía do ecrã no telemóvel
+         e alargava a página na horizontal. */
+      left: 16px;
+      right: 16px;
       bottom: 24px;
       z-index: 120;
-      max-width: calc(100% - 32px);
+      width: fit-content;
+      margin-inline: auto;
       padding: 12px 18px;
       font-size: var(--fs-sm);
       font-weight: 600;
@@ -933,10 +1049,10 @@
       box-shadow: 0 16px 40px rgba(0, 0, 0, .35);
       opacity: 0;
       pointer-events: none;
-      transform: translate(-50%, 12px);
+      transform: translateY(12px);
       transition: opacity .25s var(--ease), transform .25s var(--ease);
     }
-    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+    .toast.is-visible { opacity: 1; transform: translateY(0); }
 
     /* ---------- Bússola política ---------- */
     .quiz-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
@@ -1034,6 +1150,323 @@
     .quiz-matches { font-size: var(--fs-xs); color: var(--text-muted); }
     @keyframes bar-grow { from { transform: scaleX(0); } }
 
+    /* ---------- Matriz de consenso (heatmap) ---------- */
+    .matrix-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .matrix-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+    .matrix-wrap {
+      overflow-x: auto;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .matrix {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: separate;
+      border-spacing: 4px;
+      padding: 6px;
+      font-size: var(--fs-sm);
+    }
+    .matrix th { font-weight: 600; }
+    .matrix thead th { padding: 6px 2px 8px; vertical-align: bottom; }
+    .matrix-party { display: grid; justify-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; }
+    .matrix-party .party-logo { width: 28px; height: 28px; font-size: 9px; border-radius: 8px; box-shadow: 0 0 14px -4px var(--party-color); }
+    /* Primeira coluna fixa ao deslizar a tabela no telemóvel */
+    .matrix tbody th,
+    .matrix tfoot th,
+    .matrix thead th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--surface);
+    }
+    .matrix tbody th {
+      width: 130px;
+      min-width: 120px;
+      padding: 0 10px;
+      text-align: left;
+      font-size: var(--fs-xs);
+      border-radius: var(--radius-sm);
+    }
+    .matrix td { padding: 0; }
+    @media (min-width: 768px) { .matrix tbody th { width: 210px; } }
+    .matrix-cell {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-width: 44px;
+      height: 38px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--cell-text, var(--text));
+      /* --a: 0 a 1, proporcional ao número de propostas */
+      background: color-mix(in srgb, var(--accent) calc(var(--a) * 100%), var(--surface-2));
+      border: 1px solid color-mix(in srgb, var(--accent) calc(var(--a) * 60%), var(--border));
+      border-radius: var(--radius-sm);
+      transition: transform .15s var(--ease), box-shadow .15s var(--ease);
+    }
+    .matrix-cell:hover:not(:disabled),
+    .matrix-cell:focus-visible { position: relative; z-index: 2; transform: scale(1.08); box-shadow: 0 0 18px -4px var(--accent); }
+    .matrix-cell:disabled { color: var(--text-muted); font-weight: 500; cursor: default; opacity: .7; }
+    .matrix-total { text-align: center; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .matrix tfoot th { padding: 6px 10px; text-align: left; font-size: var(--fs-xs); color: var(--text-muted); }
+    .matrix-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      margin: 12px 0 0;
+      font-size: var(--fs-xs);
+      color: var(--text-muted);
+    }
+    .matrix-scale {
+      width: 160px;
+      height: 10px;
+      background: linear-gradient(90deg, var(--surface-2), var(--accent));
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+    .modal-topics { display: grid; gap: 8px; margin: 16px 0 0; padding-left: 18px; list-style: disc; font-size: var(--fs-sm); }
+    .modal-head { display: flex; align-items: center; gap: 12px; margin-right: 36px; }
+    .modal-head .party-logo { width: 40px; height: 40px; box-shadow: 0 0 16px -4px var(--party-color); }
+    .modal-head h2 { margin: 0; }
+    .modal .modal-link { display: inline-block; margin-top: 14px; }
+
+    /* ---------- Perfil visual (radar) ---------- */
+    .modal.is-wide { width: min(100%, 680px); }
+    .radar-canvas { position: relative; height: min(62vh, 520px); margin-top: 12px; }
+    /* No telemóvel o radar é limitado pela largura: menos altura e até às margens do modal. */
+    @media (max-width: 599px) { .radar-canvas { height: 360px; margin-inline: -14px; } }
+    .radar-canvas .placeholder { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+    .radar-note { margin-top: 8px; font-size: var(--fs-xs); color: var(--text-muted); }
+    .radar-values { margin-top: 10px; font-size: var(--fs-sm); }
+    .radar-values summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: var(--fs-xs); }
+    .radar-values ul { display: grid; gap: 4px; margin-top: 8px; }
+    .radar-values li { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+    .radar-values b { font-variant-numeric: tabular-nums; }
+    /* ---------- Distribuição visual (sunburst) ----------
+       Reutiliza .radar-canvas, .radar-note e .radar-values; aqui só o que é próprio do sunburst. */
+    .sunburst-canvas { height: min(62vh, 560px); }
+    /* No telemóvel o círculo é limitado pela largura: chega a altura do radar. */
+    @media (max-width: 599px) { .sunburst-canvas { height: 360px; } }
+    /* Lista de valores com sub-lista de propostas: a linha da categoria mantém o estilo do radar. */
+    .sunburst-values .sunburst-group { display: block; padding-bottom: 6px; }
+    .sunburst-values .sunburst-row { display: flex; justify-content: space-between; gap: 12px; }
+    .sunburst-values .sunburst-row span { display: inline-flex; align-items: center; gap: 8px; }
+    .sunburst-swatch { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+    .sunburst-values .sunburst-group ul { display: grid; gap: 2px; margin: 4px 0 0 18px; list-style: disc; color: var(--text-muted); font-size: var(--fs-xs); }
+    .sunburst-values .sunburst-group ul li { display: list-item; padding: 0; border: 0; }
+    /* A lista é longa (uma linha por proposta): limita a altura dentro do modal. */
+    .sunburst-values > ul { max-height: 320px; overflow-y: auto; padding-right: 6px; }
+    .party-header-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+
+    /* ---------- Construtor de coligações ---------- */
+    .coalition-view h2,
+    .myprog-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .coalition-view > p,
+    .myprog-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+    .coalition-picker {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+      gap: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .coalition-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      text-align: left;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .coalition-toggle:hover { border-color: color-mix(in srgb, var(--party-color) 55%, var(--border)); }
+    .coalition-toggle .party-logo { width: 30px; height: 30px; font-size: 10px; }
+    .coalition-toggle-name { flex: 1; min-width: 0; font-size: var(--fs-sm); font-weight: 700; }
+    /* Visto: círculo vazio que se preenche com a cor do partido */
+    .coalition-check {
+      display: grid;
+      place-items: center;
+      width: 20px; height: 20px;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      transition: background .2s var(--ease), border-color .2s var(--ease);
+    }
+    .coalition-check svg { width: 12px; height: 12px; opacity: 0; color: var(--badge-text, #fff); }
+    .coalition-toggle[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--party-color) 12%, var(--surface));
+      border-color: var(--party-color);
+      box-shadow: 0 0 20px -8px var(--party-color);
+    }
+    .coalition-toggle[aria-pressed="true"] .coalition-check { background: var(--party-color); border-color: var(--party-color); }
+    .coalition-toggle[aria-pressed="true"] .coalition-check svg { opacity: 1; }
+    .coalition-summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 16px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      font-size: var(--fs-md);
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      border-radius: var(--radius-lg);
+    }
+    .coalition-summary.is-idle { background: var(--surface); border-color: var(--border); color: var(--text-muted); font-size: var(--fs-sm); }
+    .coalition-summary p { margin: 0; }
+    .coalition-summary .action-btn { padding: 6px 12px; font-size: var(--fs-xs); }
+    .coalition-card .duel-sides { gap: 10px; }
+    @media (min-width: 560px) {
+      .coalition-card .duel-sides { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    }
+
+    /* ---------- Dicionário de jargão (tooltips) ---------- */
+    .termo-jargao {
+      text-decoration: underline dotted color-mix(in srgb, var(--accent) 70%, transparent);
+      text-decoration-thickness: 1.5px;
+      text-underline-offset: 3px;
+      cursor: help;
+      border-radius: 3px;
+      transition: background .15s var(--ease), color .15s var(--ease);
+    }
+    .termo-jargao:hover,
+    .termo-jargao.is-active { color: var(--accent); background: var(--accent-soft); }
+    .termo-jargao:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+    .jargon-tip {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 130;
+      width: max-content;
+      max-width: min(300px, calc(100vw - 16px));
+      padding: 10px 12px;
+      font-size: var(--fs-sm);
+      line-height: 1.45;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+      border-radius: var(--radius);
+      box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .45), 0 0 24px -12px var(--accent);
+      pointer-events: none;
+      animation: tip-in .15s var(--ease);
+    }
+    .jargon-tip[hidden] { display: none; }
+    .jargon-tip strong { display: block; margin-bottom: 2px; font-size: var(--fs-xs); letter-spacing: .04em; color: var(--accent); }
+    /* Seta a apontar para a palavra (para baixo; para cima quando o tooltip fica por baixo) */
+    .jargon-tip::after {
+      content: "";
+      position: absolute;
+      left: var(--arrow-x, 50%);
+      top: 100%;
+      width: 10px; height: 10px;
+      background: inherit;
+      border: inherit;
+      border-width: 0 1px 1px 0;
+      transform: translate(-50%, -5px) rotate(45deg);
+    }
+    .jargon-tip.is-below::after { top: auto; bottom: 100%; transform: translate(-50%, 5px) rotate(225deg); }
+    @keyframes tip-in { from { opacity: 0; transform: translateY(4px); } }
+
+    /* ---------- O Meu Programa (favoritos) ---------- */
+    /* A estrela fica sempre no canto direito da proposta, alinhada com a primeira linha,
+       mesmo quando o texto e os badges quebram de linha no telemóvel. */
+    .topic:has(> .fav-btn) { position: relative; padding-right: 34px; }
+    .fav-btn {
+      position: absolute;
+      top: 5px;
+      right: -6px;
+      display: inline-grid;
+      place-items: center;
+      width: 30px; height: 30px;
+      color: var(--text-muted);
+      border-radius: 50%;
+      transition: color .15s var(--ease), background .15s var(--ease), transform .2s var(--ease);
+    }
+    .fav-btn svg { width: 17px; height: 17px; }
+    .fav-btn:hover { color: #f59e0b; background: rgba(245, 158, 11, .12); }
+    .fav-btn[aria-pressed="true"] { color: #f59e0b; }
+    .fav-btn[aria-pressed="true"] svg { fill: currentColor; filter: drop-shadow(0 0 6px rgba(245, 158, 11, .55)); }
+    .fav-btn.is-pop { animation: fav-pop .35s var(--ease); }
+    @keyframes fav-pop { 50% { transform: scale(1.35); } }
+    .nav-count {
+      display: inline-grid;
+      place-items: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      margin-left: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      color: #18181b;
+      background: #f59e0b;
+      border-radius: 999px;
+      vertical-align: 1px;
+    }
+    .nav-count[hidden] { display: none; }
+    .myprog-summary {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .myprog-summary p { margin: 0; }
+    .myprog-bar {
+      display: flex;
+      height: 12px;
+      overflow: hidden;
+      background: var(--surface-2);
+      border-radius: 999px;
+    }
+    .myprog-bar span {
+      flex: var(--share) 0 0;
+      background: var(--party-color);
+      box-shadow: 0 0 12px var(--party-color);
+      animation: bar-grow .8s var(--ease) both;
+      transform-origin: left;
+    }
+    .myprog-bar span + span { border-left: 2px solid var(--surface); }
+    .myprog-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--fs-xs); color: var(--text-muted); }
+    .myprog-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .myprog-legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--party-color); }
+    .myprog-legend b { color: var(--text); font-variant-numeric: tabular-nums; }
+    .myprog-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .action-btn.is-danger { color: #ef4444; border-color: color-mix(in srgb, #ef4444 45%, var(--border)); }
+    .action-btn.is-danger:hover:not(:disabled) { border-color: #ef4444; box-shadow: 0 0 18px -6px #ef4444; }
+    .action-btn.is-danger.is-confirm { color: #fff; background: #ef4444; border-color: #ef4444; }
+    .myprog-category .topic-list { padding: 0 16px 6px; }
+    .myprog-category .duel-chip { flex-shrink: 0; align-self: center; }
+    .myprog-empty {
+      display: grid;
+      justify-items: start;
+      gap: 10px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .myprog-empty p { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+    .myprog-empty .fav-demo { display: inline-flex; vertical-align: -3px; color: #f59e0b; }
+    .myprog-empty .fav-demo svg { width: 16px; height: 16px; }
+
     /* ---------- Impressão / PDF: só o conteúdo do partido, a preto e branco ---------- */
     @media print {
       @page { margin: 16mm 14mm; }
@@ -1055,7 +1488,8 @@
       }
       body { font-size: 11pt; background: #fff !important; }
       .app-header, .sidebar, .backdrop, .tabs, .chips, .badges, .party-grid,
-      .toast, .modal-backdrop, button { display: none !important; }
+      .toast, .modal-backdrop, .jargon-tip, button { display: none !important; }
+      .termo-jargao { text-decoration: none; }
       .main { padding: 0 !important; }
       .main-inner { max-width: none; }
       .party-header { margin-bottom: 8pt; }
@@ -1079,6 +1513,25 @@
       .topic-list { padding: 0 0 0 14pt; list-style: disc; }
       .topic { display: list-item; padding: 2pt 0; break-inside: avoid; }
       .tab-panel[hidden] { display: none !important; }
+
+      /* O Meu Programa: só o resumo, a barra de composição e as propostas, com as cores dos partidos */
+      .myprog-view > p, .myprog-actions { display: none !important; }
+      .myprog-view h2 { font-size: 18pt; margin-bottom: 8pt; }
+      .myprog-summary { padding: 0 0 10pt; margin-bottom: 10pt; border: 0 !important; }
+      .myprog-bar, .myprog-bar span, .myprog-legend i, .myprog-category .badge {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .myprog-bar { border: 1pt solid #000 !important; }
+      .myprog-bar span, .myprog-legend i { background: var(--party-color) !important; }
+      .myprog-bar span + span { border-left: 1pt solid #fff !important; }
+      .myprog-category .badge {
+        display: inline-block !important;
+        margin-right: 6pt;
+        color: var(--badge-text, #fff) !important;
+        background: var(--party-color) !important;
+      }
+      .myprog-category .topic { display: flex; list-style: none; padding-right: 0 !important; }
     }
 
     /* ---------- Logótipos (imagem sobre a sigla, que fica como alternativa) ---------- */
@@ -1215,9 +1668,15 @@
       .app-header { flex-wrap: wrap; gap: 8px 4px; padding: 8px 12px; }
       .app-header .icon-btn { width: 36px; height: 36px; }
       .app-title { flex: 1; }
-      .view-switch { order: 1; flex-basis: 100%; margin-left: 0; }
-      .view-switch button { flex: 1; padding: 6px 4px; }
+      /* Seis vistas não cabem a 360px: a barra desliza na horizontal. */
+      .view-switch { order: 1; flex-basis: 100%; margin-left: 0; overflow-x: auto; scrollbar-width: none; }
+      .view-switch::-webkit-scrollbar { display: none; }
+      .view-switch button { flex: 1 0 auto; padding: 6px 10px; white-space: nowrap; }
     }
+    .view-switch button { white-space: nowrap; }
+    /* O texto escondido do contador é absoluto: com a barra posicionada fica preso a ela
+       e não alarga a página quando a barra desliza no telemóvel. */
+    .view-switch { position: relative; }
 
     @media (min-width: 768px) {
       .title-extra { display: inline; }
@@ -1270,6 +1729,15 @@
       .view-switch { margin-left: 0; }
     }
 
+    /* Sete vistas e a pesquisa no mesmo cabeçalho: abaixo de 1440px encurta-se o título e,
+       abaixo de 1280px, também os botões. */
+    @media (min-width: 1024px) and (max-width: 1439px) {
+      .title-extra { display: none; }
+    }
+    @media (min-width: 1024px) and (max-width: 1279px) {
+      .view-switch button { padding: 6px 10px; }
+    }
+
     @media (min-width: 1100px) {
       .people-grid { grid-template-columns: repeat(3, 1fr); }
     }
@@ -1279,6 +1747,344 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition: none !important; animation: none !important; }
     }
+
+    /* =========================================================
+       VISITA GUIADA (onboarding de primeira visita)
+       ========================================================= */
+    /* ---------- Tokens ---------- */
+    :root {
+      --onb-z: 140;                       /* acima dos modais (100) e do tooltip de jargão (130) */
+      --onb-dim: rgba(0, 0, 0, .55);      /* escurecimento à volta do elemento em foco */
+      --onb-pad: 6px;                     /* folga entre o elemento e o anel */
+      --onb-gap: 14px;                    /* distância entre o anel e o cartão */
+      --onb-speed: .35s;
+    }
+
+    /* ---------- Backdrop ----------
+       Camada fixa que ocupa o ecrã, transparente e sem capturar cliques
+       (pointer-events: none): o resto do site continua utilizável. O
+       escurecimento translúcido vem da sombra do anel; um clique fora do
+       cartão e do anel fecha a visita (tratado no JS). */
+    .onboarding {
+      position: fixed;
+      inset: 0;
+      z-index: var(--onb-z);
+      pointer-events: none;
+    }
+    .onboarding[hidden] { display: none; }
+
+    /* ---------- Spotlight (anel à volta do elemento real) ---------- */
+    .onboarding-spot {
+      position: fixed;
+      top: 0; left: 0;
+      width: 0; height: 0;
+      border-radius: var(--radius);
+      box-shadow: 0 0 0 2px var(--accent), 0 0 24px 2px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 0 9999px var(--onb-dim);
+      pointer-events: none;
+      transition:
+        top var(--onb-speed) var(--ease),
+        left var(--onb-speed) var(--ease),
+        width var(--onb-speed) var(--ease),
+        height var(--onb-speed) var(--ease),
+        border-radius var(--onb-speed) var(--ease);
+    }
+
+    /* ---------- Cartão ---------- */
+    .onboarding-card {
+      position: fixed;
+      top: 0; left: 0;
+      width: min(320px, calc(100vw - 24px));
+      padding: 16px 16px 14px;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow), 0 24px 64px -16px rgba(0, 0, 0, .55);
+      pointer-events: auto;
+      transition: top var(--onb-speed) var(--ease), left var(--onb-speed) var(--ease);
+    }
+    /* Linha de cima: «1/5» à esquerda e «Saltar» à direita */
+    .onboarding-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .onboarding-step {
+      margin: 0;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+    .onboarding-card h2 { font-size: var(--fs-md); letter-spacing: -.01em; }
+    .onboarding-card p { margin: 6px 0 0; font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.5; }
+    .onboarding-card kbd {
+      padding: 0 5px;
+      font: inherit;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    .onboarding-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .onboarding-skip {
+      padding: 4px 2px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .onboarding-skip:hover { color: var(--text); text-decoration: underline; }
+    .onboarding-btn {
+      padding: 7px 14px;
+      white-space: nowrap;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .onboarding-btn:hover { border-color: var(--accent); }
+    .onboarding-btn.is-primary {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 18px -6px var(--accent);
+    }
+    .onboarding-btn.is-primary:hover { box-shadow: 0 0 22px -4px var(--accent); }
+
+    /* ---------- Animações ---------- */
+    .onboarding-card.is-entering { animation: onboarding-in var(--onb-speed) var(--ease); }
+    @keyframes onboarding-in { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+    /* Ao deslizar a página ou mudar o tamanho da janela o anel acompanha o elemento sem atraso. */
+    .onboarding.is-instant .onboarding-spot,
+    .onboarding.is-instant .onboarding-card { transition: none; }
+    /* Sem animações: o anel e o cartão saltam logo para o sítio novo. */
+    @media (prefers-reduced-motion: reduce) {
+      .onboarding-spot,
+      .onboarding-card { transition: none; }
+      .onboarding-card.is-entering { animation: none; }
+    }
+    @media print {
+      .onboarding { display: none !important; }
+    }
+    /* =========================================================
+       JOGO «QUEM DISSE ISTO?»
+       Mesma linguagem da Bússola (.quiz-*), com classes próprias.
+       ========================================================= */
+    .jogo-view { --jogo-right: #16a34a; --jogo-wrong: #ef4444; }
+    .jogo-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .jogo-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 20px; }
+    .jogo-best-chip {
+      padding: 4px 10px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 999px;
+    }
+    .jogo-empty { padding: 24px; text-align: center; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius-lg); }
+
+    /* ---------- Progresso (texto + pontos) ---------- */
+    .jogo-progress {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .jogo-dots { display: flex; gap: 6px; }
+    .jogo-dots i { width: 10px; height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; }
+    .jogo-dots i.is-current { background: var(--accent); border-color: var(--accent); }
+    .jogo-dots i.is-right { background: var(--jogo-right); border-color: var(--jogo-right); }
+    .jogo-dots i.is-wrong { background: var(--jogo-wrong); border-color: var(--jogo-wrong); }
+
+    /* ---------- Cartão da pergunta ---------- */
+    .jogo-card {
+      min-width: 0;
+      margin: 0;
+      padding: 18px;
+      overflow-wrap: anywhere; /* nunca scroll horizontal, mesmo com palavras longas */
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      animation: modal-in .35s var(--ease) both;
+    }
+    .jogo-card legend { float: left; width: 100%; padding: 0; font-weight: 700; letter-spacing: -.01em; }
+    .jogo-category { clear: both; padding-top: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+    .jogo-topic {
+      margin: 10px 0 16px;
+      padding: 12px 16px;
+      font-size: var(--fs-lg);
+      line-height: 1.45;
+      background: var(--surface-2);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    /* ---------- Opções: uma coluna no telemóvel, 2×2 a partir de 600px ---------- */
+    .jogo-options { display: grid; gap: 8px; }
+    @media (min-width: 600px) { .jogo-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .jogo-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 10px 12px;
+      text-align: left;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease), opacity .2s var(--ease);
+    }
+    .jogo-option:not([aria-disabled]):hover {
+      border-color: color-mix(in srgb, var(--party-color) 60%, var(--border));
+      box-shadow: 0 0 18px -8px var(--party-color);
+    }
+    .jogo-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .jogo-option[aria-disabled] { cursor: default; }
+    .jogo-option .party-logo { width: 36px; height: 36px; font-size: 10px; border-radius: 10px; box-shadow: 0 0 14px -4px var(--party-color); }
+    .jogo-option-name { display: grid; min-width: 0; line-height: 1.25; }
+    .jogo-option-name strong { font-size: var(--fs-sm); }
+    .jogo-option-name span { overflow: hidden; font-size: var(--fs-xs); color: var(--text-muted); text-overflow: ellipsis; white-space: nowrap; }
+    .jogo-mark { display: grid; place-items: center; flex: none; width: 22px; height: 22px; margin-left: auto; color: #fff; border-radius: 50%; }
+    .jogo-mark svg { width: 14px; height: 14px; }
+    .jogo-option.is-right { background: color-mix(in srgb, var(--jogo-right) 12%, var(--surface)); border-color: var(--jogo-right); box-shadow: 0 0 0 1px var(--jogo-right); }
+    .jogo-option.is-wrong { background: color-mix(in srgb, var(--jogo-wrong) 12%, var(--surface)); border-color: var(--jogo-wrong); box-shadow: 0 0 0 1px var(--jogo-wrong); }
+    .jogo-option.is-right .jogo-mark, .jogo-result-items .is-right .jogo-mark { background: var(--jogo-right); }
+    .jogo-option.is-wrong .jogo-mark, .jogo-result-items .is-wrong .jogo-mark { background: var(--jogo-wrong); }
+    .jogo-option.is-muted { opacity: .55; }
+
+    /* ---------- Resposta e botões ---------- */
+    .jogo-feedback { min-height: 1.5em; margin: 12px 2px 0; font-weight: 600; }
+    .jogo-feedback.is-right { color: var(--jogo-right); }
+    .jogo-feedback.is-wrong { color: var(--jogo-wrong); }
+    .jogo-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+    .jogo-skip {
+      margin-right: auto;
+      padding: 6px 4px;
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .jogo-skip:hover { color: var(--text); }
+
+    /* ---------- Resultado ---------- */
+    .jogo-score {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      padding: 22px 16px;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      animation: modal-in .35s var(--ease) both;
+    }
+    .jogo-score:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .jogo-score-value { font-size: var(--fs-lg); color: var(--text-muted); }
+    .jogo-score-value strong { font-size: 3rem; line-height: 1; letter-spacing: -.04em; color: var(--text); }
+    .jogo-score-phrase { font-weight: 600; }
+    .jogo-best { font-size: var(--fs-sm); color: var(--accent); font-weight: 600; }
+    .jogo-results { display: grid; gap: 10px; margin: 14px 0 0; padding: 0; list-style: none; }
+    .jogo-result-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: color-mix(in srgb, var(--party-color) 5%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--party-color) 22%, var(--border));
+      border-radius: var(--radius-lg);
+    }
+    .jogo-result-row .party-logo { width: 36px; height: 36px; font-size: 10px; box-shadow: 0 0 14px -4px var(--party-color); }
+    .jogo-result-body { flex: 1; min-width: 0; display: grid; gap: 8px; }
+    .jogo-result-head { display: flex; justify-content: space-between; gap: 10px; font-size: var(--fs-sm); }
+    .jogo-result-head span { color: var(--text-muted); }
+    .jogo-result-items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); }
+    .jogo-result-items li { display: flex; align-items: flex-start; gap: 10px; overflow-wrap: anywhere; }
+    .jogo-result-items .jogo-mark { width: 20px; height: 20px; margin-left: 0; }
+    .jogo-result-detail { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--text-muted); }
+
+    /* =========================================================
+       FASE 0: COMPATIBILIDADE E PREFERÊNCIAS DO SISTEMA
+       ========================================================= */
+    /* ---------- Browsers sem color-mix() ----------
+       Sem suporte, as declarações com color-mix() são ignoradas: os cartões ficam sem fundo e,
+       pior, sem borda (`border: 1px solid color-mix(…)` cai inteira). Aqui só se repõe um
+       aspeto neutro e legível; a cor do partido fica de fora de propósito. Na matriz os números
+       continuam visíveis, só se perde a intensidade do azul. */
+    @supports not (color: color-mix(in srgb, red, blue)) {
+      .party-card,
+      .duel-card,
+      .wordcloud,
+      .quiz-row,
+      .matrix-cell {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
+      .party-card:hover,
+      .party-card:focus-visible,
+      .duel-card:hover,
+      .wordcloud[open],
+      .quiz-row:nth-child(-n + 3),
+      .chip:hover { border-color: var(--text-muted); }
+      .chip[aria-pressed="true"] { border-color: var(--accent); }
+      /* O texto das nuvens e os títulos dos cartões do duelo herdam a cor normal do texto. */
+    }
+
+    /* ---------- Menos transparência ----------
+       Quem pede menos transparência no sistema vê painéis opacos em vez do vidro fosco.
+       Inclui também os outros elementos com vidro fosco (botões de ação, barra da Bússola,
+       matriz e fundo dos modais), para o efeito ser coerente em todo o site. Sem suporte
+       para esta media query, a regra é ignorada. */
+    @media (prefers-reduced-transparency: reduce) {
+      .app-header,
+      .sidebar,
+      .modal,
+      .toast,
+      .jargon-tip,
+      .onboarding-card,
+      .duel-pickers,
+      .coalition-picker,
+      .myprog-summary,
+      .search-panel,
+      .action-btn,
+      .quiz-actions,
+      .matrix-wrap {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--surface);
+      }
+      .modal-backdrop {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+    }
+
+    /* ---------- Impressão do «Quem é Quem» ----------
+       Com a aba Quem é Quem aberta, imprime-se o cabeçalho do partido e os dirigentes numa
+       só coluna, com um traço entre cartões (o mesmo papel de um <hr>). */
+    @media print {
+      .party-header-actions { display: none !important; }
+      #panel-quem:not([hidden]) .people-grid { display: block; }
+      #panel-quem:not([hidden]) .person-card {
+        padding: 8pt 0;
+        border: 0 !important;
+        border-radius: 0;
+        break-inside: avoid;
+      }
+      #panel-quem:not([hidden]) .person-card + .person-card { border-top: 1pt solid #000 !important; }
+      #panel-quem:not([hidden]) .person-card h3 { font-size: 13pt; }
+      #panel-quem:not([hidden]) .person-fields { grid-template-columns: max-content 1fr; gap: 3pt 10pt; }
+      #panel-quem:not([hidden]) .person-fields > div { display: contents; }
+    }
+
   </style>
 </head>
 <body>
@@ -1305,9 +2111,15 @@
       <nav class="view-switch" aria-label="Vista">
         <button type="button" data-view="partidos" aria-pressed="true">Partidos</button>
         <button type="button" data-view="grafo" aria-pressed="false">Grafo</button>
+        <button type="button" data-view="matriz" aria-pressed="false">Matriz</button>
         <button type="button" data-view="duelo" aria-pressed="false">Duelo</button>
         <button type="button" data-view="bussola" aria-pressed="false">Bússola</button>
+        <button type="button" data-view="coligacao" aria-pressed="false">Coligação</button>
+        <button type="button" data-view="meu-programa" aria-pressed="false">Meu Programa<span class="nav-count" id="fav-count" hidden></span></button>
       </nav>
+      <button class="icon-btn help-btn" type="button" aria-label="Repetir a visita guiada" title="Repetir a visita guiada" data-action="onboarding">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6"/><path d="M12 17h.01"/></svg>
+      </button>
       <button class="icon-btn theme-btn" type="button" aria-label="Mudar para o tema escuro" data-action="toggle-theme">
         <!-- sol: mostrado no tema escuro (passa a claro); lua: no tema claro -->
         <svg data-icon="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -1335,6 +2147,15 @@
     <main class="main" id="main">
       <div class="main-inner" id="view"><!-- gerado pelo JS --></div>
     </main>
+  </div>
+
+  <!-- Tooltip do dicionário de jargão (um só, posicionado por cima do termo ativo) -->
+  <div class="jargon-tip" id="jargon-tip" role="tooltip" hidden></div>
+
+  <!-- Visita guiada de primeira visita: anel (spotlight) + cartão, preenchidos pelo JS -->
+  <div class="onboarding" id="onboarding" hidden>
+    <div class="onboarding-spot" aria-hidden="true"></div>
+    <div class="onboarding-card" role="dialog" aria-modal="false" aria-labelledby="onboarding-title" aria-live="polite"></div>
   </div>
 
   <script>
@@ -2650,9 +3471,13 @@
          #/duelo/<idA>/<idB>        → duelo entre dois partidos (por defeito AD e PS)
          #/grafo/<categoria>        → grafo filtrado por uma categoria
          #/bussola                  → bússola política (questionário)
+         #/matriz                   → matriz de consenso (categorias × partidos)
+         #/coligacao/<id>,<id>…     → construtor de coligações (partidos escolhidos no link)
+         #/meu-programa             → propostas guardadas pelo utilizador
+         #/jogo                     → jogo «Quem disse isto?»
        ========================================================= */
     const state = {
-      view: 'partidos',      // 'partidos' | 'grafo' | 'duelo' | 'bussola'
+      view: 'partidos',      // 'partidos' | 'grafo' | 'matriz' | 'duelo' | 'bussola' | 'coligacao' | 'meu-programa' | 'jogo'
       partyId: null,
       tab: 'programa',       // 'programa' | 'quem'
       category: 'todas',     // filtro de categoria na aba Programa
@@ -2663,6 +3488,9 @@
       quiz: {},              // respostas da bússola: { idPergunta: índiceOpção }
       quizShown: false,      // resultados da bússola visíveis
       quizIds: [],           // perguntas da ronda atual (escolhidas ao acaso)
+      coalition: [],         // partidos escolhidos no construtor de coligações
+      onboarding: { active: false, step: 0 }, // visita guiada da primeira visita
+      jogo: { questions: [], current: 0, answers: [], done: false }, // ronda do «Quem disse isto?»
     };
 
     function parseHash() {
@@ -2671,6 +3499,14 @@
         return { view: 'grafo', graphCategory: CATEGORIES.some((c) => c.id === id) ? id : '' };
       }
       if (section === 'bussola') return { view: 'bussola' };
+      if (section === 'coligacao') {
+        // Ordem de PARTIES, sem repetidos nem ids desconhecidos.
+        const ids = new Set((id || '').split(','));
+        return { view: 'coligacao', coalition: PARTIES.filter((p) => ids.has(p.id)).map((p) => p.id) };
+      }
+      if (section === 'meu-programa') return { view: 'meu-programa' };
+      if (section === 'matriz') return { view: 'matriz' };
+      if (section === 'jogo') return { view: 'jogo' };
       if (section === 'duelo') {
         const duelA = getParty(id) ? id : 'ad';
         const duelB = getParty(tab) && tab !== duelA ? tab : (duelA === 'ps' ? 'ad' : 'ps');
@@ -3121,7 +3957,7 @@
         </label>`;
       const chip = (p) => `<span class="duel-chip" style="--party-color:${p.cor};--badge-text:${textOn(p.cor)}">${escapeHtml(p.sigla)}</span>`;
       const list = (items, empty) => (items.length
-        ? `<ul>${items.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`
+        ? `<ul>${items.map((t) => `<li>${withJargon(t)}</li>`).join('')}</ul>`
         : `<p class="placeholder">${empty}</p>`);
 
       const results = CATEGORIES.map((c) => ({ category: c, ...compareCategory(a, b, c.id) }));
@@ -3133,8 +3969,8 @@
           <article class="duel-card is-agree">
             <h4>🤝 Concordam</h4>
             <div class="duel-sides">
-              <div>${chip(a)}<p>${escapeHtml(s.a)}</p></div>
-              <div>${chip(b)}<p>${escapeHtml(s.b)}</p></div>
+              <div>${chip(a)}<p>${withJargon(s.a)}</p></div>
+              <div>${chip(b)}<p>${withJargon(s.b)}</p></div>
             </div>
           </article>`).join('');
         const diverge = onlyA.length || onlyB.length ? `
@@ -3170,6 +4006,929 @@
         </section>`;
     }
 
+    /* ---------- Construtor de coligações ---------- */
+    // Artigo de cada partido, para frases como «A AD, a IL e o Chega concordam…» ou «40% da AD».
+    const PARTY_ARTICLE = { ad: 'a', il: 'a', cdu: 'a' };
+    const PARTY_SHORT = { chega: 'Chega', livre: 'Livre' };
+    const partyShort = (p) => PARTY_SHORT[p.id] || p.sigla;
+    const withArticle = (p) => `${PARTY_ARTICLE[p.id] || 'o'} ${partyShort(p)}`;
+    const ofParty = (p) => `${PARTY_ARTICLE[p.id] === 'a' ? 'da' : 'do'} ${partyShort(p)}`;
+    const listJoin = (items) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} e ${items.at(-1)}`);
+    const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+    /**
+     * Propostas em que todos os partidos escolhidos concordam: a mesma `ideia` na mesma categoria.
+     * @returns {Array<{ category, items: Array<{ ideia, textos: Array<{ party, texto }> }> }>} só as categorias com propostas comuns
+     */
+    function coalitionAgreements(parties) {
+      return CATEGORIES.map((category) => {
+        const maps = parties.map((p) => new Map((p.programa[category.id] || []).map((t) => [t.ideia, t.texto])));
+        const items = [...maps[0].keys()]
+          .filter((ideia) => maps.every((m) => m.has(ideia)))
+          .map((ideia) => ({ ideia, textos: parties.map((party, i) => ({ party, texto: maps[i].get(ideia) })) }));
+        return { category, items };
+      }).filter((c) => c.items.length);
+    }
+
+    const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    const coalitionHash = (ids) => (ids.length ? `#/coligacao/${ids.join(',')}` : '#/coligacao');
+
+    function renderCoalitionView() {
+      const selected = state.coalition.map(getParty);
+      const chip = (p) => `<span class="duel-chip" style="--party-color:${p.cor};--badge-text:${textOn(p.cor)}">${escapeHtml(p.sigla)}</span>`;
+      const toggles = PARTIES.map((p) => `
+        <button class="coalition-toggle" type="button" data-coalition="${p.id}" aria-pressed="${state.coalition.includes(p.id)}"
+                style="--party-color:${p.cor};--badge-text:${textOn(p.cor)}" title="${escapeHtml(p.nome)}">
+          ${partyLogo(p)}
+          <span class="coalition-toggle-name">${escapeHtml(p.sigla)}</span>
+          <span class="coalition-check">${CHECK_ICON}</span>
+        </button>`).join('');
+
+      let summary;
+      let sections = '';
+      if (selected.length < 2) {
+        summary = `
+          <div class="coalition-summary is-idle" aria-live="polite">
+            <p>${selected.length ? `Escolheste ${withArticle(selected[0])}. Junta pelo menos mais um partido.` : 'Escolhe pelo menos dois partidos para ver em que propostas concordam.'}</p>
+          </div>`;
+      } else {
+        const groups = coalitionAgreements(selected);
+        const total = groups.reduce((n, g) => n + g.items.length, 0);
+        const who = capitalize(listJoin(selected.map(withArticle)));
+        const sentence = total
+          ? `${who} concordam em <strong>${total} ${total === 1 ? 'proposta' : 'propostas'}</strong>, em ${groups.length} de ${CATEGORIES.length} categorias.`
+          : `${who} não concordam em nenhuma proposta da mesma categoria.`;
+        summary = `
+          <div class="coalition-summary" aria-live="polite">
+            <p>${sentence}</p>
+            <button class="action-btn" type="button" data-action="coalition-clear">Limpar escolha</button>
+          </div>`;
+        sections = groups.map(({ category, items }) => `
+          <section class="duel-category">
+            <h3>${escapeHtml(category.nome)}<span class="duel-score">${items.length} em comum</span></h3>
+            ${items.map(({ textos }) => `
+              <article class="duel-card is-agree coalition-card">
+                <div class="duel-sides">
+                  ${textos.map(({ party, texto }) => `<div>${chip(party)}<p>${withJargon(texto)}</p></div>`).join('')}
+                </div>
+              </article>`).join('')}
+          </section>`).join('');
+      }
+
+      return `
+        <section class="coalition-view">
+          <div class="view-head">
+            <h2>Construtor de coligações</h2>
+            ${shareButton()}
+          </div>
+          <p>Escolhe os partidos de uma coligação hipotética para ver as propostas em que todos concordam, ou seja, as que defendem a mesma ideia na mesma categoria. O texto de cada partido pode diferir no pormenor.</p>
+          <div class="coalition-picker" role="group" aria-label="Partidos da coligação">${toggles}</div>
+          ${summary}
+          <div class="duel-list">${sections}</div>
+        </section>`;
+    }
+
+    /* ---------- O Meu Programa (favoritos guardados no browser) ---------- */
+    const FAV_KEY = 'mapa-politico:favoritos';
+    const STAR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.8L12 16.9l-5.25 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg>';
+
+    /** Lê os favoritos: [{ partido, categoria, ideia }]. Sem armazenamento, começa vazio. */
+    function loadFavorites() {
+      try {
+        const data = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+        return Array.isArray(data)
+          ? data.filter((f) => ['partido', 'categoria', 'ideia'].every((k) => typeof f?.[k] === 'string'))
+          : [];
+      } catch {
+        return [];
+      }
+    }
+    let favorites = loadFavorites();
+
+    function saveFavorites() {
+      try { localStorage.setItem(FAV_KEY, JSON.stringify(favorites)); } catch { /* sem armazenamento: vale só nesta visita */ }
+      renderFavCount();
+    }
+
+    const favIndex = (partido, categoria, ideia) => favorites.findIndex((f) => f.partido === partido && f.categoria === categoria && f.ideia === ideia);
+
+    /** Guarda ou retira uma proposta. @returns {boolean} true se ficou guardada */
+    function toggleFavorite(partido, categoria, ideia) {
+      const i = favIndex(partido, categoria, ideia);
+      if (i >= 0) favorites.splice(i, 1);
+      else favorites.push({ partido, categoria, ideia });
+      saveFavorites();
+      return i < 0;
+    }
+
+    /** Favoritos que ainda existem nos dados (uma proposta pode ter sido revista), com partido, categoria e texto. */
+    function resolvedFavorites() {
+      return favorites.map((f) => {
+        const party = getParty(f.partido);
+        const category = CATEGORIES.find((c) => c.id === f.categoria);
+        const topic = party?.programa[f.categoria]?.find((t) => t.ideia === f.ideia);
+        return party && category && topic ? { party, category, topic } : null;
+      }).filter(Boolean);
+    }
+
+    function renderFavCount() {
+      const n = resolvedFavorites().length;
+      const el = $('#fav-count');
+      el.hidden = !n;
+      el.innerHTML = `${n}<span class="visually-hidden"> ${n === 1 ? 'proposta guardada' : 'propostas guardadas'}</span>`;
+    }
+
+    function favButton(party, category, topic) {
+      const on = favIndex(party.id, category.id, topic.ideia) >= 0;
+      return `
+        <button class="fav-btn" type="button" data-action="fav" aria-pressed="${on}"
+                data-fav-party="${party.id}" data-fav-category="${category.id}" data-fav-ideia="${escapeHtml(topic.ideia)}"
+                aria-label="Guardar em O Meu Programa" title="${on ? 'Retirar de O Meu Programa' : 'Guardar em O Meu Programa'}">${STAR_ICON}</button>`;
+    }
+
+    /** Percentagens inteiras que somam 100 (método dos maiores restos). */
+    function percentages(counts, total) {
+      const raw = counts.map((n) => (n * 100) / total);
+      const pct = raw.map(Math.floor);
+      let rest = 100 - pct.reduce((a, b) => a + b, 0);
+      raw.map((r, i) => [r - pct[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rest-- > 0) pct[i] += 1; });
+      return pct;
+    }
+
+    function renderMyProgramView() {
+      const items = resolvedFavorites();
+      const head = `
+        <div class="view-head">
+          <h2>O Meu Programa</h2>
+          ${items.length ? `<button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>` : ''}
+        </div>
+        <p>As propostas que marcaste com a estrela, de qualquer partido, juntas num só programa. Ficam guardadas neste browser.</p>`;
+
+      if (!items.length) {
+        return `
+          <section class="myprog-view">
+            ${head}
+            <div class="myprog-empty">
+              <p>Ainda não guardaste nenhuma proposta. Abre o programa de um partido e toca na estrela <span class="fav-demo">${STAR_ICON}</span> ao lado de uma proposta para a juntares aqui.</p>
+              <button class="action-btn is-primary" type="button" data-view="partidos">Explorar os partidos</button>
+            </div>
+          </section>`;
+      }
+
+      const byParty = PARTIES.map((party) => ({ party, n: items.filter((f) => f.party === party).length }))
+        .filter((s) => s.n)
+        .sort((a, b) => b.n - a.n);
+      percentages(byParty.map((s) => s.n), items.length).forEach((pct, i) => { byParty[i].pct = pct; });
+
+      const total = `<strong>${items.length} ${items.length === 1 ? 'proposta' : 'propostas'}</strong>`;
+      let sentence;
+      if (items.length === 1) sentence = `O teu programa tem ${total}, ${ofParty(byParty[0].party)}.`;
+      else if (byParty.length === 1) sentence = `O teu programa tem ${total}, todas ${ofParty(byParty[0].party)}.`;
+      else sentence = `O teu programa tem ${total}, sendo ${listJoin(byParty.map((s) => `${s.pct}% ${ofParty(s.party)}`))}.`;
+
+      const bar = byParty.map((s) => `<span style="--party-color:${s.party.cor};--share:${s.n}" title="${escapeHtml(s.party.sigla)}: ${s.pct}%"></span>`).join('');
+      const legend = byParty.map((s) => `
+        <span style="--party-color:${s.party.cor}"><i></i>${escapeHtml(s.party.sigla)} <b>${s.pct}%</b> (${s.n})</span>`).join('');
+
+      const order = (f) => PARTIES.indexOf(f.party) * 1000 + f.party.programa[f.category.id].indexOf(f.topic);
+      const sections = CATEGORIES.map((category) => {
+        const list = items.filter((f) => f.category === category).sort((a, b) => order(a) - order(b));
+        if (!list.length) return '';
+        return `
+          <details class="category myprog-category" open>
+            <summary>
+              <span>${escapeHtml(category.nome)}</span>
+              <span class="category-count">${list.length}</span>
+            </summary>
+            <ul class="topic-list">
+              ${list.map(({ party, topic }) => `
+                <li class="topic">
+                  <button class="badge" type="button" data-party="${party.id}" data-goto-category="${category.id}"
+                          data-goto-ideia="${escapeHtml(topic.ideia)}"
+                          style="--party-color:${party.cor};--badge-text:${textOn(party.cor)}"
+                          title="Ver no programa ${ofParty(party)}">${escapeHtml(party.sigla)}</button>
+                  <span class="topic-text">${withJargon(topic.texto)}</span>
+                  ${favButton(party, category, topic)}
+                </li>`).join('')}
+            </ul>
+          </details>`;
+      }).join('');
+
+      return `
+        <section class="myprog-view">
+          ${head}
+          <div class="myprog-summary">
+            <p>${sentence}</p>
+            <div class="myprog-bar" role="img" aria-label="${escapeHtml(byParty.map((s) => `${s.party.sigla} ${s.pct}%`).join(', '))}">${bar}</div>
+            <div class="myprog-legend">${legend}</div>
+            <div class="myprog-actions">
+              <button class="action-btn is-danger" type="button" data-action="fav-clear">Limpar tudo</button>
+            </div>
+          </div>
+          <div class="category-list">${sections}</div>
+        </section>`;
+    }
+
+    // «Limpar tudo» pede um segundo clique (confirm() não funciona em todas as pré-visualizações).
+    let favClearTimer = null;
+    function clearFavorites(btn) {
+      if (!btn.classList.contains('is-confirm')) {
+        btn.classList.add('is-confirm');
+        btn.textContent = 'Tocar de novo para apagar tudo';
+        clearTimeout(favClearTimer);
+        favClearTimer = setTimeout(() => {
+          btn.classList.remove('is-confirm');
+          btn.textContent = 'Limpar tudo';
+        }, 4000);
+        return;
+      }
+      clearTimeout(favClearTimer);
+      favorites = [];
+      saveFavorites();
+      render();
+      toast('O teu programa foi apagado.');
+    }
+
+    /* ---------- Dicionário de jargão ---------- */
+    // Definições curtas dos termos técnicos que aparecem nas propostas.
+    const DICIONARIO = {
+      'IRS': 'Imposto sobre o Rendimento das Pessoas Singulares: imposto anual sobre os rendimentos das pessoas, como salários, pensões e rendas.',
+      'IRS Jovem': 'Regime que reduz ou isenta de IRS os rendimentos do trabalho dos jovens nos primeiros anos de carreira.',
+      'IRC': 'Imposto sobre o Rendimento das Pessoas Coletivas: imposto sobre os lucros das empresas.',
+      'Derrama Estadual': 'Taxa adicional de IRC sobre a parte dos lucros das empresas acima de 1,5 milhões de euros.',
+      'IVA': 'Imposto sobre o Valor Acrescentado: imposto sobre o consumo, incluído no preço de bens e serviços. No continente as taxas são de 6%, 13% e 23%.',
+      'IMI': 'Imposto Municipal sobre Imóveis: imposto anual pago pelos proprietários de casas e terrenos, que reverte para os municípios.',
+      'IMT': 'Imposto Municipal sobre as Transmissões Onerosas de Imóveis: imposto pago por quem compra uma casa ou um terreno.',
+      'Imposto do Selo': 'Imposto sobre certos atos e contratos, como a compra de casa, os créditos, os seguros e as heranças.',
+      'IUC': 'Imposto Único de Circulação: imposto anual pago pelos proprietários de veículos.',
+      'TSU': 'Taxa Social Única: contribuição para a Segurança Social calculada sobre os salários, paga em parte pelo trabalhador e em parte pela entidade patronal.',
+      'Residentes não habituais': 'Regime fiscal que dava taxas reduzidas de IRS, durante dez anos, a quem passasse a viver em Portugal. Foi fechado a novas adesões em 2024.',
+      'PPP': 'Parceria Público-Privada: contrato de longo prazo em que um privado constrói, financia ou gere uma infraestrutura ou um serviço público, como um hospital, em troca de pagamentos ou receitas.',
+      'PEPAC': 'Plano Estratégico da Política Agrícola Comum: define como Portugal aplica os fundos europeus da PAC na agricultura e no desenvolvimento rural (2023-2027).',
+      'PRR': 'Plano de Recuperação e Resiliência: programa de investimentos financiado pela União Europeia depois da pandemia, a executar até 2026.',
+      'RSI': 'Rendimento Social de Inserção: apoio da Segurança Social a pessoas e famílias em pobreza extrema, ligado a um contrato de inserção (emprego, formação, saúde).',
+      'CSI': 'Complemento Solidário para Idosos: apoio mensal da Segurança Social a pensionistas com rendimentos baixos.',
+      'Complemento Solidário para Idosos': 'Apoio mensal da Segurança Social (CSI) a pensionistas com rendimentos baixos.',
+      'IAS': 'Indexante dos Apoios Sociais: valor de referência, atualizado todos os anos, usado para calcular pensões, subsídios e outros apoios sociais.',
+      'Taxa de Esforço': 'Parte do rendimento de uma família gasta com a habitação, seja a renda ou a prestação do crédito à habitação.',
+      'Porta 65': 'Programa público de apoio ao pagamento da renda, sobretudo para jovens (Porta 65 Jovem).',
+      'Défice': 'Diferença negativa entre as receitas e as despesas do Estado num ano: o Estado gasta mais do que recebe.',
+      'Excedente orçamental': 'Saldo positivo das contas públicas num ano: o Estado recebe mais do que gasta.',
+      'Dívida pública': 'Total do dinheiro que o Estado deve, acumulado ao longo dos anos. Costuma medir-se em percentagem do PIB.',
+      'PIB': 'Produto Interno Bruto: valor de todos os bens e serviços produzidos no país num ano. Mede o tamanho da economia.',
+      'PME': 'Pequenas e Médias Empresas: empresas com menos de 250 trabalhadores e um volume de negócios até 50 milhões de euros.',
+      'SNS': 'Serviço Nacional de Saúde: rede pública de hospitais e centros de saúde, financiada pelos impostos.',
+      'USF': 'Unidade de Saúde Familiar: equipa autónoma de médicos de família, enfermeiros e secretários clínicos nos centros de saúde. Há modelos A, B e C, com graus diferentes de autonomia e incentivos.',
+      'IPSS': 'Instituições Particulares de Solidariedade Social: entidades sem fins lucrativos, como associações e misericórdias, que prestam apoio social, muitas vezes com acordos com o Estado.',
+      'IEFP': 'Instituto do Emprego e Formação Profissional: serviço público de emprego, com centros de emprego e de formação.',
+      'AIMA': 'Agência para a Integração, Migrações e Asilo: organismo público que trata das autorizações de residência e do acolhimento de imigrantes. Herdou estas funções do SEF em 2023.',
+      'SEF': 'Serviço de Estrangeiros e Fronteiras: antigo serviço de fronteiras e imigração, extinto em 2023. As funções passaram para a AIMA, a PSP, a GNR e a PJ.',
+      'PSP': 'Polícia de Segurança Pública: força policial civil, sobretudo nas cidades.',
+      'GNR': 'Guarda Nacional Republicana: força de segurança de natureza militar, sobretudo nas zonas rurais e nas estradas.',
+      'PJ': 'Polícia Judiciária: polícia de investigação da criminalidade mais grave e complexa.',
+      'Enriquecimento ilícito': 'Património ou rendimentos de um titular de cargo público muito acima do que declarou, sem origem justificada. Leis anteriores para o tornar crime foram travadas pelo Tribunal Constitucional.',
+      'Lóbi': 'Representação de interesses de empresas ou grupos junto de decisores políticos, para influenciar leis e decisões.',
+      'CCDR': 'Comissões de Coordenação e Desenvolvimento Regional: organismos que coordenam o planeamento e os fundos europeus em cada uma das cinco regiões do continente.',
+      'ZEE': 'Zona Económica Exclusiva: área de mar, até 200 milhas da costa, onde Portugal tem direitos exclusivos sobre os recursos.',
+      'CPLP': 'Comunidade dos Países de Língua Portuguesa: organização dos nove países com o português como língua oficial.',
+    };
+
+    const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Termos mais longos primeiro, para «IRS Jovem» ganhar a «IRS». Aceita o plural («PPPs»).
+    const JARGON_KEYS = Object.keys(DICIONARIO).sort((a, b) => b.length - a.length);
+    const JARGON_RE = new RegExp(`(?<![\\p{L}\\p{N}])(?:${JARGON_KEYS.map(escapeRegExp).join('|')})s?(?![\\p{L}\\p{N}])`, 'giu');
+    const jargonLookup = new Map(JARGON_KEYS.map((k) => [k.toLocaleLowerCase('pt-PT'), k]));
+
+    /** Chave do dicionário para o texto encontrado. As siglas só contam em maiúsculas («IVA», não «iva»). */
+    function jargonKey(match) {
+      for (const word of [match, match.replace(/s$/i, '')]) {
+        const key = jargonLookup.get(word.toLocaleLowerCase('pt-PT'));
+        if (key && (key !== key.toUpperCase() || word === key)) return key;
+      }
+      return null;
+    }
+
+    /** Escapa `text` e envolve os termos do dicionário em <span class="termo-jargao">. */
+    function withJargon(text) {
+      let html = '';
+      let last = 0;
+      for (const m of String(text ?? '').matchAll(JARGON_RE)) {
+        const key = jargonKey(m[0]);
+        if (!key) continue;
+        html += `${escapeHtml(text.slice(last, m.index))}<span class="termo-jargao" data-termo="${escapeHtml(key)}" tabindex="0">${escapeHtml(m[0])}</span>`;
+        last = m.index + m[0].length;
+      }
+      return html + escapeHtml(String(text ?? '').slice(last));
+    }
+
+    let jargonActive = null;
+
+    function showJargon(term) {
+      const definition = DICIONARIO[term.dataset.termo];
+      if (!definition) return;
+      if (jargonActive !== term) hideJargon();
+      jargonActive = term;
+      term.classList.add('is-active');
+      term.setAttribute('aria-describedby', 'jargon-tip');
+      const tip = $('#jargon-tip');
+      tip.innerHTML = `<strong>${escapeHtml(term.dataset.termo)}</strong>${escapeHtml(definition)}`;
+      tip.hidden = false;
+
+      // Por cima da palavra, centrado e dentro do ecrã; por baixo se não houver espaço em cima.
+      const rect = term.getClientRects()[0] || term.getBoundingClientRect();
+      const margin = 8;
+      const gap = 10;
+      const { offsetWidth: w, offsetHeight: h } = tip;
+      const center = rect.left + rect.width / 2;
+      const left = Math.min(Math.max(center - w / 2, margin), document.documentElement.clientWidth - w - margin);
+      const below = rect.top - h - gap < margin;
+      tip.classList.toggle('is-below', below);
+      tip.style.left = `${Math.round(left)}px`;
+      tip.style.top = `${Math.round(below ? rect.bottom + gap : rect.top - h - gap)}px`;
+      tip.style.setProperty('--arrow-x', `${Math.round(Math.min(Math.max(center - left, 14), w - 14))}px`);
+    }
+
+    function hideJargon() {
+      $('#jargon-tip').hidden = true;
+      if (!jargonActive) return;
+      jargonActive.classList.remove('is-active');
+      jargonActive.removeAttribute('aria-describedby');
+      jargonActive = null;
+    }
+
+    /* ---------- Matriz de consenso (heatmap categorias × partidos) ---------- */
+    function renderMatrixView() {
+      const counts = CATEGORIES.map((c) => PARTIES.map((p) => p.programa[c.id]?.length || 0));
+      const max = Math.max(1, ...counts.flat());
+      const head = PARTIES.map((p) => `
+        <th scope="col" title="${escapeHtml(p.nome)}">
+          <span class="matrix-party" style="--party-color:${p.cor}">${partyLogo(p)}${escapeHtml(p.sigla)}</span>
+        </th>`).join('');
+      const rows = CATEGORIES.map((c, i) => {
+        const cells = PARTIES.map((p, j) => {
+          const n = counts[i][j];
+          const a = n ? 0.12 + 0.88 * (n / max) : 0;
+          const label = `${p.sigla}, ${c.nome}: ${n} ${n === 1 ? 'proposta' : 'propostas'}`;
+          return `
+            <td><button class="matrix-cell" type="button" data-matrix="${p.id}|${c.id}" ${n ? '' : 'disabled'}
+                        style="--a:${a.toFixed(3)};${a > 0.55 ? '--cell-text:#fff;' : ''}"
+                        title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">${n}</button></td>`;
+        }).join('');
+        const total = counts[i].reduce((x, y) => x + y, 0);
+        return `<tr><th scope="row">${escapeHtml(c.nome)}</th>${cells}<td class="matrix-total">${total}</td></tr>`;
+      }).join('');
+      const totals = PARTIES.map((p, j) => `<td class="matrix-total">${counts.reduce((n, row) => n + row[j], 0)}</td>`).join('');
+      const all = counts.flat().reduce((x, y) => x + y, 0);
+
+      return `
+        <section class="matrix-view">
+          <div class="view-head">
+            <h2>Matriz de consenso</h2>
+            ${shareButton()}
+          </div>
+          <p>Quantas propostas cada partido apresenta em cada categoria. Quanto mais escura a célula, mais propostas. Clica numa célula para ver as propostas desse partido nessa categoria. Uma célula a 0 quer dizer que não há propostas registadas para essa categoria.</p>
+          <div class="matrix-wrap">
+            <table class="matrix">
+              <thead><tr><th scope="col"><span class="visually-hidden">Categoria</span></th>${head}<th scope="col" class="matrix-total">Total</th></tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot><tr><th scope="row">Total</th>${totals}<td class="matrix-total">${all}</td></tr></tfoot>
+            </table>
+          </div>
+          <div class="matrix-legend">
+            <span>0</span><span class="matrix-scale" aria-hidden="true"></span><span>${max} propostas</span>
+          </div>
+        </section>`;
+    }
+
+    /** Modal com as propostas de um partido numa categoria (célula da matriz). */
+    function openMatrixModal(partyId, categoryId) {
+      const party = getParty(partyId);
+      const category = CATEGORIES.find((c) => c.id === categoryId);
+      const topics = party?.programa[categoryId] || [];
+      if (!category || !topics.length) return;
+      openModal(`
+        <p class="modal-kicker">${escapeHtml(category.nome)}</p>
+        <div class="modal-head" style="--party-color:${party.cor}">
+          ${partyLogo(party)}
+          <h2 id="modal-title">${escapeHtml(party.sigla)} · ${topics.length} ${topics.length === 1 ? 'proposta' : 'propostas'}</h2>
+        </div>
+        <ul class="modal-topics">${topics.map((t) => `<li>${withJargon(t.texto)}</li>`).join('')}</ul>
+        <button class="modal-link" type="button" data-party="${party.id}" data-goto-category="${category.id}">Abrir no programa ${ofParty(party)}</button>`, 'modal-title');
+    }
+
+    /* ---------- Perfil visual do partido (radar com Chart.js) ---------- */
+    // Carregado só quando se abre o radar, para não pesar no arranque.
+    const CHART_JS_SRC = 'https://unpkg.com/chart.js@4.5.1/dist/chart.umd.min.js';
+    let chartJsPromise = null;
+    let radarChart = null;
+
+    function loadChartJs() {
+      if (window.Chart) return Promise.resolve(window.Chart);
+      chartJsPromise ??= new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = CHART_JS_SRC;
+        script.onload = () => (window.Chart ? resolve(window.Chart) : reject(new Error('Chart.js indisponível')));
+        script.onerror = () => {
+          chartJsPromise = null;
+          script.remove();
+          reject(new Error('Chart.js indisponível'));
+        };
+        document.head.appendChild(script);
+      });
+      return chartJsPromise;
+    }
+
+    /** Parte um nome de categoria em linhas curtas para os eixos do radar. */
+    function wrapLabel(text, width = 14) {
+      const lines = [];
+      for (const word of text.split(' ')) {
+        const last = lines.at(-1);
+        if (last && (last + ' ' + word).length <= width) lines[lines.length - 1] = `${last} ${word}`;
+        else lines.push(word);
+      }
+      return lines;
+    }
+
+    function openRadarModal(party) {
+      const counts = CATEGORIES.map((c) => party.programa[c.id]?.length || 0);
+      const total = counts.reduce((a, b) => a + b, 0);
+      const pct = counts.map((n) => (total ? Math.round((n / total) * 1000) / 10 : 0));
+      const fmt = (v) => v.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
+      const values = CATEGORIES.map((c, i) => `
+        <li><span>${escapeHtml(c.nome)}</span><b>${fmt(pct[i])}% (${counts[i]})</b></li>`).join('');
+
+      openModal(`
+        <p class="modal-kicker">Perfil visual</p>
+        <div class="modal-head" style="--party-color:${party.cor}">
+          ${partyLogo(party)}
+          <h2 id="modal-title">${escapeHtml(party.sigla)} · ${escapeHtml(party.nome)}</h2>
+        </div>
+        <p class="radar-note">Peso de cada categoria no programa: percentagem das ${total} propostas registadas do partido.</p>
+        <div class="radar-canvas">
+          <canvas id="radar-chart" role="img" aria-label="Gráfico de radar com a percentagem de propostas do ${escapeHtml(party.sigla)} em cada categoria"></canvas>
+          <p class="placeholder" id="radar-status">A carregar o gráfico…</p>
+        </div>
+        <details class="radar-values">
+          <summary>Ver os valores</summary>
+          <ul>${values}</ul>
+        </details>`, 'modal-title');
+      $('.modal').classList.add('is-wide');
+
+      loadChartJs().then((Chart) => {
+        const canvas = $('#radar-chart');
+        if (!canvas) return; // o modal já foi fechado
+        $('#radar-status')?.remove();
+        const css = getComputedStyle(document.documentElement);
+        const text = css.getPropertyValue('--text').trim();
+        const muted = css.getPropertyValue('--text-muted').trim();
+        const grid = css.getPropertyValue('--border').trim();
+        const small = innerWidth < 600;
+        radarChart?.destroy();
+        radarChart = new Chart(canvas, {
+          type: 'radar',
+          data: {
+            // No telemóvel só a primeira parte do nome («Estado Social e Pensões» → «Estado Social»).
+            labels: CATEGORIES.map((c) => (small ? wrapLabel(c.nome.split(' e ')[0], 10) : wrapLabel(c.nome, 16))),
+            datasets: [{
+              label: party.sigla,
+              data: pct,
+              borderColor: party.cor,
+              backgroundColor: withAlpha(party.cor, 0.25),
+              pointBackgroundColor: party.cor,
+              pointBorderColor: '#fff',
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              borderWidth: 2,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 700 },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => CATEGORIES[items[0].dataIndex].nome,
+                  label: (item) => ` ${fmt(item.raw)}% das propostas (${counts[item.dataIndex]})`,
+                },
+              },
+            },
+            scales: {
+              r: {
+                beginAtZero: true,
+                suggestedMax: Math.ceil(Math.max(...pct) / 5) * 5,
+                angleLines: { color: grid },
+                grid: { color: grid },
+                pointLabels: { color: text, padding: small ? 4 : 8, font: { family: GRAPH_FONT, size: small ? 10 : 11 } },
+                ticks: { color: muted, backdropColor: 'transparent', callback: (v) => `${v}%`, maxTicksLimit: 5, font: { size: 10 } },
+              },
+            },
+          },
+        });
+      }).catch(() => {
+        const status = $('#radar-status');
+        if (status) status.textContent = 'Não foi possível carregar o gráfico (Chart.js). Os valores estão na lista abaixo.';
+        $('.radar-values')?.setAttribute('open', '');
+      });
+    }
+
+    /* ---------- Distribuição visual do partido (sunburst com Chart.js) ---------- */
+    // Abordagem (A): um único gráfico `doughnut` com dois datasets, sem dependências novas.
+    // Preferi um gráfico só a dois doughnuts sobrepostos: os anéis ficam sempre alinhados (o
+    // Chart.js reparte o mesmo círculo pelos dois datasets), há um único tooltip e um único
+    // clique para tratar, e não é preciso sincronizar tamanhos ao redimensionar. O senão é
+    // o `cutout` ser do gráfico e não de cada anel; compensa-se com `weight` (anel das
+    // propostas com o dobro da espessura do das categorias) e um `cutout` de 28%.
+    // Cada proposta vale 1 e as propostas vêm pela mesma ordem das categorias, por isso cada
+    // fatia de categoria fica exatamente por baixo das suas propostas, como num sunburst.
+
+    // Paleta das 15 categorias: tons de saturação e luminosidade médias, legíveis sobre o
+    // fundo claro e o escuro. Algumas cores seguem o tema (verde no ambiente, vermelho na
+    // saúde, oliva na agricultura) e a ordem alterna tons quentes e frios para que fatias
+    // vizinhas nunca tenham cores parecidas. Não usa a cor do partido de propósito: com nove
+    // partidos e 15 categorias, as cores das categorias ficam iguais em todos os gráficos.
+    const CATEGORY_COLORS = {
+      economia: '#3b78c4',      // azul
+      impostos: '#d4892a',      // âmbar
+      juventude: '#d1495b',     // vermelho-rosado
+      educacao: '#8e5cc4',      // violeta
+      habitacao: '#c4573a',     // terracota
+      saude: '#2a9d8f',         // verde-azulado
+      imigracao: '#c9a227',     // mostarda
+      seguranca: '#3d4f8c',     // azul-marinho
+      trabalho: '#8d6e63',      // castanho
+      ambiente: '#3f9a4b',      // verde
+      'estado-social': '#b5568f', // magenta
+      cultura: '#6a5acd',       // índigo
+      agricultura: '#7f9a2e',   // oliva
+      coesao: '#2aa2c7',        // azul-céu
+      transparencia: '#5c6b78', // ardósia
+    };
+
+    let sunburstChart = null;
+
+    /** Mistura uma cor #rrggbb com branco (`amount` de 0 a 1): os tons mais claros do anel exterior. */
+    const lighten = (hex, amount) => `#${[1, 3, 5].map((i) => {
+      const c = parseInt(hex.slice(i, i + 2), 16);
+      return Math.round(c + (255 - c) * amount).toString(16).padStart(2, '0');
+    }).join('')}`;
+
+    /** Parte um texto longo em linhas de até `width` caracteres (o tooltip do Chart.js não faz wrap). */
+    function wrapText(text, width = 48) {
+      const lines = [];
+      for (const word of text.split(/\s+/)) {
+        const last = lines.at(-1);
+        if (last && (last + ' ' + word).length <= width) lines[lines.length - 1] = `${last} ${word}`;
+        else lines.push(word);
+      }
+      return lines;
+    }
+
+    /** Fecha o modal e abre o programa do partido na categoria, com a proposta destacada. */
+    function goToTopic(partyId, categoryId, ideia) {
+      closeModal();
+      state.category = categoryId;
+      // Mesmo destaque que os badges e o modal da matriz usam (ramo `data-party` do bindEvents).
+      afterRender.push(() => {
+        $('.chip[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+        const target = $(`.topic[data-ideia="${CSS.escape(ideia)}"]`);
+        target?.classList.add('is-highlight');
+        target?.scrollIntoView({ block: 'center' });
+        target?.querySelector('.badge')?.focus({ preventScroll: true });
+      });
+      navigate(`#/partido/${partyId}/programa`);
+    }
+
+    function openSunburstModal(party) {
+      if (!party) return;
+      // Transformação dos dados: categorias com propostas e, por ordem, cada proposta.
+      const groups = CATEGORIES
+        .map((c) => ({ category: c, topics: party.programa[c.id] || [] }))
+        .filter((g) => g.topics.length);
+      const total = groups.reduce((n, g) => n + g.topics.length, 0);
+      const topics = groups.flatMap((g) => g.topics.map((topic) => ({ category: g.category, topic })));
+      const fmt = (v) => v.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
+      const pct = (n) => fmt(total ? Math.round((n / total) * 1000) / 10 : 0);
+      const plural = (n) => `${n} ${n === 1 ? 'proposta' : 'propostas'}`;
+      const summary = groups.map((g) => `${g.category.nome} ${g.topics.length}`).join(', ');
+      const missing = CATEGORIES.length - groups.length;
+
+      const values = groups.map((g) => `
+        <li class="sunburst-group">
+          <span class="sunburst-row">
+            <span><i class="sunburst-swatch" style="background:${CATEGORY_COLORS[g.category.id]}"></i>${escapeHtml(g.category.nome)}</span>
+            <b>${plural(g.topics.length)} (${pct(g.topics.length)}%)</b>
+          </span>
+          <ul>${g.topics.map((t) => `<li>${escapeHtml(t.texto)}</li>`).join('')}</ul>
+        </li>`).join('');
+
+      openModal(`
+        <p class="modal-kicker">Distribuição visual</p>
+        <div class="modal-head" style="--party-color:${party.cor}">
+          ${partyLogo(party)}
+          <h2 id="modal-title">${escapeHtml(party.sigla)} · ${plural(total)}</h2>
+        </div>
+        <p class="radar-note">Peso de cada categoria no total de propostas e, dentro de cada uma, cada proposta individual. Passa o rato para ver o texto completo.${missing ? ` ${missing === 1 ? 'Uma categoria não tem' : `${missing} categorias não têm`} propostas registadas e não aparece${missing === 1 ? '' : 'm'} no gráfico.` : ''}</p>
+        <div class="radar-canvas sunburst-canvas">
+          <canvas id="sunburst-chart" role="img" aria-label="Distribuição das ${plural(total)} ${escapeHtml(ofParty(party))}: ${escapeHtml(summary)}"></canvas>
+          <p class="placeholder" id="sunburst-status">A carregar o gráfico…</p>
+        </div>
+        <details class="radar-values sunburst-values">
+          <summary>Ver os valores</summary>
+          <ul>${values}</ul>
+        </details>`, 'modal-title');
+      $('.modal').classList.add('is-wide');
+
+      loadChartJs().then((Chart) => {
+        const canvas = $('#sunburst-chart');
+        if (!canvas) return; // o modal já foi fechado
+        $('#sunburst-status')?.remove();
+        const css = getComputedStyle(document.documentElement);
+        const text = css.getPropertyValue('--text').trim();
+        const muted = css.getPropertyValue('--text-muted').trim();
+        const surface = css.getPropertyValue('--surface').trim();
+        const grid = css.getPropertyValue('--border').trim();
+        const colorOf = (category) => CATEGORY_COLORS[category.id] || muted;
+        let touchedTopic = -1;
+        sunburstChart?.destroy();
+        sunburstChart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            datasets: [
+              {
+                // Anel exterior (o primeiro dataset é o de fora): uma fatia por proposta, que vale 1.
+                // Tons mais claros da categoria-mãe, alternados para separar propostas vizinhas.
+                label: 'Propostas',
+                data: topics.map(() => 1),
+                backgroundColor: topics.map(({ category }, i) => lighten(colorOf(category), i % 2 ? 0.38 : 0.24)),
+                hoverBackgroundColor: topics.map(({ category }) => colorOf(category)),
+                borderColor: surface,
+                borderWidth: 1,
+                weight: 1,
+              },
+              {
+                // Anel interior: uma fatia por categoria, com o número de propostas.
+                label: 'Categorias',
+                data: groups.map((g) => g.topics.length),
+                backgroundColor: groups.map((g) => colorOf(g.category)),
+                hoverBackgroundColor: groups.map((g) => lighten(colorOf(g.category), 0.12)),
+                borderColor: surface,
+                borderWidth: 2,
+                weight: 0.5,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '28%',
+            layout: { padding: 6 },
+            animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 700 },
+            onHover: (event, elements) => {
+              // Só as propostas são clicáveis; o cursor de mão indica-o.
+              if (event.native) event.native.target.style.cursor = elements[0]?.datasetIndex === 0 ? 'pointer' : 'default';
+            },
+            onClick: (event, elements) => {
+              const el = elements[0];
+              if (el?.datasetIndex !== 0) return;
+              // No ecrã tátil o primeiro toque só mostra o tooltip; o segundo, na mesma proposta, abre-a.
+              if (event.native?.pointerType === 'touch' && touchedTopic !== el.index) {
+                touchedTopic = el.index;
+                return;
+              }
+              const { category, topic } = topics[el.index];
+              goToTopic(party.id, category.id, topic.ideia);
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: surface,
+                titleColor: text,
+                bodyColor: text,
+                footerColor: muted,
+                borderColor: grid,
+                borderWidth: 1,
+                padding: 10,
+                boxPadding: 4,
+                titleFont: { family: GRAPH_FONT, size: 12, weight: '600' },
+                bodyFont: { family: GRAPH_FONT, size: 12 },
+                footerFont: { family: GRAPH_FONT, size: 11, weight: '400' },
+                callbacks: {
+                  title: (items) => {
+                    const { datasetIndex, dataIndex } = items[0];
+                    return datasetIndex === 0 ? topics[dataIndex].category.nome : '';
+                  },
+                  label: (item) => {
+                    if (item.datasetIndex === 1) {
+                      const g = groups[item.dataIndex];
+                      return ` ${g.category.nome}: ${plural(g.topics.length)} (${pct(g.topics.length)}%)`;
+                    }
+                    return wrapText(topics[item.dataIndex].topic.texto);
+                  },
+                  footer: (items) => (items[0].datasetIndex === 0 ? 'Clica para abrir no programa' : ''),
+                },
+              },
+            },
+          },
+        });
+      }).catch(() => {
+        const status = $('#sunburst-status');
+        if (status) status.textContent = 'Não foi possível carregar o gráfico (Chart.js). Os valores estão na lista abaixo.';
+        $('.sunburst-values')?.setAttribute('open', '');
+      });
+    }
+
+    /* ---------- Visita guiada (onboarding de primeira visita) ---------- */
+    const ONBOARDED_KEY = 'mapa-politico:onboarded';
+
+    // Cada passo aponta para um elemento real. `selector` pode ter alternativas separadas por
+    // vírgula, tentadas por ordem: usa-se a primeira visível (ex.: a grelha da página inicial,
+    // a lista lateral ou, no telemóvel, o botão que a abre). Sem nenhuma visível, o passo salta.
+    // `text` é HTML fixo escrito aqui (não vem de dados), por isso pode levar <kbd>.
+    // `position`: 'auto' (abaixo se couber, senão acima), 'top' ou 'bottom'.
+    const ONBOARDING_STEPS = [
+      {
+        selector: '.view-switch',
+        title: 'As vistas do mapa',
+        text: 'Estas são as vistas: Partidos, Grafo, Matriz, Duelo, Bússola, Coligação e Meu Programa.',
+        position: 'auto',
+      },
+      {
+        selector: '.party-grid, .party-list, .menu-btn',
+        title: 'Escolhe um partido',
+        text: 'Escolhe um partido para abrir o seu programa, categoria a categoria.',
+        position: 'auto',
+      },
+      {
+        selector: '.theme-btn',
+        title: 'Tema claro ou escuro',
+        text: 'Alterna entre o tema claro e o escuro. A escolha fica guardada.',
+        position: 'auto',
+      },
+      {
+        selector: '#global-search',
+        title: 'Pesquisa',
+        text: 'Pesquisa qualquer partido, dirigente ou proposta. Atalho: <kbd>Ctrl</kbd> + <kbd>K</kbd>.',
+        position: 'auto',
+      },
+      {
+        selector: '[data-view="meu-programa"]',
+        title: 'O Meu Programa',
+        text: 'Marca propostas com a estrela para as juntares aqui. Ficam guardadas neste browser.',
+        position: 'auto',
+      },
+    ];
+
+    const ONBOARDING_PAD = 6;     // folga entre o elemento e o anel (igual a --onb-pad)
+    const ONBOARDING_GAP = 14;    // distância entre o anel e o cartão (igual a --onb-gap)
+    const ONBOARDING_MARGIN = 12; // margem mínima do cartão às bordas do ecrã
+    let onboardingEl = null;          // elemento em foco no passo atual
+    let onboardingReturnFocus = null; // onde estava o foco antes de a visita abrir
+
+    /** Primeiro elemento visível para o seletor do passo (tem tamanho e não está numa gaveta fechada). */
+    function onboardingTarget(step) {
+      for (const selector of step.selector.split(',')) {
+        const el = $(selector.trim());
+        const rect = el?.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0 && rect.right > 0) return el;
+      }
+      return null;
+    }
+
+    /** Passos disponíveis agora, cada um com o seu elemento (ex.: sem pesquisa no telemóvel). */
+    const onboardingSteps = () => ONBOARDING_STEPS
+      .map((step) => ({ ...step, target: onboardingTarget(step) }))
+      .filter((step) => step.target);
+
+    function startOnboarding() {
+      closeModal();
+      hideJargon();
+      closeSearch();
+      setSidebar(false);
+      onboardingReturnFocus = document.activeElement;
+      state.onboarding = { active: true, step: 0 };
+      renderOnboarding();
+    }
+
+    /** Fecha a visita (Saltar, Escape, clique fora ou fim) e grava que já foi vista. */
+    function stopOnboarding() {
+      if (!state.onboarding.active) return;
+      state.onboarding = { active: false, step: 0 };
+      onboardingEl = null;
+      const box = $('#onboarding');
+      box.hidden = true;
+      delete $('.onboarding-card', box).dataset.key;
+      try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch { /* sem armazenamento: vale só nesta visita */ }
+      if (onboardingReturnFocus?.isConnected) onboardingReturnFocus.focus({ preventScroll: true });
+      onboardingReturnFocus = null;
+    }
+
+    function nextOnboardingStep() {
+      if (state.onboarding.step >= onboardingSteps().length - 1) {
+        stopOnboarding();
+        return;
+      }
+      state.onboarding.step += 1;
+      renderOnboarding();
+    }
+
+    function prevOnboardingStep() {
+      if (state.onboarding.step === 0) return;
+      state.onboarding.step -= 1;
+      renderOnboarding();
+    }
+
+    /**
+     * Desenha o passo atual: reescreve o cartão só quando o passo muda e depois posiciona o anel
+     * e o cartão. Com `focus`, o foco vai para o botão principal (Seguinte ou Começar a explorar).
+     */
+    function renderOnboarding({ focus = true } = {}) {
+      const box = $('#onboarding');
+      if (!state.onboarding.active) {
+        box.hidden = true;
+        return;
+      }
+      const steps = onboardingSteps();
+      if (!steps.length) {
+        stopOnboarding();
+        return;
+      }
+      const i = Math.min(state.onboarding.step, steps.length - 1);
+      const step = steps[i];
+      const last = i === steps.length - 1;
+      state.onboarding.step = i;
+      onboardingEl = step.target;
+      box.hidden = false;
+
+      const card = $('.onboarding-card', box);
+      const key = `${i}/${steps.length}|${step.selector}`;
+      if (card.dataset.key !== key) {
+        card.dataset.key = key;
+        card.innerHTML = `
+          <div class="onboarding-top">
+            <p class="onboarding-step">${i + 1}/${steps.length}</p>
+            <button class="onboarding-skip" type="button" data-action="onboarding-skip" aria-label="Saltar a visita guiada">Saltar</button>
+          </div>
+          <h2 id="onboarding-title">${escapeHtml(step.title)}</h2>
+          <p>${step.text}</p>
+          <div class="onboarding-actions">
+            ${i ? `<button class="onboarding-btn" type="button" data-action="onboarding-prev" aria-label="Anterior: passo ${i} de ${steps.length}">Anterior</button>` : ''}
+            ${last
+              ? '<button class="onboarding-btn is-primary" type="button" data-action="onboarding-finish" data-onboarding-primary aria-label="Começar a explorar e fechar a visita guiada">Começar a explorar</button>'
+              : `<button class="onboarding-btn is-primary" type="button" data-action="onboarding-next" data-onboarding-primary aria-label="Seguinte: passo ${i + 2} de ${steps.length}">Seguinte</button>`}
+          </div>`;
+        card.classList.remove('is-entering');
+        void card.offsetWidth; // reinicia a animação de entrada
+        card.classList.add('is-entering');
+        // Passo novo: anima a passagem do anel e traz o elemento para o ecrã
+        // (no telemóvel, «Meu Programa» pode estar fora da barra de vistas).
+        box.classList.remove('is-instant');
+        step.target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+      positionOnboarding();
+      if (focus) $('[data-onboarding-primary]', card)?.focus({ preventScroll: true });
+    }
+
+    /** Coloca o anel à volta do elemento e o cartão abaixo ou acima dele, dentro do ecrã. */
+    function positionOnboarding() {
+      if (!state.onboarding.active) return;
+      if (!onboardingEl?.isConnected) {
+        renderOnboarding({ focus: false });
+        return;
+      }
+      const box = $('#onboarding');
+      const spot = $('.onboarding-spot', box);
+      const card = $('.onboarding-card', box);
+      const vw = document.documentElement.clientWidth;
+      const vh = innerHeight;
+      const rect = onboardingEl.getBoundingClientRect();
+
+      // Anel recortado ao ecrã, para elementos maiores do que a janela (ex.: a grelha dos partidos).
+      const top = Math.max(rect.top - ONBOARDING_PAD, 4);
+      const left = Math.max(rect.left - ONBOARDING_PAD, 4);
+      const right = Math.min(rect.right + ONBOARDING_PAD, vw - 4);
+      const bottom = Math.min(rect.bottom + ONBOARDING_PAD, vh - 4);
+      spot.style.top = `${Math.round(top)}px`;
+      spot.style.left = `${Math.round(left)}px`;
+      spot.style.width = `${Math.round(Math.max(right - left, 0))}px`;
+      spot.style.height = `${Math.round(Math.max(bottom - top, 0))}px`;
+      spot.style.borderRadius = `calc(${getComputedStyle(onboardingEl).borderTopLeftRadius} + ${ONBOARDING_PAD}px)`;
+
+      const { offsetWidth: w, offsetHeight: h } = card;
+      const fitsBelow = vh - bottom - ONBOARDING_GAP >= h + ONBOARDING_MARGIN;
+      const fitsAbove = top - ONBOARDING_GAP >= h + ONBOARDING_MARGIN;
+      const step = ONBOARDING_STEPS.find((s) => s.selector === card.dataset.key?.split('|')[1]);
+      const preferAbove = step?.position === 'top';
+      let y;
+      if (fitsBelow && !(preferAbove && fitsAbove)) y = bottom + ONBOARDING_GAP;
+      else if (fitsAbove) y = top - ONBOARDING_GAP - h;
+      else y = vh - h - ONBOARDING_MARGIN; // sem espaço: fica no fundo do ecrã, por cima do elemento
+      const x = Math.min(Math.max((left + right) / 2 - w / 2, ONBOARDING_MARGIN), vw - w - ONBOARDING_MARGIN);
+      card.style.top = `${Math.round(y)}px`;
+      card.style.left = `${Math.round(x)}px`;
+    }
+
     /* ---------- Modal ---------- */
     let modalReturnFocus = null;
 
@@ -3196,6 +4955,10 @@
     function closeModal() {
       const backdrop = $('.modal-backdrop');
       if (!backdrop) return;
+      radarChart?.destroy();
+      radarChart = null;
+      sunburstChart?.destroy();
+      sunburstChart = null;
       backdrop.remove();
       modalReturnFocus?.focus?.({ preventScroll: true });
       modalReturnFocus = null;
@@ -3209,7 +4972,7 @@
           ${partyLogo(party)}
           <div>
             <strong>${escapeHtml(party.nome)}</strong>
-            <p>${escapeHtml(texto)}</p>
+            <p>${withJargon(texto)}</p>
             <button class="modal-link" type="button" data-party="${party.id}" data-goto-category="${categoryId}"
                     data-goto-ideia="${escapeHtml(ideia)}">Ver no programa</button>
           </div>
@@ -3674,6 +5437,245 @@
         </section>`;
     }
 
+    /* ---------- Jogo «Quem disse isto?» ---------- */
+    const JOGO_QUESTIONS = 5;
+    const JOGO_OPTIONS = 4;
+    const JOGO_BEST_KEY = 'mapa-politico:jogo-melhor';
+
+    // O visto (CHECK_ICON) é o mesmo da coligação; a cruz marca as respostas erradas.
+    const CROSS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+    let jogoTopicsCache = null;
+
+    /**
+     * Propostas que servem de pergunta: só as que têm uma `ideia` que aparece num único partido
+     * (contando todas as categorias). Uma ideia partilhada — por exemplo o IVA Zero, que o PS e
+     * o Chega defendem — teria mais do que uma resposta certa. Os dados não mudam, por isso a
+     * lista calcula-se uma vez.
+     */
+    function eligibleJogoTopics() {
+      if (jogoTopicsCache) return jogoTopicsCache;
+      const partiesByIdea = new Map();
+      for (const party of PARTIES) {
+        for (const category of CATEGORIES) {
+          for (const topic of party.programa[category.id] || []) {
+            if (!partiesByIdea.has(topic.ideia)) partiesByIdea.set(topic.ideia, new Set());
+            partiesByIdea.get(topic.ideia).add(party.id);
+          }
+        }
+      }
+      jogoTopicsCache = PARTIES.flatMap((party) => CATEGORIES.flatMap((category) =>
+        (party.programa[category.id] || [])
+          .filter((topic) => partiesByIdea.get(topic.ideia).size === 1)
+          .map((topic) => ({ party, category, topic }))));
+      return jogoTopicsCache;
+    }
+
+    function loadJogoBest() {
+      try {
+        const best = parseInt(localStorage.getItem(JOGO_BEST_KEY), 10);
+        return Number.isInteger(best) && best >= 0 && best <= JOGO_QUESTIONS ? best : null;
+      } catch {
+        return null; // sem armazenamento: não há melhor pontuação a mostrar
+      }
+    }
+
+    function saveJogoBest(score) {
+      try { localStorage.setItem(JOGO_BEST_KEY, String(score)); } catch { /* sem armazenamento: vale só nesta visita */ }
+    }
+
+    /**
+     * Nova ronda: JOGO_QUESTIONS propostas ao acaso, cada uma com a resposta certa e distratores
+     * ao acaso entre os outros partidos que têm propostas elegíveis; a ordem das opções também é
+     * baralhada. Primeiro sorteia-se o partido e depois a proposta: as elegíveis estão muito
+     * desequilibradas (a IL tem 53, a AD só 9) e sortear diretamente as propostas faria a IL, o
+     * PAN e o JPP serem quase sempre a resposta. Dentro da ronda evita-se repetir partidos e,
+     * como na Bússola, categorias, sempre que possível.
+     */
+    function newJogoRound() {
+      const pool = shuffle(eligibleJogoTopics());
+      const candidates = shuffle([...new Set(pool.map((item) => item.party))]);
+      const picked = [];
+      const categories = new Set();
+      for (let i = 0; picked.length < Math.min(JOGO_QUESTIONS, pool.length); i++) {
+        // Volta a percorrer os partidos se houver menos partidos do que perguntas.
+        const party = candidates[i % candidates.length];
+        const own = pool.filter((item) => item.party === party && !picked.includes(item));
+        const item = own.find((t) => !categories.has(t.category.id)) || own[0];
+        if (!item) continue;
+        picked.push(item);
+        categories.add(item.category.id);
+      }
+      state.jogo = {
+        questions: picked.map((item) => {
+          const distractors = shuffle(candidates.filter((p) => p !== item.party)).slice(0, JOGO_OPTIONS - 1);
+          return { ...item, options: shuffle([item.party, ...distractors]) };
+        }),
+        current: 0,
+        answers: [], // por pergunta: { choice: índice da opção ou null se passou, correct }
+        done: false,
+        best: loadJogoBest(),
+        record: false, // a ronda acabada bateu a melhor pontuação anterior
+      };
+    }
+
+    /** Regista a resposta à pergunta atual; `optionIndex` null conta como «Passar» (errada). */
+    function answerJogo(optionIndex) {
+      const jogo = state.jogo;
+      const question = jogo.questions[jogo.current];
+      if (!question || jogo.answers[jogo.current]) return; // já respondida
+      const choice = optionIndex == null ? null : Number(optionIndex);
+      jogo.answers[jogo.current] = { choice, correct: choice != null && question.options[choice] === question.party };
+    }
+
+    /** Avança para a pergunta seguinte ou, na última, fecha a ronda e guarda a melhor pontuação. */
+    function nextJogo() {
+      const jogo = state.jogo;
+      if (!jogo.answers[jogo.current]) return;
+      if (jogo.current < jogo.questions.length - 1) {
+        jogo.current += 1;
+        return;
+      }
+      jogo.done = true;
+      const score = jogo.answers.filter((a) => a.correct).length;
+      jogo.record = jogo.best == null || score > jogo.best;
+      if (jogo.record) {
+        jogo.best = score;
+        saveJogoBest(score);
+      }
+    }
+
+    function renderJogoResults() {
+      const { questions, answers, best, record } = state.jogo;
+      const total = questions.length;
+      const score = answers.filter((a) => a.correct).length;
+      const phrase = score === total ? `Acertaste todas: ${score} em ${total}!` : score ? `Acertaste ${score} em ${total}.` : `Não acertaste nenhuma das ${total}.`;
+      // Uma linha por partido que apareceu como resposta certa, pela ordem de PARTIES.
+      const byParty = PARTIES
+        .map((party) => ({ party, items: questions.map((q, i) => ({ q, a: answers[i] })).filter(({ q }) => q.party === party) }))
+        .filter((row) => row.items.length);
+      const rows = byParty.map(({ party, items }) => {
+        const right = items.filter(({ a }) => a.correct).length;
+        return `
+          <li class="jogo-result-row" style="--party-color:${party.cor}">
+            ${partyLogo(party)}
+            <div class="jogo-result-body">
+              <div class="jogo-result-head">
+                <strong>${escapeHtml(party.sigla)}</strong>
+                <span>${items.length === 1 ? (right ? 'Acertaste' : 'Falhaste') : `${right} de ${items.length} certas`}</span>
+              </div>
+              <ul class="jogo-result-items">
+                ${items.map(({ q, a }) => {
+                  const chosen = a.choice == null ? null : q.options[a.choice];
+                  const detail = a.correct ? 'Certa' : chosen ? `Respondeste ${escapeHtml(partyShort(chosen))}` : 'Passaste';
+                  return `
+                    <li class="${a.correct ? 'is-right' : 'is-wrong'}">
+                      <span class="jogo-mark">${a.correct ? CHECK_ICON : CROSS_ICON}</span>
+                      <span><span class="jogo-result-text">${escapeHtml(q.topic.texto)}</span>
+                        <span class="jogo-result-detail">${detail}</span></span>
+                    </li>`;
+                }).join('')}
+              </ul>
+            </div>
+          </li>`;
+      }).join('');
+      return `
+        <div class="jogo-score" id="jogo-score" tabindex="-1">
+          <p class="jogo-score-value"><strong>${score}</strong>/${total}</p>
+          <p class="jogo-score-phrase">${phrase}</p>
+          <p class="jogo-best">${record && score > 0 ? 'Nova melhor pontuação! ' : ''}Melhor: ${best}/${JOGO_QUESTIONS}</p>
+        </div>
+        <ol class="jogo-results" aria-label="Respostas por partido">${rows}</ol>
+        <div class="jogo-actions">
+          <button class="action-btn" type="button" data-action="jogo-share">${SHARE_ICON}<span>Partilhar</span></button>
+          <button class="action-btn is-primary" type="button" data-action="jogo-restart">${REFRESH_ICON}<span>Jogar outra vez</span></button>
+        </div>`;
+    }
+
+    function renderJogoView() {
+      const jogo = state.jogo;
+      const intro = `
+        <div class="view-head">
+          <h2>Quem disse isto?</h2>
+          ${jogo.best != null && !jogo.done ? `<span class="jogo-best-chip">Melhor: ${jogo.best}/${JOGO_QUESTIONS}</span>` : ''}
+        </div>
+        <p>Lê a proposta e adivinha que partido a defende. Só entram propostas que aparecem num único programa.</p>`;
+
+      if (eligibleJogoTopics().length < JOGO_OPTIONS || !jogo.questions.length) {
+        return `
+          <section class="jogo-view">
+            ${intro}
+            <p class="placeholder jogo-empty">Ainda não há propostas suficientes para jogar. Tenta mais tarde.</p>
+          </section>`;
+      }
+      if (jogo.done) return `<section class="jogo-view">${intro}${renderJogoResults()}</section>`;
+
+      const total = jogo.questions.length;
+      const question = jogo.questions[jogo.current];
+      const answer = jogo.answers[jogo.current];
+      const last = jogo.current === total - 1;
+      const options = question.options.map((party, i) => {
+        const isRight = answer && party === question.party;
+        const isWrong = answer && answer.choice === i && !answer.correct;
+        const cls = isRight ? ' is-right' : isWrong ? ' is-wrong' : answer ? ' is-muted' : '';
+        const note = isRight ? ' (resposta certa)' : isWrong ? ' (a tua resposta)' : '';
+        return `
+          <button class="jogo-option${cls}" type="button" data-action="jogo-answer" data-index="${i}"
+                  style="--party-color:${party.cor}" ${answer ? 'aria-disabled="true"' : ''}
+                  aria-label="${escapeHtml(`${party.sigla}, ${party.nome}${note}`)}">
+            ${partyLogo(party)}
+            <span class="jogo-option-name"><strong>${escapeHtml(party.sigla)}</strong><span>${escapeHtml(party.nome)}</span></span>
+            ${isRight ? `<span class="jogo-mark">${CHECK_ICON}</span>` : isWrong ? `<span class="jogo-mark">${CROSS_ICON}</span>` : ''}
+          </button>`;
+      }).join('');
+      const feedback = !answer ? ''
+        : answer.correct ? `Certo! É ${escapeHtml(withArticle(question.party))}.`
+        : `${answer.choice == null ? 'Passaste' : 'Errado'}. Era ${escapeHtml(withArticle(question.party))}.`;
+
+      return `
+        <section class="jogo-view">
+          ${intro}
+          <div class="jogo-progress">
+            <span aria-live="polite" data-jogo-live>Pergunta ${jogo.current + 1}/${total}</span>
+            <span class="jogo-dots" aria-hidden="true">${jogo.questions.map((_, i) => {
+              const a = jogo.answers[i];
+              return `<i class="${a ? (a.correct ? 'is-right' : 'is-wrong') : i === jogo.current ? 'is-current' : ''}"></i>`;
+            }).join('')}</span>
+          </div>
+          <fieldset class="jogo-card">
+            <legend>Que partido defende esta proposta?</legend>
+            <p class="jogo-category">${escapeHtml(question.category.nome)}</p>
+            <blockquote class="jogo-topic">${withJargon(question.topic.texto)}</blockquote>
+            <div class="jogo-options">${options}</div>
+          </fieldset>
+          <p class="jogo-feedback ${answer ? (answer.correct ? 'is-right' : 'is-wrong') : ''}" aria-live="polite" data-jogo-live>${feedback}</p>
+          <div class="jogo-actions">
+            <button class="jogo-skip" type="button" data-action="jogo-skip" ${answer ? 'hidden' : ''}>Passar</button>
+            <button class="action-btn is-primary" type="button" data-action="jogo-next" id="jogo-next" ${answer ? '' : 'disabled'}>${last ? 'Ver resultado' : 'Seguinte'}</button>
+          </div>
+        </section>`;
+    }
+
+    /**
+     * Depois de redesenhar a vista: põe o foco onde a pessoa continua e faz os leitores de ecrã
+     * anunciarem o progresso e o «Certo!/Errado». Como o render() substitui o HTML, as regiões
+     * aria-live são novas; esvaziá-las e voltar a preenchê-las no frame seguinte é o que as faz falar.
+     */
+    function afterJogoRender() {
+      afterRender.push(() => {
+        const focusTarget = state.jogo.done ? $('#jogo-score')
+          : state.jogo.answers[state.jogo.current] ? $('#jogo-next')
+          : $('.jogo-option');
+        focusTarget?.focus({ preventScroll: true });
+        focusTarget?.scrollIntoView({ block: 'nearest' });
+        $$('#view [data-jogo-live]').forEach((el) => {
+          const text = el.textContent;
+          el.textContent = '';
+          requestAnimationFrame(() => { el.textContent = text; });
+        });
+      });
+    }
+
     /* ---------- Partilha e aviso (toast) ---------- */
     let toastTimer;
 
@@ -3695,7 +5697,7 @@
     }
 
     /** Copia o link da vista atual; sem acesso à API Clipboard, tenta o método antigo. */
-    async function shareLink() {
+    async function shareLink(message = 'Link copiado para a área de transferência!') {
       const url = window.location.href;
       try {
         await navigator.clipboard.writeText(url);
@@ -3710,11 +5712,13 @@
         area.remove();
         if (!ok) { toast('Não foi possível copiar o link.'); return; }
       }
-      toast('Link copiado para a área de transferência!');
+      toast(message);
     }
 
     const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
     const PRINT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>';
+    const RADAR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 21 9l-3.4 10.5H6.4L3 9z"/><path d="M12 7l4.5 3.3-1.7 5.2H9.2l-1.7-5.2z" fill="currentColor" fill-opacity=".25"/></svg>';
+    const SUNBURST_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 3v5.5M20.2 15.5l-5-2M5.5 18l4-3.3"/></svg>';
     const shareButton = () => `<button class="action-btn" type="button" data-action="share">${SHARE_ICON}<span>Partilhar</span></button>`;
 
     /* ---------- Impressão / PDF ---------- */
@@ -3731,7 +5735,7 @@
 
     function printProgram() {
       // Imprime o programa completo, mesmo que haja um filtro de categoria ativo.
-      if (state.tab === 'programa' && state.category !== 'todas') {
+      if (state.view === 'partidos' && state.tab === 'programa' && state.category !== 'todas') {
         state.category = 'todas';
         render();
       }
@@ -3753,8 +5757,13 @@
       $('.app').classList.toggle('is-home', state.view === 'partidos' && !state.partyId);
       // Ao entrar na Bússola baralham-se novas perguntas.
       if (state.view === 'bussola' && (lastView !== 'bussola' || !state.quizIds.length)) newQuizRound();
+      // Ao entrar no jogo começa uma ronda nova (também depois de acabar uma).
+      if (state.view === 'jogo' && (lastView !== 'jogo' || !state.jogo.questions.length)) newJogoRound();
+      // Escolher partidos na coligação muda o endereço, mas não deve saltar para o topo.
+      const keepScroll = state.view === 'coligacao' && lastView === 'coligacao';
       lastView = state.view;
       closeModal();
+      hideJargon();
       renderViewSwitch();
       renderPartyList();
 
@@ -3762,6 +5771,10 @@
       if (state.view === 'grafo') view.innerHTML = renderGraphView();
       else if (state.view === 'duelo') view.innerHTML = renderDuelView();
       else if (state.view === 'bussola') view.innerHTML = renderQuizView();
+      else if (state.view === 'matriz') view.innerHTML = renderMatrixView();
+      else if (state.view === 'coligacao') view.innerHTML = renderCoalitionView();
+      else if (state.view === 'meu-programa') view.innerHTML = renderMyProgramView();
+      else if (state.view === 'jogo') view.innerHTML = renderJogoView();
       else if (state.partyId) view.innerHTML = renderPartyView(getParty(state.partyId));
       else view.innerHTML = renderHome();
 
@@ -3769,16 +5782,28 @@
       else destroyGraph();
 
       const route = location.hash;
-      if (route !== lastRoute) $('#main').scrollTop = 0;
+      if (route !== lastRoute && !keepScroll) $('#main').scrollTop = 0;
       lastRoute = route;
 
       afterRender.splice(0).forEach((fn) => fn());
+
+      // Visita guiada aberta: mantém-se e só se reposiciona. Decisão: os alvos estão quase todos
+      // no cabeçalho, que não muda entre vistas, e quem clica numa vista dentro do anel está a
+      // seguir a visita; fechá-la aí castigaria isso. Se o alvo do passo desaparecer (ex.: a
+      // grelha da página inicial), usa-se a alternativa do seletor ou o passo é saltado.
+      if (state.onboarding.active) renderOnboarding({ focus: false });
     }
 
     function renderViewSwitch() {
       $$('.view-switch [data-view]').forEach((btn) => {
         btn.setAttribute('aria-pressed', String(btn.dataset.view === state.view));
       });
+      // No telemóvel a barra desliza: centra o botão da vista atual («Meu Programa» fica fora do ecrã).
+      const nav = $('.view-switch');
+      const active = $('[aria-pressed="true"]', nav);
+      if (active && nav.scrollWidth > nav.clientWidth) {
+        nav.scrollLeft = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2;
+      }
     }
 
     function renderPartyList() {
@@ -3798,6 +5823,90 @@
             </button>
           </li>`).join('')
         : '<li class="placeholder">Nenhum partido encontrado.</li>';
+    }
+
+    /* ---------- Nuvem de palavras (página inicial) ---------- */
+    const WORDCLOUD_SIZE = 20;
+    const WORDCLOUD_MIN_LENGTH = 3; // ignora «m», «n.º» e restos de abreviaturas
+    // Palavras comuns que não dizem nada sobre o programa: artigos, preposições e contrações,
+    // pronomes, conjunções, advérbios genéricos, formas dos verbos auxiliares, numerais e
+    // unidades («35 anos», «mil euros»), que só acompanham um número.
+    const STOPWORDS = new Set(`
+      a à às ao aos o os as um uma uns umas de do da dos das em no na nos nas num numa
+      por pelo pela pelos pelas para pra com sem sob sobre entre até após ante contra desde perante
+      e ou mas nem que se como quando onde porque pois porém também já ainda só apenas mesmo
+      não sim mais menos muito muitos muita muitas pouco poucos pouca poucas tão tanto tanta
+      bem mal assim aqui ali lá sempre nunca cada todo toda todos todas outro outra outros outras
+      qual quais quem cujo cuja este esta estes estas esse essa esses essas aquele aquela aqueles aquelas
+      isto isso aquilo eu tu ele ela nós vós eles elas me te lhe lhes nos vos seu sua seus suas
+      nosso nossa nossos nossas meu minha teu tua dele dela deles delas
+      ser é são era foi foram será serão seja sejam sendo sido
+      ter tem têm tinha teve terá terão tenha tenham tendo tido
+      estar está estão esteja estejam haver há houver
+      fazer faz feito feita poder pode podem dever deve devem
+      partir através incluindo nomeadamente designadamente etc
+      dois duas três quatro cinco seis sete oito nove dez cem mil milhão milhões
+      ano anos mês meses dia dias hora horas euro euros
+    `.trim().split(/\s+/));
+
+    /**
+     * Conta as palavras de todas as propostas (`texto`) do partido e devolve as mais frequentes.
+     * As formas com e sem maiúsculas juntam-se; siglas (IRS, SNS…) mantêm as maiúsculas.
+     * Empates resolvem-se por ordem alfabética, para a nuvem ser sempre a mesma.
+     */
+    function topWords(party, limit = WORDCLOUD_SIZE) {
+      const counts = new Map(); // chave em minúsculas → { n, siglas }
+      for (const category of CATEGORIES) {
+        for (const topic of party.programa[category.id] || []) {
+          for (const word of topic.texto.match(/\p{L}+(?:-\p{L}+)*/gu) || []) {
+            const key = word.toLowerCase();
+            if (key.length < WORDCLOUD_MIN_LENGTH || STOPWORDS.has(key)) continue;
+            const entry = counts.get(key) || { n: 0, siglas: 0 };
+            entry.n += 1;
+            if (word === word.toUpperCase()) entry.siglas += 1;
+            counts.set(key, entry);
+          }
+        }
+      }
+      return [...counts]
+        .sort(([a, x], [b, y]) => y.n - x.n || a.localeCompare(b, 'pt'))
+        .slice(0, limit)
+        .map(([key, { n, siglas }]) => ({ word: siglas * 2 > n ? key.toUpperCase() : key, n }));
+    }
+
+    // As palavras só dependem dos dados, por isso calculam-se uma vez por partido.
+    const wordCache = new Map();
+    const cachedTopWords = (party) => {
+      if (!wordCache.has(party.id)) wordCache.set(party.id, topWords(party));
+      return wordCache.get(party.id);
+    };
+
+    /** Um <details> por partido; a nuvem põe as palavras maiores ao centro. */
+    function renderWordcloud(party) {
+      const words = cachedTopWords(party);
+      const max = words[0]?.n || 1;
+      const min = words.at(-1)?.n || 1;
+      // Alterna as palavras (por ordem de frequência) entre o fim e o início da lista.
+      const arranged = [];
+      words.forEach((w, i) => (i % 2 ? arranged.unshift(w) : arranged.push(w)));
+      const cloud = words.length
+        ? `<ul class="wordcloud-words" aria-label="Palavras mais frequentes ${escapeHtml(ofParty(party))}">
+            ${arranged.map(({ word, n }) => {
+              const weight = max === min ? 1 : (n - min) / (max - min);
+              const label = `${n} ${n === 1 ? 'vez' : 'vezes'}`;
+              return `<li style="--w:${weight.toFixed(2)}" title="${label}">${escapeHtml(word)}<span class="visually-hidden"> (${label})</span></li>`;
+            }).join('')}
+          </ul>`
+        : '<p class="wordcloud-empty">Informação não disponível.</p>';
+      return `
+        <details class="wordcloud" style="--party-color:${party.cor}">
+          <summary>
+            ${partyLogo(party)}
+            <span class="wordcloud-name"><strong>${escapeHtml(party.sigla)}</strong><span>${escapeHtml(party.nome)}</span></span>
+            <svg class="wordcloud-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          ${cloud}
+        </details>`;
     }
 
     /** Página inicial: um cartão por partido, com o número de propostas registadas. */
@@ -3824,9 +5933,17 @@
             <div class="home-actions">
               <button class="home-action" type="button" data-view="grafo">Abrir o grafo de afinidades</button>
               <button class="home-action" type="button" data-view="duelo">Comparar dois partidos</button>
+              <button class="home-action" type="button" data-view="coligacao">Construir uma coligação</button>
+              <button class="home-action" type="button" data-view="matriz">Ver a matriz de consenso</button>
+              <button class="home-action" type="button" data-view="jogo">Jogar: quem disse isto?</button>
             </div>
           </div>
           <ul class="party-grid" aria-label="Partidos">${cards}</ul>
+          <section class="wordcloud-section" aria-labelledby="wordcloud-title">
+            <h3 id="wordcloud-title">Palavras mais frequentes</h3>
+            <p>As ${WORDCLOUD_SIZE} palavras que cada partido mais repete nos programas (excluindo palavras comuns como «de», «a», «para»). Abre um partido para ver a nuvem.</p>
+            <div class="wordcloud-list">${PARTIES.map(renderWordcloud).join('')}</div>
+          </section>
         </section>`;
     }
 
@@ -3843,7 +5960,11 @@
             <h2>${escapeHtml(party.sigla)}</h2>
             <p>${escapeHtml(party.nome)}</p>
           </div>
-          <button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>
+          <div class="party-header-actions">
+            <button class="action-btn" type="button" data-action="radar">${RADAR_ICON}<span>Perfil visual</span></button>
+            <button class="action-btn" type="button" data-action="sunburst" aria-label="Distribuição visual: categorias e propostas do partido">${SUNBURST_ICON}<span>Distribuição visual</span></button>
+            <button class="action-btn" type="button" data-action="print">${PRINT_ICON}<span>Exportar PDF</span></button>
+          </div>
         </header>
 
         <div class="tabs" role="tablist" aria-label="Secções do partido">
@@ -3902,8 +6023,9 @@
 
       return `
         <li class="topic" data-ideia="${escapeHtml(topic.ideia || '')}">
-          <span class="topic-text">${escapeHtml(topic.texto)}</span>
+          <span class="topic-text">${withJargon(topic.texto)}</span>
           ${badges ? `<span class="badges" aria-label="Partidos com ideia semelhante">${badges}</span>` : ''}
+          ${favButton(party, category, topic)}
         </li>`;
     }
 
@@ -4007,9 +6129,9 @@
 
     function bindEvents() {
       document.addEventListener('click', (e) => {
-        const el = e.target.closest('[data-party], [data-tab], [data-category], [data-view], [data-action]');
+        const el = e.target.closest('[data-party], [data-tab], [data-category], [data-view], [data-action], [data-coalition], [data-matrix]');
         if (!el) return;
-        const { party, tab, category, view, action } = el.dataset;
+        const { party, tab, category, view, action, coalition, matrix } = el.dataset;
 
         if (party) {
           // Um badge abre o outro partido já filtrado na mesma categoria, com a ideia destacada.
@@ -4030,6 +6152,14 @@
         } else if (tab) {
           afterRender.push(() => $(`#tab-${tab}`)?.focus());
           navigate(`#/partido/${state.partyId}/${tab}`);
+        } else if (matrix) {
+          openMatrixModal(...matrix.split('|'));
+        } else if (coalition) {
+          const ids = state.coalition.includes(coalition)
+            ? state.coalition.filter((id) => id !== coalition)
+            : [...state.coalition, coalition];
+          afterRender.push(() => $(`[data-coalition="${coalition}"]`)?.focus({ preventScroll: true }));
+          navigate(coalitionHash(PARTIES.filter((p) => ids.includes(p.id)).map((p) => p.id)));
         } else if (category) {
           state.category = category;
           render();
@@ -4038,7 +6168,54 @@
           if (view === 'grafo') navigate(state.graphCategory ? `#/grafo/${state.graphCategory}` : '#/grafo');
           else if (view === 'bussola') navigate('#/bussola');
           else if (view === 'duelo') navigate(`#/duelo/${state.duelA}/${state.duelB}`);
+          else if (view === 'coligacao') navigate(coalitionHash(state.coalition));
+          else if (view === 'matriz') navigate('#/matriz');
+          else if (view === 'meu-programa') navigate('#/meu-programa');
+          else if (view === 'jogo') navigate('#/jogo');
           else navigate(state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/');
+        } else if (action === 'fav') {
+          const { favParty, favCategory, favIdeia } = el.dataset;
+          const saved = toggleFavorite(favParty, favCategory, favIdeia);
+          toast(saved ? 'Guardada em O Meu Programa.' : 'Retirada de O Meu Programa.');
+          if (state.view === 'meu-programa') {
+            render();
+          } else {
+            el.setAttribute('aria-pressed', String(saved));
+            el.title = saved ? 'Retirar de O Meu Programa' : 'Guardar em O Meu Programa';
+            el.classList.remove('is-pop');
+            void el.offsetWidth;
+            el.classList.toggle('is-pop', saved);
+          }
+        } else if (action === 'radar') {
+          openRadarModal(getParty(state.partyId));
+        } else if (action === 'sunburst') {
+          openSunburstModal(getParty(state.partyId));
+        } else if (action === 'jogo-answer' || action === 'jogo-skip') {
+          answerJogo(action === 'jogo-skip' ? null : el.dataset.index);
+          afterJogoRender();
+          render();
+        } else if (action === 'jogo-next') {
+          nextJogo();
+          afterJogoRender();
+          render();
+        } else if (action === 'jogo-restart') {
+          newJogoRound();
+          afterJogoRender();
+          render();
+        } else if (action === 'jogo-share') {
+          shareLink('Link copiado! Partilha o teu resultado.');
+        } else if (action === 'fav-clear') {
+          clearFavorites(el);
+        } else if (action === 'coalition-clear') {
+          navigate('#/coligacao');
+        } else if (action === 'onboarding') {
+          startOnboarding();
+        } else if (action === 'onboarding-next') {
+          nextOnboardingStep();
+        } else if (action === 'onboarding-prev') {
+          prevOnboardingStep();
+        } else if (action === 'onboarding-skip' || action === 'onboarding-finish') {
+          stopOnboarding();
         } else if (action === 'share') {
           shareLink();
         } else if (action === 'print') {
@@ -4060,7 +6237,7 @@
 
       // Navegação das abas com as setas (padrão WAI-ARIA)
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') { setSidebar(false); closeModal(); }
+        if (e.key === 'Escape') { setSidebar(false); closeModal(); hideJargon(); }
         const tab = e.target.closest('[role="tab"]');
         if (!tab || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
         const tabs = $$('[role="tab"]');
@@ -4145,6 +6322,75 @@
         if (!e.target.closest('#global-search')) closeSearch(false);
       });
 
+      // Dicionário de jargão: o rato por cima, o foco (teclado ou toque) ou um clique mostram a definição.
+      document.addEventListener('pointerover', (e) => {
+        const term = e.pointerType === 'mouse' && e.target.closest('.termo-jargao');
+        if (term) showJargon(term);
+      });
+      document.addEventListener('pointerout', (e) => {
+        const term = e.pointerType === 'mouse' && e.target.closest('.termo-jargao');
+        if (term && !term.contains(e.relatedTarget)) hideJargon();
+      });
+      document.addEventListener('focusin', (e) => {
+        const term = e.target.closest('.termo-jargao');
+        if (term) showJargon(term);
+        else hideJargon();
+      });
+      document.addEventListener('click', (e) => {
+        const term = e.target.closest('.termo-jargao');
+        if (term) showJargon(term);
+        else if (jargonActive) hideJargon();
+      });
+      document.addEventListener('scroll', hideJargon, { passive: true, capture: true });
+      window.addEventListener('resize', hideJargon);
+
+      // Favoritos alterados noutro separador.
+      window.addEventListener('storage', (e) => {
+        if (e.key !== FAV_KEY) return;
+        favorites = loadFavorites();
+        renderFavCount();
+        if (state.view === 'meu-programa') render();
+      });
+
+      // Visita guiada: clicar fora do cartão e do elemento em foco fecha-a. O clique continua
+      // a funcionar normalmente (aria-modal="false": a visita não bloqueia o site).
+      document.addEventListener('click', (e) => {
+        if (!state.onboarding.active || !e.target.isConnected) return;
+        if (e.target.closest('.onboarding-card, [data-action^="onboarding"]')) return;
+        if (onboardingEl?.contains(e.target)) return;
+        stopOnboarding();
+      });
+      // Escape fecha; as setas mudam de passo (exceto a escrever ou nas abas, que já usam as setas).
+      document.addEventListener('keydown', (e) => {
+        if (!state.onboarding.active) return;
+        if (e.key === 'Escape') {
+          stopOnboarding();
+          return;
+        }
+        if (e.target.closest('input, textarea, select, [role="tab"]')) return;
+        if (e.key === 'ArrowRight' && state.onboarding.step < onboardingSteps().length - 1) {
+          e.preventDefault();
+          nextOnboardingStep();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          prevOnboardingStep();
+        }
+      });
+      // Reposiciona ao deslizar e ao redimensionar, no máximo uma vez por frame e sem animação.
+      let onboardingFrame = 0;
+      const followOnboarding = () => {
+        if (!state.onboarding.active || onboardingFrame) return;
+        $('#onboarding').classList.add('is-instant');
+        onboardingFrame = requestAnimationFrame(() => {
+          onboardingFrame = 0;
+          positionOnboarding();
+        });
+      };
+      window.addEventListener('resize', followOnboarding, { passive: true });
+      document.addEventListener('scroll', followOnboarding, { passive: true, capture: true });
+      // Os logótipos e o tipo de letra podem mudar o tamanho dos elementos depois do arranque.
+      window.addEventListener('load', followOnboarding);
+
       window.addEventListener('hashchange', render);
     }
 
@@ -4153,7 +6399,16 @@
        ========================================================= */
     bindEvents();
     renderThemeButton();
+    renderFavCount();
     render();
+    // Visita guiada só na primeira visita. Corre depois do primeiro render (precisa do DOM) e num
+    // frame à parte, com o layout já calculado. Sem localStorage não aparece: não haveria forma de
+    // lembrar que já foi vista e voltaria em todas as visitas.
+    requestAnimationFrame(() => {
+      try {
+        if (!localStorage.getItem(ONBOARDED_KEY)) startOnboarding();
+      } catch { /* sem armazenamento */ }
+    });
   </script>
 </body>
 </html>
