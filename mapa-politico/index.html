@@ -2842,7 +2842,22 @@
     }
 
     /** Estilo Vis.js de cada tipo de nó. */
-    function styleNode({ group, cor, shared, parties, categoria, ...n }, theme) {
+    function styleNode({ group, cor, shared, parties, categoria, logo, ...n }, theme) {
+      if (group === 'partido' && logo) {
+        // Com logótipo: círculo branco com a imagem, contorno e néon na cor do partido, sigla por baixo.
+        return {
+          ...n,
+          shape: 'circularImage',
+          image: logo,
+          size: 20,
+          mass: 3,
+          shadow: { enabled: true, color: withAlpha(cor, 0.65), size: 22, x: 0, y: 0 },
+          borderWidth: 3,
+          borderWidthSelected: 4,
+          color: { background: '#ffffff', border: cor, highlight: { background: '#ffffff', border: theme.labelText }, hover: { background: '#ffffff', border: theme.labelText } },
+          font: { color: theme.labelText, size: 20, face: GRAPH_FONT, strokeWidth: 3, strokeColor: theme.labelStroke },
+        };
+      }
       if (group === 'partido') {
         return {
           ...n,
@@ -2949,14 +2964,31 @@
 
       // Partidos e categorias mantêm um rótulo legível mesmo com o mapa todo à vista.
       const narrow = container.clientWidth < 600;
+      // O logótipo de um partido também cresce com o mapa afastado, como a caixa com a sigla.
+      const logoSize = narrow ? 15 : 20;
       const fixedLabels = nodes.filter((n) => n.group !== 'ideia')
-        .map((n) => ({ id: n.id, px: n.group === 'partido' ? (narrow ? 15 : 20) : (narrow ? 10 : 14) }));
+        .map((n) => ({ node: n, px: n.group === 'partido' ? (narrow ? 15 : 20) : (narrow ? 10 : 14) }));
       const keepLabelsReadable = () => {
         const scale = network.getScale();
-        nodeSet.update(fixedLabels.map(({ id, px }) => ({ id, font: { size: Math.max(px, px / scale) } })));
+        nodeSet.update(fixedLabels.map(({ node, px }) => ({
+          id: node.id,
+          font: { size: Math.max(px, px / scale) },
+          ...(node.logo && { size: Math.max(logoSize, logoSize / scale) }),
+        })));
       };
       network.on('zoom', keepLabelsReadable);
       network.on('animationFinished', keepLabelsReadable);
+
+      // Logótipos: cada partido troca a caixa com a sigla pela imagem assim que ela carrega.
+      const graphNetwork = network;
+      for (const n of nodes.filter((node) => node.group === 'partido')) {
+        resolveLogo(n.id.slice(2)).then((src) => {
+          if (!src || network !== graphNetwork) return;
+          n.logo = src;
+          nodeSet.update(styleNode(n, theme));
+          keepLabelsReadable();
+        });
+      }
 
       // Pesquisa: procura no rótulo e no texto completo; Enter salta para o resultado seguinte.
       const searchable = nodes
@@ -3030,7 +3062,7 @@
       // Troca de tema sem reconstruir o mapa: só mudam as cores (as posições e o zoom ficam).
       graphRetheme = () => {
         theme = graphTheme();
-        nodeSet.update(nodes.filter((n) => n.group !== 'partido').map((n) => {
+        nodeSet.update(nodes.filter((n) => n.group !== 'partido' || n.logo).map((n) => {
           const { color, font } = styleNode(n, theme);
           return { id: n.id, color, font: { color: font.color, strokeColor: font.strokeColor } };
         }));
@@ -3189,25 +3221,60 @@
     }
 
     /* ---------- Logótipos dos partidos ---------- */
-    // Imagens na pasta logos/, ao lado deste ficheiro (o logótipo da CDU é o do PCP).
-    const LOGOS = {
-      ad: 'logos/ad.jpg', ps: 'logos/ps.jpg', chega: 'logos/chega.png', il: 'logos/il.jpg', livre: 'logos/livre.png',
-      cdu: 'logos/cdu.jpg', be: 'logos/be.png', pan: 'logos/pan.jpg', jpp: 'logos/jpp.jpg',
-    };
-    const missingLogos = new Set(); // partidos cuja imagem falhou: não se volta a pedir
+    // Ficheiros soltos na pasta logos/, ao lado deste ficheiro, com o id do partido
+    // (logos/chega.png, logos/cdu.jpg…). Tenta-se primeiro .png e depois .jpg.
+    const LOGO_EXTENSIONS = ['png', 'jpg'];
+    const logoSrc = new Map(); // id → caminho que carregou, ou null se nenhum existe (não se volta a pedir)
+    const logoProbes = new Map(); // id → Promise do caminho, para o grafo
 
-    /** Logótipo do partido; se a imagem falhar, fica a sigla que está por baixo. */
+    const logoCandidates = (partyId) => LOGO_EXTENSIONS.map((ext) => `logos/${partyId}.${ext}`);
+
+    /** Logótipo do partido; se o .png e o .jpg falharem, fica a sigla que está por baixo. */
     function partyLogo(party) {
-      const src = LOGOS[party.id];
-      const img = !src || missingLogos.has(party.id) ? '' : `
+      const src = logoSrc.has(party.id) ? logoSrc.get(party.id) : logoCandidates(party.id)[0];
+      const img = !src ? '' : `
         <img class="party-logo-img" src="${src}" alt="${escapeHtml(party.sigla)}"
-             onload="this.classList.add('is-loaded')" onerror="logoFailed(this, '${party.id}')">`;
+             onload="logoLoaded(this, '${party.id}')" onerror="logoFailed(this, '${party.id}')">`;
       return `<span class="party-logo" style="--party-color:${party.cor}" aria-hidden="true">${img}<span class="party-logo-text">${escapeHtml(party.sigla)}</span></span>`;
     }
 
+    function logoLoaded(img, partyId) {
+      logoSrc.set(partyId, img.getAttribute('src'));
+      img.classList.add('is-loaded');
+    }
+
+    /** Falhou uma extensão: passa à seguinte; sem mais nenhuma, esconde a imagem. */
     function logoFailed(img, partyId) {
-      missingLogos.add(partyId);
+      const candidates = logoCandidates(partyId);
+      const next = candidates[candidates.indexOf(img.getAttribute('src')) + 1];
+      if (next) {
+        img.src = next;
+        return;
+      }
+      logoSrc.set(partyId, null);
       img.hidden = true;
+    }
+
+    /** Caminho do logótipo que carrega (ou null), testado fora do DOM; usado pelo grafo. */
+    function resolveLogo(partyId) {
+      if (logoSrc.has(partyId)) return Promise.resolve(logoSrc.get(partyId));
+      if (!logoProbes.has(partyId)) {
+        logoProbes.set(partyId, new Promise((resolve) => {
+          const attempt = ([src, ...rest]) => {
+            if (!src) {
+              logoSrc.set(partyId, null);
+              resolve(null);
+              return;
+            }
+            const probe = new Image();
+            probe.onload = () => { logoSrc.set(partyId, src); resolve(src); };
+            probe.onerror = () => attempt(rest);
+            probe.src = src;
+          };
+          attempt(logoCandidates(partyId));
+        }));
+      }
+      return logoProbes.get(partyId);
     }
 
     /* ---------- Pesquisa global (cabeçalho) ---------- */
