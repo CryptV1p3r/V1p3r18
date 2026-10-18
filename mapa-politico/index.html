@@ -1621,6 +1621,129 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition: none !important; animation: none !important; }
     }
+
+    /* =========================================================
+       VISITA GUIADA (onboarding de primeira visita)
+       ========================================================= */
+    /* ---------- Tokens ---------- */
+    :root {
+      --onb-z: 140;                       /* acima dos modais (100) e do tooltip de jargão (130) */
+      --onb-dim: rgba(0, 0, 0, .55);      /* escurecimento à volta do elemento em foco */
+      --onb-pad: 6px;                     /* folga entre o elemento e o anel */
+      --onb-gap: 14px;                    /* distância entre o anel e o cartão */
+      --onb-speed: .35s;
+    }
+
+    /* ---------- Backdrop ----------
+       Camada fixa que ocupa o ecrã, transparente e sem capturar cliques
+       (pointer-events: none): o resto do site continua utilizável. O
+       escurecimento translúcido vem da sombra do anel; um clique fora do
+       cartão e do anel fecha a visita (tratado no JS). */
+    .onboarding {
+      position: fixed;
+      inset: 0;
+      z-index: var(--onb-z);
+      pointer-events: none;
+    }
+    .onboarding[hidden] { display: none; }
+
+    /* ---------- Spotlight (anel à volta do elemento real) ---------- */
+    .onboarding-spot {
+      position: fixed;
+      top: 0; left: 0;
+      width: 0; height: 0;
+      border-radius: var(--radius);
+      box-shadow: 0 0 0 2px var(--accent), 0 0 24px 2px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 0 9999px var(--onb-dim);
+      pointer-events: none;
+      transition:
+        top var(--onb-speed) var(--ease),
+        left var(--onb-speed) var(--ease),
+        width var(--onb-speed) var(--ease),
+        height var(--onb-speed) var(--ease),
+        border-radius var(--onb-speed) var(--ease);
+    }
+
+    /* ---------- Cartão ---------- */
+    .onboarding-card {
+      position: fixed;
+      top: 0; left: 0;
+      width: min(320px, calc(100vw - 24px));
+      padding: 16px 16px 14px;
+      color: var(--text);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow), 0 24px 64px -16px rgba(0, 0, 0, .55);
+      pointer-events: auto;
+      transition: top var(--onb-speed) var(--ease), left var(--onb-speed) var(--ease);
+    }
+    /* Linha de cima: «1/5» à esquerda e «Saltar» à direita */
+    .onboarding-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .onboarding-step {
+      margin: 0;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+    .onboarding-card h2 { font-size: var(--fs-md); letter-spacing: -.01em; }
+    .onboarding-card p { margin: 6px 0 0; font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.5; }
+    .onboarding-card kbd {
+      padding: 0 5px;
+      font: inherit;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    .onboarding-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .onboarding-skip {
+      padding: 4px 2px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .onboarding-skip:hover { color: var(--text); text-decoration: underline; }
+    .onboarding-btn {
+      padding: 7px 14px;
+      white-space: nowrap;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .onboarding-btn:hover { border-color: var(--accent); }
+    .onboarding-btn.is-primary {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 18px -6px var(--accent);
+    }
+    .onboarding-btn.is-primary:hover { box-shadow: 0 0 22px -4px var(--accent); }
+
+    /* ---------- Animações ---------- */
+    .onboarding-card.is-entering { animation: onboarding-in var(--onb-speed) var(--ease); }
+    @keyframes onboarding-in { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+    /* Ao deslizar a página ou mudar o tamanho da janela o anel acompanha o elemento sem atraso. */
+    .onboarding.is-instant .onboarding-spot,
+    .onboarding.is-instant .onboarding-card { transition: none; }
+    /* Sem animações: o anel e o cartão saltam logo para o sítio novo. */
+    @media (prefers-reduced-motion: reduce) {
+      .onboarding-spot,
+      .onboarding-card { transition: none; }
+      .onboarding-card.is-entering { animation: none; }
+    }
+    @media print {
+      .onboarding { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -1653,6 +1776,9 @@
         <button type="button" data-view="coligacao" aria-pressed="false">Coligação</button>
         <button type="button" data-view="meu-programa" aria-pressed="false">Meu Programa<span class="nav-count" id="fav-count" hidden></span></button>
       </nav>
+      <button class="icon-btn help-btn" type="button" aria-label="Repetir a visita guiada" title="Repetir a visita guiada" data-action="onboarding">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6"/><path d="M12 17h.01"/></svg>
+      </button>
       <button class="icon-btn theme-btn" type="button" aria-label="Mudar para o tema escuro" data-action="toggle-theme">
         <!-- sol: mostrado no tema escuro (passa a claro); lua: no tema claro -->
         <svg data-icon="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -1684,6 +1810,12 @@
 
   <!-- Tooltip do dicionário de jargão (um só, posicionado por cima do termo ativo) -->
   <div class="jargon-tip" id="jargon-tip" role="tooltip" hidden></div>
+
+  <!-- Visita guiada de primeira visita: anel (spotlight) + cartão, preenchidos pelo JS -->
+  <div class="onboarding" id="onboarding" hidden>
+    <div class="onboarding-spot" aria-hidden="true"></div>
+    <div class="onboarding-card" role="dialog" aria-modal="false" aria-labelledby="onboarding-title" aria-live="polite"></div>
+  </div>
 
   <script>
     'use strict';
@@ -3015,6 +3147,7 @@
       quizShown: false,      // resultados da bússola visíveis
       quizIds: [],           // perguntas da ronda atual (escolhidas ao acaso)
       coalition: [],         // partidos escolhidos no construtor de coligações
+      onboarding: { active: false, step: 0 }, // visita guiada da primeira visita
     };
 
     function parseHash() {
@@ -4056,6 +4189,196 @@
       });
     }
 
+    /* ---------- Visita guiada (onboarding de primeira visita) ---------- */
+    const ONBOARDED_KEY = 'mapa-politico:onboarded';
+
+    // Cada passo aponta para um elemento real. `selector` pode ter alternativas separadas por
+    // vírgula, tentadas por ordem: usa-se a primeira visível (ex.: a grelha da página inicial,
+    // a lista lateral ou, no telemóvel, o botão que a abre). Sem nenhuma visível, o passo salta.
+    // `text` é HTML fixo escrito aqui (não vem de dados), por isso pode levar <kbd>.
+    // `position`: 'auto' (abaixo se couber, senão acima), 'top' ou 'bottom'.
+    const ONBOARDING_STEPS = [
+      {
+        selector: '.view-switch',
+        title: 'As vistas do mapa',
+        text: 'Estas são as vistas: Partidos, Grafo, Matriz, Duelo, Bússola, Coligação e Meu Programa.',
+        position: 'auto',
+      },
+      {
+        selector: '.party-grid, .party-list, .menu-btn',
+        title: 'Escolhe um partido',
+        text: 'Escolhe um partido para abrir o seu programa, categoria a categoria.',
+        position: 'auto',
+      },
+      {
+        selector: '.theme-btn',
+        title: 'Tema claro ou escuro',
+        text: 'Alterna entre o tema claro e o escuro. A escolha fica guardada.',
+        position: 'auto',
+      },
+      {
+        selector: '#global-search',
+        title: 'Pesquisa',
+        text: 'Pesquisa qualquer partido, dirigente ou proposta. Atalho: <kbd>Ctrl</kbd> + <kbd>K</kbd>.',
+        position: 'auto',
+      },
+      {
+        selector: '[data-view="meu-programa"]',
+        title: 'O Meu Programa',
+        text: 'Marca propostas com a estrela para as juntares aqui. Ficam guardadas neste browser.',
+        position: 'auto',
+      },
+    ];
+
+    const ONBOARDING_PAD = 6;     // folga entre o elemento e o anel (igual a --onb-pad)
+    const ONBOARDING_GAP = 14;    // distância entre o anel e o cartão (igual a --onb-gap)
+    const ONBOARDING_MARGIN = 12; // margem mínima do cartão às bordas do ecrã
+    let onboardingEl = null;          // elemento em foco no passo atual
+    let onboardingReturnFocus = null; // onde estava o foco antes de a visita abrir
+
+    /** Primeiro elemento visível para o seletor do passo (tem tamanho e não está numa gaveta fechada). */
+    function onboardingTarget(step) {
+      for (const selector of step.selector.split(',')) {
+        const el = $(selector.trim());
+        const rect = el?.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0 && rect.right > 0) return el;
+      }
+      return null;
+    }
+
+    /** Passos disponíveis agora, cada um com o seu elemento (ex.: sem pesquisa no telemóvel). */
+    const onboardingSteps = () => ONBOARDING_STEPS
+      .map((step) => ({ ...step, target: onboardingTarget(step) }))
+      .filter((step) => step.target);
+
+    function startOnboarding() {
+      closeModal();
+      hideJargon();
+      closeSearch();
+      setSidebar(false);
+      onboardingReturnFocus = document.activeElement;
+      state.onboarding = { active: true, step: 0 };
+      renderOnboarding();
+    }
+
+    /** Fecha a visita (Saltar, Escape, clique fora ou fim) e grava que já foi vista. */
+    function stopOnboarding() {
+      if (!state.onboarding.active) return;
+      state.onboarding = { active: false, step: 0 };
+      onboardingEl = null;
+      const box = $('#onboarding');
+      box.hidden = true;
+      delete $('.onboarding-card', box).dataset.key;
+      try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch { /* sem armazenamento: vale só nesta visita */ }
+      if (onboardingReturnFocus?.isConnected) onboardingReturnFocus.focus({ preventScroll: true });
+      onboardingReturnFocus = null;
+    }
+
+    function nextOnboardingStep() {
+      if (state.onboarding.step >= onboardingSteps().length - 1) {
+        stopOnboarding();
+        return;
+      }
+      state.onboarding.step += 1;
+      renderOnboarding();
+    }
+
+    function prevOnboardingStep() {
+      if (state.onboarding.step === 0) return;
+      state.onboarding.step -= 1;
+      renderOnboarding();
+    }
+
+    /**
+     * Desenha o passo atual: reescreve o cartão só quando o passo muda e depois posiciona o anel
+     * e o cartão. Com `focus`, o foco vai para o botão principal (Seguinte ou Começar a explorar).
+     */
+    function renderOnboarding({ focus = true } = {}) {
+      const box = $('#onboarding');
+      if (!state.onboarding.active) {
+        box.hidden = true;
+        return;
+      }
+      const steps = onboardingSteps();
+      if (!steps.length) {
+        stopOnboarding();
+        return;
+      }
+      const i = Math.min(state.onboarding.step, steps.length - 1);
+      const step = steps[i];
+      const last = i === steps.length - 1;
+      state.onboarding.step = i;
+      onboardingEl = step.target;
+      box.hidden = false;
+
+      const card = $('.onboarding-card', box);
+      const key = `${i}/${steps.length}|${step.selector}`;
+      if (card.dataset.key !== key) {
+        card.dataset.key = key;
+        card.innerHTML = `
+          <div class="onboarding-top">
+            <p class="onboarding-step">${i + 1}/${steps.length}</p>
+            <button class="onboarding-skip" type="button" data-action="onboarding-skip" aria-label="Saltar a visita guiada">Saltar</button>
+          </div>
+          <h2 id="onboarding-title">${escapeHtml(step.title)}</h2>
+          <p>${step.text}</p>
+          <div class="onboarding-actions">
+            ${i ? `<button class="onboarding-btn" type="button" data-action="onboarding-prev" aria-label="Anterior: passo ${i} de ${steps.length}">Anterior</button>` : ''}
+            ${last
+              ? '<button class="onboarding-btn is-primary" type="button" data-action="onboarding-finish" data-onboarding-primary aria-label="Começar a explorar e fechar a visita guiada">Começar a explorar</button>'
+              : `<button class="onboarding-btn is-primary" type="button" data-action="onboarding-next" data-onboarding-primary aria-label="Seguinte: passo ${i + 2} de ${steps.length}">Seguinte</button>`}
+          </div>`;
+        card.classList.remove('is-entering');
+        void card.offsetWidth; // reinicia a animação de entrada
+        card.classList.add('is-entering');
+        // Passo novo: anima a passagem do anel e traz o elemento para o ecrã
+        // (no telemóvel, «Meu Programa» pode estar fora da barra de vistas).
+        box.classList.remove('is-instant');
+        step.target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+      positionOnboarding();
+      if (focus) $('[data-onboarding-primary]', card)?.focus({ preventScroll: true });
+    }
+
+    /** Coloca o anel à volta do elemento e o cartão abaixo ou acima dele, dentro do ecrã. */
+    function positionOnboarding() {
+      if (!state.onboarding.active) return;
+      if (!onboardingEl?.isConnected) {
+        renderOnboarding({ focus: false });
+        return;
+      }
+      const box = $('#onboarding');
+      const spot = $('.onboarding-spot', box);
+      const card = $('.onboarding-card', box);
+      const vw = document.documentElement.clientWidth;
+      const vh = innerHeight;
+      const rect = onboardingEl.getBoundingClientRect();
+
+      // Anel recortado ao ecrã, para elementos maiores do que a janela (ex.: a grelha dos partidos).
+      const top = Math.max(rect.top - ONBOARDING_PAD, 4);
+      const left = Math.max(rect.left - ONBOARDING_PAD, 4);
+      const right = Math.min(rect.right + ONBOARDING_PAD, vw - 4);
+      const bottom = Math.min(rect.bottom + ONBOARDING_PAD, vh - 4);
+      spot.style.top = `${Math.round(top)}px`;
+      spot.style.left = `${Math.round(left)}px`;
+      spot.style.width = `${Math.round(Math.max(right - left, 0))}px`;
+      spot.style.height = `${Math.round(Math.max(bottom - top, 0))}px`;
+      spot.style.borderRadius = `calc(${getComputedStyle(onboardingEl).borderTopLeftRadius} + ${ONBOARDING_PAD}px)`;
+
+      const { offsetWidth: w, offsetHeight: h } = card;
+      const fitsBelow = vh - bottom - ONBOARDING_GAP >= h + ONBOARDING_MARGIN;
+      const fitsAbove = top - ONBOARDING_GAP >= h + ONBOARDING_MARGIN;
+      const step = ONBOARDING_STEPS.find((s) => s.selector === card.dataset.key?.split('|')[1]);
+      const preferAbove = step?.position === 'top';
+      let y;
+      if (fitsBelow && !(preferAbove && fitsAbove)) y = bottom + ONBOARDING_GAP;
+      else if (fitsAbove) y = top - ONBOARDING_GAP - h;
+      else y = vh - h - ONBOARDING_MARGIN; // sem espaço: fica no fundo do ecrã, por cima do elemento
+      const x = Math.min(Math.max((left + right) / 2 - w / 2, ONBOARDING_MARGIN), vw - w - ONBOARDING_MARGIN);
+      card.style.top = `${Math.round(y)}px`;
+      card.style.left = `${Math.round(x)}px`;
+    }
+
     /* ---------- Modal ---------- */
     let modalReturnFocus = null;
 
@@ -4668,6 +4991,12 @@
       lastRoute = route;
 
       afterRender.splice(0).forEach((fn) => fn());
+
+      // Visita guiada aberta: mantém-se e só se reposiciona. Decisão: os alvos estão quase todos
+      // no cabeçalho, que não muda entre vistas, e quem clica numa vista dentro do anel está a
+      // seguir a visita; fechá-la aí castigaria isso. Se o alvo do passo desaparecer (ex.: a
+      // grelha da página inicial), usa-se a alternativa do seletor ou o passo é saltado.
+      if (state.onboarding.active) renderOnboarding({ focus: false });
     }
 
     function renderViewSwitch() {
@@ -4976,6 +5305,14 @@
           clearFavorites(el);
         } else if (action === 'coalition-clear') {
           navigate('#/coligacao');
+        } else if (action === 'onboarding') {
+          startOnboarding();
+        } else if (action === 'onboarding-next') {
+          nextOnboardingStep();
+        } else if (action === 'onboarding-prev') {
+          prevOnboardingStep();
+        } else if (action === 'onboarding-skip' || action === 'onboarding-finish') {
+          stopOnboarding();
         } else if (action === 'share') {
           shareLink();
         } else if (action === 'print') {
@@ -5112,6 +5449,45 @@
         if (state.view === 'meu-programa') render();
       });
 
+      // Visita guiada: clicar fora do cartão e do elemento em foco fecha-a. O clique continua
+      // a funcionar normalmente (aria-modal="false": a visita não bloqueia o site).
+      document.addEventListener('click', (e) => {
+        if (!state.onboarding.active || !e.target.isConnected) return;
+        if (e.target.closest('.onboarding-card, [data-action^="onboarding"]')) return;
+        if (onboardingEl?.contains(e.target)) return;
+        stopOnboarding();
+      });
+      // Escape fecha; as setas mudam de passo (exceto a escrever ou nas abas, que já usam as setas).
+      document.addEventListener('keydown', (e) => {
+        if (!state.onboarding.active) return;
+        if (e.key === 'Escape') {
+          stopOnboarding();
+          return;
+        }
+        if (e.target.closest('input, textarea, select, [role="tab"]')) return;
+        if (e.key === 'ArrowRight' && state.onboarding.step < onboardingSteps().length - 1) {
+          e.preventDefault();
+          nextOnboardingStep();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          prevOnboardingStep();
+        }
+      });
+      // Reposiciona ao deslizar e ao redimensionar, no máximo uma vez por frame e sem animação.
+      let onboardingFrame = 0;
+      const followOnboarding = () => {
+        if (!state.onboarding.active || onboardingFrame) return;
+        $('#onboarding').classList.add('is-instant');
+        onboardingFrame = requestAnimationFrame(() => {
+          onboardingFrame = 0;
+          positionOnboarding();
+        });
+      };
+      window.addEventListener('resize', followOnboarding, { passive: true });
+      document.addEventListener('scroll', followOnboarding, { passive: true, capture: true });
+      // Os logótipos e o tipo de letra podem mudar o tamanho dos elementos depois do arranque.
+      window.addEventListener('load', followOnboarding);
+
       window.addEventListener('hashchange', render);
     }
 
@@ -5122,6 +5498,14 @@
     renderThemeButton();
     renderFavCount();
     render();
+    // Visita guiada só na primeira visita. Corre depois do primeiro render (precisa do DOM) e num
+    // frame à parte, com o layout já calculado. Sem localStorage não aparece: não haveria forma de
+    // lembrar que já foi vista e voltaria em todas as visitas.
+    requestAnimationFrame(() => {
+      try {
+        if (!localStorage.getItem(ONBOARDED_KEY)) startOnboarding();
+      } catch { /* sem armazenamento */ }
+    });
   </script>
 </body>
 </html>
