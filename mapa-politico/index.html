@@ -1833,6 +1833,147 @@
     @media print {
       .onboarding { display: none !important; }
     }
+    /* =========================================================
+       JOGO «QUEM DISSE ISTO?»
+       Mesma linguagem da Bússola (.quiz-*), com classes próprias.
+       ========================================================= */
+    .jogo-view { --jogo-right: #16a34a; --jogo-wrong: #ef4444; }
+    .jogo-view h2 { font-size: var(--fs-xl); margin-bottom: 6px; }
+    .jogo-view > p { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 20px; }
+    .jogo-best-chip {
+      padding: 4px 10px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 999px;
+    }
+    .jogo-empty { padding: 24px; text-align: center; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius-lg); }
+
+    /* ---------- Progresso (texto + pontos) ---------- */
+    .jogo-progress {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .jogo-dots { display: flex; gap: 6px; }
+    .jogo-dots i { width: 10px; height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; }
+    .jogo-dots i.is-current { background: var(--accent); border-color: var(--accent); }
+    .jogo-dots i.is-right { background: var(--jogo-right); border-color: var(--jogo-right); }
+    .jogo-dots i.is-wrong { background: var(--jogo-wrong); border-color: var(--jogo-wrong); }
+
+    /* ---------- Cartão da pergunta ---------- */
+    .jogo-card {
+      min-width: 0;
+      margin: 0;
+      padding: 18px;
+      overflow-wrap: anywhere; /* nunca scroll horizontal, mesmo com palavras longas */
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      animation: modal-in .35s var(--ease) both;
+    }
+    .jogo-card legend { float: left; width: 100%; padding: 0; font-weight: 700; letter-spacing: -.01em; }
+    .jogo-category { clear: both; padding-top: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+    .jogo-topic {
+      margin: 10px 0 16px;
+      padding: 12px 16px;
+      font-size: var(--fs-lg);
+      line-height: 1.45;
+      background: var(--surface-2);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    /* ---------- Opções: uma coluna no telemóvel, 2×2 a partir de 600px ---------- */
+    .jogo-options { display: grid; gap: 8px; }
+    @media (min-width: 600px) { .jogo-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .jogo-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 10px 12px;
+      text-align: left;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease), opacity .2s var(--ease);
+    }
+    .jogo-option:not([aria-disabled]):hover {
+      border-color: color-mix(in srgb, var(--party-color) 60%, var(--border));
+      box-shadow: 0 0 18px -8px var(--party-color);
+    }
+    .jogo-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .jogo-option[aria-disabled] { cursor: default; }
+    .jogo-option .party-logo { width: 36px; height: 36px; font-size: 10px; border-radius: 10px; box-shadow: 0 0 14px -4px var(--party-color); }
+    .jogo-option-name { display: grid; min-width: 0; line-height: 1.25; }
+    .jogo-option-name strong { font-size: var(--fs-sm); }
+    .jogo-option-name span { overflow: hidden; font-size: var(--fs-xs); color: var(--text-muted); text-overflow: ellipsis; white-space: nowrap; }
+    .jogo-mark { display: grid; place-items: center; flex: none; width: 22px; height: 22px; margin-left: auto; color: #fff; border-radius: 50%; }
+    .jogo-mark svg { width: 14px; height: 14px; }
+    .jogo-option.is-right { background: color-mix(in srgb, var(--jogo-right) 12%, var(--surface)); border-color: var(--jogo-right); box-shadow: 0 0 0 1px var(--jogo-right); }
+    .jogo-option.is-wrong { background: color-mix(in srgb, var(--jogo-wrong) 12%, var(--surface)); border-color: var(--jogo-wrong); box-shadow: 0 0 0 1px var(--jogo-wrong); }
+    .jogo-option.is-right .jogo-mark, .jogo-result-items .is-right .jogo-mark { background: var(--jogo-right); }
+    .jogo-option.is-wrong .jogo-mark, .jogo-result-items .is-wrong .jogo-mark { background: var(--jogo-wrong); }
+    .jogo-option.is-muted { opacity: .55; }
+
+    /* ---------- Resposta e botões ---------- */
+    .jogo-feedback { min-height: 1.5em; margin: 12px 2px 0; font-weight: 600; }
+    .jogo-feedback.is-right { color: var(--jogo-right); }
+    .jogo-feedback.is-wrong { color: var(--jogo-wrong); }
+    .jogo-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+    .jogo-skip {
+      margin-right: auto;
+      padding: 6px 4px;
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .jogo-skip:hover { color: var(--text); }
+
+    /* ---------- Resultado ---------- */
+    .jogo-score {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      padding: 22px 16px;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      animation: modal-in .35s var(--ease) both;
+    }
+    .jogo-score:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .jogo-score-value { font-size: var(--fs-lg); color: var(--text-muted); }
+    .jogo-score-value strong { font-size: 3rem; line-height: 1; letter-spacing: -.04em; color: var(--text); }
+    .jogo-score-phrase { font-weight: 600; }
+    .jogo-best { font-size: var(--fs-sm); color: var(--accent); font-weight: 600; }
+    .jogo-results { display: grid; gap: 10px; margin: 14px 0 0; padding: 0; list-style: none; }
+    .jogo-result-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: color-mix(in srgb, var(--party-color) 5%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--party-color) 22%, var(--border));
+      border-radius: var(--radius-lg);
+    }
+    .jogo-result-row .party-logo { width: 36px; height: 36px; font-size: 10px; box-shadow: 0 0 14px -4px var(--party-color); }
+    .jogo-result-body { flex: 1; min-width: 0; display: grid; gap: 8px; }
+    .jogo-result-head { display: flex; justify-content: space-between; gap: 10px; font-size: var(--fs-sm); }
+    .jogo-result-head span { color: var(--text-muted); }
+    .jogo-result-items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); }
+    .jogo-result-items li { display: flex; align-items: flex-start; gap: 10px; overflow-wrap: anywhere; }
+    .jogo-result-items .jogo-mark { width: 20px; height: 20px; margin-left: 0; }
+    .jogo-result-detail { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--text-muted); }
+
   </style>
 </head>
 <body>
@@ -3222,9 +3363,10 @@
          #/matriz                   → matriz de consenso (categorias × partidos)
          #/coligacao/<id>,<id>…     → construtor de coligações (partidos escolhidos no link)
          #/meu-programa             → propostas guardadas pelo utilizador
+         #/jogo                     → jogo «Quem disse isto?»
        ========================================================= */
     const state = {
-      view: 'partidos',      // 'partidos' | 'grafo' | 'matriz' | 'duelo' | 'bussola' | 'coligacao' | 'meu-programa'
+      view: 'partidos',      // 'partidos' | 'grafo' | 'matriz' | 'duelo' | 'bussola' | 'coligacao' | 'meu-programa' | 'jogo'
       partyId: null,
       tab: 'programa',       // 'programa' | 'quem'
       category: 'todas',     // filtro de categoria na aba Programa
@@ -3237,6 +3379,7 @@
       quizIds: [],           // perguntas da ronda atual (escolhidas ao acaso)
       coalition: [],         // partidos escolhidos no construtor de coligações
       onboarding: { active: false, step: 0 }, // visita guiada da primeira visita
+      jogo: { questions: [], current: 0, answers: [], done: false }, // ronda do «Quem disse isto?»
     };
 
     function parseHash() {
@@ -3252,6 +3395,7 @@
       }
       if (section === 'meu-programa') return { view: 'meu-programa' };
       if (section === 'matriz') return { view: 'matriz' };
+      if (section === 'jogo') return { view: 'jogo' };
       if (section === 'duelo') {
         const duelA = getParty(id) ? id : 'ad';
         const duelB = getParty(tab) && tab !== duelA ? tab : (duelA === 'ps' ? 'ad' : 'ps');
@@ -5182,6 +5326,245 @@
         </section>`;
     }
 
+    /* ---------- Jogo «Quem disse isto?» ---------- */
+    const JOGO_QUESTIONS = 5;
+    const JOGO_OPTIONS = 4;
+    const JOGO_BEST_KEY = 'mapa-politico:jogo-melhor';
+
+    // O visto (CHECK_ICON) é o mesmo da coligação; a cruz marca as respostas erradas.
+    const CROSS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+    let jogoTopicsCache = null;
+
+    /**
+     * Propostas que servem de pergunta: só as que têm uma `ideia` que aparece num único partido
+     * (contando todas as categorias). Uma ideia partilhada — por exemplo o IVA Zero, que o PS e
+     * o Chega defendem — teria mais do que uma resposta certa. Os dados não mudam, por isso a
+     * lista calcula-se uma vez.
+     */
+    function eligibleJogoTopics() {
+      if (jogoTopicsCache) return jogoTopicsCache;
+      const partiesByIdea = new Map();
+      for (const party of PARTIES) {
+        for (const category of CATEGORIES) {
+          for (const topic of party.programa[category.id] || []) {
+            if (!partiesByIdea.has(topic.ideia)) partiesByIdea.set(topic.ideia, new Set());
+            partiesByIdea.get(topic.ideia).add(party.id);
+          }
+        }
+      }
+      jogoTopicsCache = PARTIES.flatMap((party) => CATEGORIES.flatMap((category) =>
+        (party.programa[category.id] || [])
+          .filter((topic) => partiesByIdea.get(topic.ideia).size === 1)
+          .map((topic) => ({ party, category, topic }))));
+      return jogoTopicsCache;
+    }
+
+    function loadJogoBest() {
+      try {
+        const best = parseInt(localStorage.getItem(JOGO_BEST_KEY), 10);
+        return Number.isInteger(best) && best >= 0 && best <= JOGO_QUESTIONS ? best : null;
+      } catch {
+        return null; // sem armazenamento: não há melhor pontuação a mostrar
+      }
+    }
+
+    function saveJogoBest(score) {
+      try { localStorage.setItem(JOGO_BEST_KEY, String(score)); } catch { /* sem armazenamento: vale só nesta visita */ }
+    }
+
+    /**
+     * Nova ronda: JOGO_QUESTIONS propostas ao acaso, cada uma com a resposta certa e distratores
+     * ao acaso entre os outros partidos que têm propostas elegíveis; a ordem das opções também é
+     * baralhada. Primeiro sorteia-se o partido e depois a proposta: as elegíveis estão muito
+     * desequilibradas (a IL tem 53, a AD só 9) e sortear diretamente as propostas faria a IL, o
+     * PAN e o JPP serem quase sempre a resposta. Dentro da ronda evita-se repetir partidos e,
+     * como na Bússola, categorias, sempre que possível.
+     */
+    function newJogoRound() {
+      const pool = shuffle(eligibleJogoTopics());
+      const candidates = shuffle([...new Set(pool.map((item) => item.party))]);
+      const picked = [];
+      const categories = new Set();
+      for (let i = 0; picked.length < Math.min(JOGO_QUESTIONS, pool.length); i++) {
+        // Volta a percorrer os partidos se houver menos partidos do que perguntas.
+        const party = candidates[i % candidates.length];
+        const own = pool.filter((item) => item.party === party && !picked.includes(item));
+        const item = own.find((t) => !categories.has(t.category.id)) || own[0];
+        if (!item) continue;
+        picked.push(item);
+        categories.add(item.category.id);
+      }
+      state.jogo = {
+        questions: picked.map((item) => {
+          const distractors = shuffle(candidates.filter((p) => p !== item.party)).slice(0, JOGO_OPTIONS - 1);
+          return { ...item, options: shuffle([item.party, ...distractors]) };
+        }),
+        current: 0,
+        answers: [], // por pergunta: { choice: índice da opção ou null se passou, correct }
+        done: false,
+        best: loadJogoBest(),
+        record: false, // a ronda acabada bateu a melhor pontuação anterior
+      };
+    }
+
+    /** Regista a resposta à pergunta atual; `optionIndex` null conta como «Passar» (errada). */
+    function answerJogo(optionIndex) {
+      const jogo = state.jogo;
+      const question = jogo.questions[jogo.current];
+      if (!question || jogo.answers[jogo.current]) return; // já respondida
+      const choice = optionIndex == null ? null : Number(optionIndex);
+      jogo.answers[jogo.current] = { choice, correct: choice != null && question.options[choice] === question.party };
+    }
+
+    /** Avança para a pergunta seguinte ou, na última, fecha a ronda e guarda a melhor pontuação. */
+    function nextJogo() {
+      const jogo = state.jogo;
+      if (!jogo.answers[jogo.current]) return;
+      if (jogo.current < jogo.questions.length - 1) {
+        jogo.current += 1;
+        return;
+      }
+      jogo.done = true;
+      const score = jogo.answers.filter((a) => a.correct).length;
+      jogo.record = jogo.best == null || score > jogo.best;
+      if (jogo.record) {
+        jogo.best = score;
+        saveJogoBest(score);
+      }
+    }
+
+    function renderJogoResults() {
+      const { questions, answers, best, record } = state.jogo;
+      const total = questions.length;
+      const score = answers.filter((a) => a.correct).length;
+      const phrase = score === total ? `Acertaste todas: ${score} em ${total}!` : score ? `Acertaste ${score} em ${total}.` : `Não acertaste nenhuma das ${total}.`;
+      // Uma linha por partido que apareceu como resposta certa, pela ordem de PARTIES.
+      const byParty = PARTIES
+        .map((party) => ({ party, items: questions.map((q, i) => ({ q, a: answers[i] })).filter(({ q }) => q.party === party) }))
+        .filter((row) => row.items.length);
+      const rows = byParty.map(({ party, items }) => {
+        const right = items.filter(({ a }) => a.correct).length;
+        return `
+          <li class="jogo-result-row" style="--party-color:${party.cor}">
+            ${partyLogo(party)}
+            <div class="jogo-result-body">
+              <div class="jogo-result-head">
+                <strong>${escapeHtml(party.sigla)}</strong>
+                <span>${items.length === 1 ? (right ? 'Acertaste' : 'Falhaste') : `${right} de ${items.length} certas`}</span>
+              </div>
+              <ul class="jogo-result-items">
+                ${items.map(({ q, a }) => {
+                  const chosen = a.choice == null ? null : q.options[a.choice];
+                  const detail = a.correct ? 'Certa' : chosen ? `Respondeste ${escapeHtml(partyShort(chosen))}` : 'Passaste';
+                  return `
+                    <li class="${a.correct ? 'is-right' : 'is-wrong'}">
+                      <span class="jogo-mark">${a.correct ? CHECK_ICON : CROSS_ICON}</span>
+                      <span><span class="jogo-result-text">${escapeHtml(q.topic.texto)}</span>
+                        <span class="jogo-result-detail">${detail}</span></span>
+                    </li>`;
+                }).join('')}
+              </ul>
+            </div>
+          </li>`;
+      }).join('');
+      return `
+        <div class="jogo-score" id="jogo-score" tabindex="-1">
+          <p class="jogo-score-value"><strong>${score}</strong>/${total}</p>
+          <p class="jogo-score-phrase">${phrase}</p>
+          <p class="jogo-best">${record && score > 0 ? 'Nova melhor pontuação! ' : ''}Melhor: ${best}/${JOGO_QUESTIONS}</p>
+        </div>
+        <ol class="jogo-results" aria-label="Respostas por partido">${rows}</ol>
+        <div class="jogo-actions">
+          <button class="action-btn" type="button" data-action="jogo-share">${SHARE_ICON}<span>Partilhar</span></button>
+          <button class="action-btn is-primary" type="button" data-action="jogo-restart">${REFRESH_ICON}<span>Jogar outra vez</span></button>
+        </div>`;
+    }
+
+    function renderJogoView() {
+      const jogo = state.jogo;
+      const intro = `
+        <div class="view-head">
+          <h2>Quem disse isto?</h2>
+          ${jogo.best != null && !jogo.done ? `<span class="jogo-best-chip">Melhor: ${jogo.best}/${JOGO_QUESTIONS}</span>` : ''}
+        </div>
+        <p>Lê a proposta e adivinha que partido a defende. Só entram propostas que aparecem num único programa.</p>`;
+
+      if (eligibleJogoTopics().length < JOGO_OPTIONS || !jogo.questions.length) {
+        return `
+          <section class="jogo-view">
+            ${intro}
+            <p class="placeholder jogo-empty">Ainda não há propostas suficientes para jogar. Tenta mais tarde.</p>
+          </section>`;
+      }
+      if (jogo.done) return `<section class="jogo-view">${intro}${renderJogoResults()}</section>`;
+
+      const total = jogo.questions.length;
+      const question = jogo.questions[jogo.current];
+      const answer = jogo.answers[jogo.current];
+      const last = jogo.current === total - 1;
+      const options = question.options.map((party, i) => {
+        const isRight = answer && party === question.party;
+        const isWrong = answer && answer.choice === i && !answer.correct;
+        const cls = isRight ? ' is-right' : isWrong ? ' is-wrong' : answer ? ' is-muted' : '';
+        const note = isRight ? ' (resposta certa)' : isWrong ? ' (a tua resposta)' : '';
+        return `
+          <button class="jogo-option${cls}" type="button" data-action="jogo-answer" data-index="${i}"
+                  style="--party-color:${party.cor}" ${answer ? 'aria-disabled="true"' : ''}
+                  aria-label="${escapeHtml(`${party.sigla}, ${party.nome}${note}`)}">
+            ${partyLogo(party)}
+            <span class="jogo-option-name"><strong>${escapeHtml(party.sigla)}</strong><span>${escapeHtml(party.nome)}</span></span>
+            ${isRight ? `<span class="jogo-mark">${CHECK_ICON}</span>` : isWrong ? `<span class="jogo-mark">${CROSS_ICON}</span>` : ''}
+          </button>`;
+      }).join('');
+      const feedback = !answer ? ''
+        : answer.correct ? `Certo! É ${escapeHtml(withArticle(question.party))}.`
+        : `${answer.choice == null ? 'Passaste' : 'Errado'}. Era ${escapeHtml(withArticle(question.party))}.`;
+
+      return `
+        <section class="jogo-view">
+          ${intro}
+          <div class="jogo-progress">
+            <span aria-live="polite" data-jogo-live>Pergunta ${jogo.current + 1}/${total}</span>
+            <span class="jogo-dots" aria-hidden="true">${jogo.questions.map((_, i) => {
+              const a = jogo.answers[i];
+              return `<i class="${a ? (a.correct ? 'is-right' : 'is-wrong') : i === jogo.current ? 'is-current' : ''}"></i>`;
+            }).join('')}</span>
+          </div>
+          <fieldset class="jogo-card">
+            <legend>Que partido defende esta proposta?</legend>
+            <p class="jogo-category">${escapeHtml(question.category.nome)}</p>
+            <blockquote class="jogo-topic">${withJargon(question.topic.texto)}</blockquote>
+            <div class="jogo-options">${options}</div>
+          </fieldset>
+          <p class="jogo-feedback ${answer ? (answer.correct ? 'is-right' : 'is-wrong') : ''}" aria-live="polite" data-jogo-live>${feedback}</p>
+          <div class="jogo-actions">
+            <button class="jogo-skip" type="button" data-action="jogo-skip" ${answer ? 'hidden' : ''}>Passar</button>
+            <button class="action-btn is-primary" type="button" data-action="jogo-next" id="jogo-next" ${answer ? '' : 'disabled'}>${last ? 'Ver resultado' : 'Seguinte'}</button>
+          </div>
+        </section>`;
+    }
+
+    /**
+     * Depois de redesenhar a vista: põe o foco onde a pessoa continua e faz os leitores de ecrã
+     * anunciarem o progresso e o «Certo!/Errado». Como o render() substitui o HTML, as regiões
+     * aria-live são novas; esvaziá-las e voltar a preenchê-las no frame seguinte é o que as faz falar.
+     */
+    function afterJogoRender() {
+      afterRender.push(() => {
+        const focusTarget = state.jogo.done ? $('#jogo-score')
+          : state.jogo.answers[state.jogo.current] ? $('#jogo-next')
+          : $('.jogo-option');
+        focusTarget?.focus({ preventScroll: true });
+        focusTarget?.scrollIntoView({ block: 'nearest' });
+        $$('#view [data-jogo-live]').forEach((el) => {
+          const text = el.textContent;
+          el.textContent = '';
+          requestAnimationFrame(() => { el.textContent = text; });
+        });
+      });
+    }
+
     /* ---------- Partilha e aviso (toast) ---------- */
     let toastTimer;
 
@@ -5203,7 +5586,7 @@
     }
 
     /** Copia o link da vista atual; sem acesso à API Clipboard, tenta o método antigo. */
-    async function shareLink() {
+    async function shareLink(message = 'Link copiado para a área de transferência!') {
       const url = window.location.href;
       try {
         await navigator.clipboard.writeText(url);
@@ -5218,7 +5601,7 @@
         area.remove();
         if (!ok) { toast('Não foi possível copiar o link.'); return; }
       }
-      toast('Link copiado para a área de transferência!');
+      toast(message);
     }
 
     const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
@@ -5263,6 +5646,8 @@
       $('.app').classList.toggle('is-home', state.view === 'partidos' && !state.partyId);
       // Ao entrar na Bússola baralham-se novas perguntas.
       if (state.view === 'bussola' && (lastView !== 'bussola' || !state.quizIds.length)) newQuizRound();
+      // Ao entrar no jogo começa uma ronda nova (também depois de acabar uma).
+      if (state.view === 'jogo' && (lastView !== 'jogo' || !state.jogo.questions.length)) newJogoRound();
       // Escolher partidos na coligação muda o endereço, mas não deve saltar para o topo.
       const keepScroll = state.view === 'coligacao' && lastView === 'coligacao';
       lastView = state.view;
@@ -5278,6 +5663,7 @@
       else if (state.view === 'matriz') view.innerHTML = renderMatrixView();
       else if (state.view === 'coligacao') view.innerHTML = renderCoalitionView();
       else if (state.view === 'meu-programa') view.innerHTML = renderMyProgramView();
+      else if (state.view === 'jogo') view.innerHTML = renderJogoView();
       else if (state.partyId) view.innerHTML = renderPartyView(getParty(state.partyId));
       else view.innerHTML = renderHome();
 
@@ -5438,6 +5824,7 @@
               <button class="home-action" type="button" data-view="duelo">Comparar dois partidos</button>
               <button class="home-action" type="button" data-view="coligacao">Construir uma coligação</button>
               <button class="home-action" type="button" data-view="matriz">Ver a matriz de consenso</button>
+              <button class="home-action" type="button" data-view="jogo">Jogar: quem disse isto?</button>
             </div>
           </div>
           <ul class="party-grid" aria-label="Partidos">${cards}</ul>
@@ -5673,6 +6060,7 @@
           else if (view === 'coligacao') navigate(coalitionHash(state.coalition));
           else if (view === 'matriz') navigate('#/matriz');
           else if (view === 'meu-programa') navigate('#/meu-programa');
+          else if (view === 'jogo') navigate('#/jogo');
           else navigate(state.partyId ? `#/partido/${state.partyId}/${state.tab}` : '#/');
         } else if (action === 'fav') {
           const { favParty, favCategory, favIdeia } = el.dataset;
@@ -5691,6 +6079,20 @@
           openRadarModal(getParty(state.partyId));
         } else if (action === 'sunburst') {
           openSunburstModal(getParty(state.partyId));
+        } else if (action === 'jogo-answer' || action === 'jogo-skip') {
+          answerJogo(action === 'jogo-skip' ? null : el.dataset.index);
+          afterJogoRender();
+          render();
+        } else if (action === 'jogo-next') {
+          nextJogo();
+          afterJogoRender();
+          render();
+        } else if (action === 'jogo-restart') {
+          newJogoRound();
+          afterJogoRender();
+          render();
+        } else if (action === 'jogo-share') {
+          shareLink('Link copiado! Partilha o teu resultado.');
         } else if (action === 'fav-clear') {
           clearFavorites(el);
         } else if (action === 'coalition-clear') {
